@@ -44,7 +44,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.lateFeeJobService = lateFeeJobService;
     }
 
-    @Scheduled(cron = "0 01 * * ?")
+    @Scheduled(cron = "0 01 * * * ?")
     public void generatePendingStatusJob() {
         this.pendingStatusChange();
     }
