@@ -32,7 +32,7 @@ public class TransactionsServiceImpl implements TransactionsService {
     }
 
     @Override
-    public List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(List<String> billTypes, List<String> status, Date time) {
+    public List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(List<String> billTypes, List<String> status, java.sql.Timestamp time) {
         return transactionsRepository.findAllByBillTypeAndStatusAndDueDateBefore(billTypes, status, time);
     }
 }

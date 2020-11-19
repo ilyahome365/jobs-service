@@ -8,5 +8,5 @@ import java.util.List;
 public interface TransactionsService {
     List<Transactions> saveAllTransactions(List<Transactions> transactions);
     List<Transactions> getTransactionsWithProjectedBalance(String cycleDate);
-    List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(List<String> billTypes, List<String> status, Date time);
+    List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(List<String> billTypes, List<String> status, java.sql.Timestamp time);
 }

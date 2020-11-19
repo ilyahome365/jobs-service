@@ -9,35 +9,38 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 @Slf4j
 @Service
 public class LateFeeJobServiceImpl implements LateFeeJobService {
 
-    private final boolean NOT_RUNNING = false;
-    private final boolean RUNNING = true;
-
     private final long feeAmount = 5;
 
     private final TransactionsService transactionsService;
-    private final AtomicBoolean isJobStarted;
+    private final ReentrantLock lock = new ReentrantLock();
 
     public LateFeeJobServiceImpl(TransactionsService transactionsService) {
-        this.isJobStarted = new AtomicBoolean(false);
         this.transactionsService = transactionsService;
     }
 
     @Override
     public boolean startLateFeeJob() {
         log.info("Try to Start Late Fee Job");
-        if (isJobStarted.compareAndSet(NOT_RUNNING, RUNNING)) {
-            log.info("Late Fee Job Started");
-            List<Transactions> candidateTransactionsWithNoLateFee = findTransactions();
-            long feeAmountPercentage = feeAmount / 100;
-            List<Transactions> lateFeeTransactions = createLateFeeTransactions(candidateTransactionsWithNoLateFee, feeAmountPercentage);
-            showSummary(lateFeeTransactions);
-            log.info("Late Fee Job Finished");
+        if (lock.tryLock()) {
+            try{
+                log.info("Late Fee Job Started");
+                List<Transactions> candidateTransactionsWithNoLateFee = findTransactions();
+                long feeAmountPercentage = feeAmount / 100;
+                List<Transactions> lateFeeTransactions = createLateFeeTransactions(candidateTransactionsWithNoLateFee, feeAmountPercentage);
+                showSummary(lateFeeTransactions);
+                log.info("Late Fee Job Finished");
+            }catch (Exception ex){
+                log.info(ex.getMessage());
+            }finally {
+                lock.unlock();
+            }
             return true;
         }
         log.info("Late Fee Job didn't Start -> Already Running");
@@ -53,7 +56,8 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
         List<String> status = Collections.singletonList("readyForPayment");
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.MONTH, -1);
-        return transactionsService.findAllByBillTypeAndStatusAndDueDateBefore(billTypes, status, calendar.getTime());
+        java.sql.Timestamp timestamp = new Timestamp(calendar.getTime().getTime());
+        return transactionsService.findAllByBillTypeAndStatusAndDueDateBefore(billTypes, status, timestamp);
     }
 
     private List<Transactions> createLateFeeTransactions(List<Transactions> candidateTransactionsWithNoLateFee, long feeAmountPercentage) {
