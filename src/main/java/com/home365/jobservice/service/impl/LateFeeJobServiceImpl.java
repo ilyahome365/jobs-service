@@ -80,8 +80,8 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
             feeTransaction.setBillType("lateFee");
 
             // TODO: ..
-            feeTransaction.setAccountingTypeId("C1F60A30-FC39-4840-AC99-427B5B82CCC2");
-            feeTransaction.setCategoryId("C1F60A30-FC39-4840-AC99-427B5B82CCC2");
+            feeTransaction.setAccountingTypeId("88F57CC4-0585-491F-80FA-92A7029AB949");
+            feeTransaction.setCategoryId("815DF1EC-79D5-E111-9280-001517D10F6E");
 
             feeTransaction.setChargeAccountId(transactions.getChargeAccountId());
             feeTransaction.setReceiveAccountId(transactions.getReceiveAccountId());
