@@ -11,14 +11,10 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 
 @Slf4j
 @Service
 public class LateFeeJobServiceImpl implements LateFeeJobService {
-    private final double feeAmount = 5;
-    private final int lateFeeRetro = -1;
-
     private final TransactionsService transactionsService;
     private final JobLogService jobLogService;
     private final ReentrantLock lock = new ReentrantLock();
@@ -39,9 +35,13 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
         if (lock.tryLock()) {
             try {
                 log.info("Late Fee Job Started");
+                int lateFeeRetro = -1;
+                double feeAmount = 5;
                 double feeAmountPercentage = feeAmount / 100;
-                List<Transactions> candidateTransactionsWithNoLateFee = findTransactions(lateFeeRetro);
-                List<Transactions> lateFeeTransactions = createLateFeeTransactions(candidateTransactionsWithNoLateFee, feeAmountPercentage);
+                List<String> billTypes = Collections.singletonList("Rent");
+                List<String> status = Collections.singletonList("readyForPayment");
+                List<Transactions> candidateTransactionsWithNoLateFee = findTransactions(lateFeeRetro, billTypes, status);
+                List<Transactions> lateFeeTransactions = createLateFeeTransactions(feeAmountPercentage, candidateTransactionsWithNoLateFee);
                 showSummary(lateFeeTransactions, jobLog);
                 log.info("Late Fee Job Finished");
             } catch (Exception ex) {
@@ -56,21 +56,21 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
 
         log.info("Late Fee Job didn't Start -> Already Running");
         jobLog.setStatus("didn't Start -> Already Running");
-//        jobLogService.saveJobLog(jobLog);
+        // TODO: jobLogService.saveJobLog(jobLog);
         return false;
     }
 
-    private List<Transactions> findTransactions(int lateFeeRetro) {
-        List<String> billTypes = Collections.singletonList("Rent");
-        List<String> status = Collections.singletonList("readyForPayment");
+    private List<Transactions> findTransactions(int lateFeeRetro,
+                                                List<String> billTypes,
+                                                List<String> status) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.MONTH, lateFeeRetro);
         java.sql.Timestamp timestamp = new Timestamp(calendar.getTime().getTime());
         return transactionsService.findAllByBillTypeAndStatusAndDueDateBefore(billTypes, status, timestamp);
     }
 
-    private List<Transactions> createLateFeeTransactions(List<Transactions> candidateTransactionsWithNoLateFee, double feeAmountPercentage) {
-
+    private List<Transactions> createLateFeeTransactions(double feeAmountPercentage,
+                                                         List<Transactions> candidateTransactionsWithNoLateFee) {
         List<Transactions> feeTransactions = new ArrayList<>();
         candidateTransactionsWithNoLateFee.forEach(transactions -> {
             String transactionId = transactions.getTransactionId();
@@ -85,7 +85,7 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
             feeTransactions.add(feeTransaction);
         });
 
-        // Save
+        // TODO: transactionsService.saveAllTransactions();
         return feeTransactions;
     }
 
@@ -94,19 +94,16 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(comment).append("\n");
         log.info(comment);
-        lateFeeTransactions.forEach(new Consumer<Transactions>() {
-            @Override
-            public void accept(Transactions transactions) {
-                String comment = String.format("Transaction: Id [%s], Amount [%d], Status [%s], Due Date [%s], Reference Transaction Id [%s]",
-                        transactions.getTransactionId(),
-                        transactions.getAmount(),
-                        transactions.getStatus(),
-                        transactions.getDueDate().toString(),
-                        transactions.getReferenceTransactionId()
-                );
-                log.info(comment);
-                stringBuilder.append(comment).append("\n");
-            }
+        lateFeeTransactions.forEach(transactions -> {
+            String comment1 = String.format("Transaction: Id [%s], Amount [%d], Status [%s], Due Date [%s], Reference Transaction Id [%s]",
+                    transactions.getTransactionId(),
+                    transactions.getAmount(),
+                    transactions.getStatus(),
+                    transactions.getDueDate().toString(),
+                    transactions.getReferenceTransactionId()
+            );
+            log.info(comment1);
+            stringBuilder.append(comment1).append("\n");
         });
         String comments = stringBuilder.toString();
         jobLog.setComments(comments);
