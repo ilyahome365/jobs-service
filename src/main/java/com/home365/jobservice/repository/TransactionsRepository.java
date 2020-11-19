@@ -11,14 +11,14 @@ import java.util.List;
 @Repository
 public interface TransactionsRepository extends JpaRepository<Transactions, String> {
     @Query(
-            value = "select (select SUM(projected_balance) as projected_balance\n" +
-                    "        from PROPERTY_BALANCE\n" +
-                    "        where account_id = t.ChargeAccountId)\n" +
+            value = "select (select SUM(projected_balance) as projected_balance " +
+                    "        from PROPERTY_BALANCE " +
+                    "        where account_id = t.ChargeAccountId) " +
                     "           projected_balance, t.*" +
-                    "FROM Transactions t \n" +
-                    "         inner join [dbo].[AccountExtensionBase] c_ace on t.ChargeAccountId = c_ace.AccountId\n" +
-                    "where c_ace.New_BusinessType = 8\n" +
-                    "  and t.Status = 'pendingDue'\n" +
+                    "FROM Transactions t " +
+                    "         inner join [dbo].[AccountExtensionBase] c_ace on t.ChargeAccountId = c_ace.AccountId " +
+                    "where c_ace.New_BusinessType = 8 " +
+                    "  and t.Status = 'pendingDue' " +
                     "  and convert(date, DueDate) <= :cycleDate",
             nativeQuery = true)
     List<Transactions> getTransactionsWithProjectedBalance(@Param("cycleDate") String cycleDate);

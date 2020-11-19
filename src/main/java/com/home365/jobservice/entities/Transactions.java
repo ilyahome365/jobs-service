@@ -78,8 +78,8 @@ public class Transactions implements Serializable {
             return INCOMES;
         }
     }
-    @Column(insertable = false, updatable = false)
-    private Double projected_balance;
+//    @Column(insertable = false, updatable = false)
+//    private Double projected_balance;
 
     @Override
     public String toString() {

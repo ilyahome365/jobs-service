@@ -44,7 +44,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.lateFeeJobService = lateFeeJobService;
     }
 
-    @Scheduled(cron = "0 01 * * * ?")
+//    @Scheduled(cron = "0 01 * * * ?")
     public void generatePendingStatusJob() {
         this.pendingStatusChange();
     }
@@ -112,7 +112,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         for (Transactions transaction : transactions) {
             try {
                 billBalance = billBalance + transaction.getAmount();
-                double projectedBalanceWithTrashHold = transaction.getProjected_balance() + appProperties.getTrashHold();
+                double projectedBalanceWithTrashHold = appProperties.getTrashHold();//TODO: + transaction.getProjected_balance();
                 log.info("transaction id {} with billBalance {}   and projected balance {}", transaction.getTransactionId(), billBalance, projectedBalanceWithTrashHold);
                 if (projectedBalanceWithTrashHold >= billBalance) {
                     log.info("Change transaction {} to readyForPayment", transaction.getTransactionId());
