@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface ApplicationService {
    List<Transactions> pendingStatusChange();
+
+    boolean startLateFeeJob();
 }

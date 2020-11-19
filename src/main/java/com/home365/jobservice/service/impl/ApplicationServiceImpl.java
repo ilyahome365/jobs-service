@@ -6,10 +6,7 @@ import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsLog;
 import com.home365.jobservice.entities.enums.TransactionType;
 import com.home365.jobservice.model.PendingStatusJobData;
-import com.home365.jobservice.service.ApplicationService;
-import com.home365.jobservice.service.JobLogService;
-import com.home365.jobservice.service.TransactionsLogService;
-import com.home365.jobservice.service.TransactionsService;
+import com.home365.jobservice.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -32,13 +29,19 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final TransactionsService transactionsService;
     private final JobLogService jobLogService;
     private final TransactionsLogService transactionsLogService;
+    private final LateFeeJobService lateFeeJobService;
 
 
-    public ApplicationServiceImpl(AppProperties appProperties, TransactionsService transactionsService, JobLogService jobLogService, TransactionsLogService transactionsLogService) {
+    public ApplicationServiceImpl(AppProperties appProperties,
+                                  TransactionsService transactionsService,
+                                  JobLogService jobLogService,
+                                  TransactionsLogService transactionsLogService,
+                                  LateFeeJobService lateFeeJobService) {
         this.appProperties = appProperties;
         this.transactionsService = transactionsService;
         this.jobLogService = jobLogService;
         this.transactionsLogService = transactionsLogService;
+        this.lateFeeJobService = lateFeeJobService;
     }
 
     @Scheduled(cron = "0 01 * * ?")
@@ -79,6 +82,11 @@ public class ApplicationServiceImpl implements ApplicationService {
         createJobLog(pendingStatusJobData, cycleDate);
 
         return failedTransactions;
+    }
+
+    @Override
+    public boolean startLateFeeJob() {
+        return lateFeeJobService.startLateFeeJob();
     }
 
     private void createJobLog(PendingStatusJobData pendingStatusJobData, String cycleDate) {

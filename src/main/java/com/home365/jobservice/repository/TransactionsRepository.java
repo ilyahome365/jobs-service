@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -23,5 +24,19 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
             nativeQuery = true)
     List<Transactions> getTransactionsWithProjectedBalance(@Param("cycleDate") String cycleDate);
 
-
+    @Query(
+            value = "SELECT * " +
+                    "FROM Transactions " +
+                    "WHERE BillType IN (:billTypes) AND Status IN (:status) AND DueDate < :dueDate " +
+                    "AND TransactionId NOT IN ( " +
+                    "   SELECT ReferenceTransactionId\n" +
+                    "   FROM Transactions\n" +
+                    "   WHERE BillType = 'lateFee' AND ReferenceTransactionId is not null" +
+                    ")",
+            nativeQuery = true)
+    List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(
+            @Param("billTypes") List<String> billTypes,
+            @Param("status") List<String> status,
+            @Param("dueDate") Date dueDate
+    );
 }

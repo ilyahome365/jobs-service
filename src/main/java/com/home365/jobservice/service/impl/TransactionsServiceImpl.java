@@ -6,6 +6,7 @@ import com.home365.jobservice.service.TransactionsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -28,6 +29,10 @@ public class TransactionsServiceImpl implements TransactionsService {
     public List<Transactions> getTransactionsWithProjectedBalance(String cycleDate) {
         log.info("Enter to get all transactions for cycle : {}", cycleDate);
         return transactionsRepository.getTransactionsWithProjectedBalance(cycleDate);
+    }
 
+    @Override
+    public List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(List<String> billTypes, List<String> status, Date time) {
+        return transactionsRepository.findAllByBillTypeAndStatusAndDueDateBefore(billTypes, status, time);
     }
 }

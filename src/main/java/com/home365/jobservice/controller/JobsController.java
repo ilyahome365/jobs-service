@@ -29,4 +29,9 @@ public class JobsController {
     public ResponseEntity<List<Transactions>> changeBillStates() {
         return ResponseEntity.ok(this.jobsService.pendingStatusChange());
     }
+
+    @GetMapping("/late-fee")
+    public ResponseEntity<Object> startLateFeeJob() {
+        return ResponseEntity.ok(jobsService.startLateFeeJob());
+    }
 }
