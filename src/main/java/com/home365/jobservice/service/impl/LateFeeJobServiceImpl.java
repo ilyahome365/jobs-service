@@ -56,7 +56,7 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
 
         log.info("Late Fee Job didn't Start -> Already Running");
         jobLog.setStatus("didn't Start -> Already Running");
-        // TODO: jobLogService.saveJobLog(jobLog);
+        jobLogService.saveJobLog(jobLog);
         return false;
     }
 
@@ -78,6 +78,15 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
 
             Transactions feeTransaction = new Transactions();
             feeTransaction.setBillType("lateFee");
+
+            // TODO: ..
+            feeTransaction.setAccountingTypeId("C1F60A30-FC39-4840-AC99-427B5B82CCC2");
+            feeTransaction.setCategoryId("C1F60A30-FC39-4840-AC99-427B5B82CCC2");
+
+            feeTransaction.setChargeAccountId(transactions.getChargeAccountId());
+            feeTransaction.setReceiveAccountId(transactions.getReceiveAccountId());
+            feeTransaction.setPmAccountId(transactions.getPmAccountId());
+            feeTransaction.setPropertyId(transactions.getPropertyId());
             feeTransaction.setAmount(feeAmount);
             feeTransaction.setStatus("readyForPayment");
             feeTransaction.setReferenceTransactionId(transactionId);
@@ -85,8 +94,7 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
             feeTransactions.add(feeTransaction);
         });
 
-        // TODO: transactionsService.saveAllTransactions();
-        return feeTransactions;
+        return transactionsService.saveAllTransactions(feeTransactions);
     }
 
     private void showSummary(List<Transactions> lateFeeTransactions, JobLog jobLog) {
