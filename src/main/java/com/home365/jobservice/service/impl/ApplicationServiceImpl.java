@@ -41,7 +41,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.transactionsLogService = transactionsLogService;
     }
 
-    @Scheduled(cron = "0 01 * * ?")
+    @Scheduled(cron = "0 01 * * * ?")
     public void generatePendingStatusJob() {
         this.pendingStatusChange();
     }
