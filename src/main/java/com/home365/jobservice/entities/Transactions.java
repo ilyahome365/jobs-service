@@ -9,11 +9,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
+import java.sql.Timestamp;
 import java.util.UUID;
-
-import static com.home365.jobservice.config.Constants.*;
 
 
 @Entity
@@ -23,18 +20,6 @@ import static com.home365.jobservice.config.Constants.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Transactions implements Serializable {
-
-    public static Set<String> expensesStatusSet = new HashSet<String>() {{
-        add("Paid");
-        add("paid");
-    }};
-
-    public static Set<String> approvedStatusSet = new HashSet<String>() {{
-        add("readyForPayment");
-        add("viliability");
-        add("paymentFailed");
-        add("pendingContribution");
-    }};
 
     @Id
     private String transactionId = UUID.randomUUID().toString();
@@ -50,10 +35,10 @@ public class Transactions implements Serializable {
     private String isDeductible;
     private String isRecurring;
     @Column(updatable = false, insertable = false)
-    private java.sql.Timestamp createdOn;
+    private Timestamp createdOn;
     @Column(updatable = false, insertable = false)
-    private java.sql.Timestamp date;
-    private java.sql.Timestamp dueDate;
+    private Timestamp date;
+    private Timestamp dueDate;
     private String referenceNumber;
     private String memo;
     private String accountingTypeId;
@@ -68,23 +53,10 @@ public class Transactions implements Serializable {
     private String transactionNumber;
     @Enumerated(value = EnumType.STRING)
     private OwnerDrawStatus ownerDrawStatus;
-
-    public String getTransactionType() {
-        if (expensesStatusSet.contains(status)) {
-            return EXPENSES;
-        } else if (approvedStatusSet.contains(status)) {
-            return APPROVED_BILLS;
-        } else {
-            return INCOMES;
-        }
-    }
-//    @Column(insertable = false, updatable = false)
-//    private Double projected_balance;
-
-    @Override
-    public String toString() {
-        return "Transactions{" +
-                "transactionId='" + transactionId + '\'' +
-                '}';
-    }
+    private String fileUrl;
+    private String discountDescription;
+    private String chargedBy;
+    private String payBy;
+    private String transactionType;
+    private String recurringTemplateId;
 }

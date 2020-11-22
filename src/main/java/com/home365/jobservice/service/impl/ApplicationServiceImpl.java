@@ -2,14 +2,16 @@ package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.JobLog;
+import com.home365.jobservice.entities.Recurring;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsLog;
 import com.home365.jobservice.entities.enums.TransactionType;
+import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.PendingStatusJobData;
 import com.home365.jobservice.service.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -30,21 +32,24 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final JobLogService jobLogService;
     private final TransactionsLogService transactionsLogService;
     private final LateFeeJobService lateFeeJobService;
+    private final RecurringService recurringService;
 
 
     public ApplicationServiceImpl(AppProperties appProperties,
                                   TransactionsService transactionsService,
                                   JobLogService jobLogService,
                                   TransactionsLogService transactionsLogService,
-                                  LateFeeJobService lateFeeJobService) {
+                                  LateFeeJobService lateFeeJobService,
+                                  RecurringService recurringService) {
         this.appProperties = appProperties;
         this.transactionsService = transactionsService;
         this.jobLogService = jobLogService;
         this.transactionsLogService = transactionsLogService;
         this.lateFeeJobService = lateFeeJobService;
+        this.recurringService = recurringService;
     }
 
-//    @Scheduled(cron = "0 01 * * * ?")
+    //    @Scheduled(cron = "0 01 * * * ?")
     public void generatePendingStatusJob() {
         this.pendingStatusChange();
     }
@@ -154,5 +159,10 @@ public class ApplicationServiceImpl implements ApplicationService {
         String year = String.valueOf(now.getYear());
         return year + "-" + month + "-" + dayOfNextCycle;
 
+    }
+
+    @Override
+    public JobExecutionResults createTransactionsForRecurringCharges() {
+        return recurringService.createTransactionsForRecurringCharges();
     }
 }

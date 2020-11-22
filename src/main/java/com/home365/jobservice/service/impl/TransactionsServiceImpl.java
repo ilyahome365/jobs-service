@@ -35,4 +35,9 @@ public class TransactionsServiceImpl implements TransactionsService {
     public List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(List<String> billTypes, List<String> status, java.sql.Timestamp time) {
         return transactionsRepository.findAllByBillTypeAndStatusAndDueDateBefore(billTypes, status, time);
     }
+
+    @Override
+    public List<Transactions> findByRecurringTemplateIdAndDueDateAfter(String recurringTemplateId, Date date) {
+        return transactionsRepository.findByRecurringTemplateIdAndDueDateAfter(recurringTemplateId, date);
+    }
 }

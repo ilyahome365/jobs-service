@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -38,4 +39,6 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
             @Param("status") List<String> status,
             @Param("dueDate") java.sql.Timestamp dueDate
     );
+
+    List<Transactions> findByRecurringTemplateIdAndDueDateAfter(String recurringTemplateId, Date date);
 }

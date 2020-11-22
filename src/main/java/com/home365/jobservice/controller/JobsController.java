@@ -1,6 +1,7 @@
 package com.home365.jobservice.controller;
 
 import com.home365.jobservice.entities.Transactions;
+import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.service.impl.ApplicationServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -35,5 +36,10 @@ public class JobsController {
     @GetMapping("/late-fee")
     public ResponseEntity<Object> startLateFeeJob() {
         return ResponseEntity.ok(jobsService.startLateFeeJob());
+    }
+
+    @GetMapping("/create-transactions-for-recurring-charges")
+    public ResponseEntity<JobExecutionResults> createTransactionsForRecurringCharges() {
+        return ResponseEntity.ok(jobsService.createTransactionsForRecurringCharges());
     }
 }
