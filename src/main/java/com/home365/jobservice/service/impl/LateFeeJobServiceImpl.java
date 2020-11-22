@@ -16,22 +16,15 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service
 public class LateFeeJobServiceImpl implements LateFeeJobService {
     private final TransactionsService transactionsService;
-    private final JobLogService jobLogService;
     private final ReentrantLock lock = new ReentrantLock();
 
-    public LateFeeJobServiceImpl(TransactionsService transactionsService,
-                                 JobLogService jobLogService) {
+    public LateFeeJobServiceImpl(TransactionsService transactionsService) {
         this.transactionsService = transactionsService;
-        this.jobLogService = jobLogService;
     }
 
     @Override
     public boolean startLateFeeJob() {
         log.info("Try to Start Late Fee Job");
-        JobLog jobLog = new JobLog();
-        jobLog.setDate(new Timestamp(new Date().getTime()));
-        jobLog.setJobName("Late Fee Job");
-
         if (lock.tryLock()) {
             try {
                 log.info("Late Fee Job Started");
@@ -42,21 +35,17 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
                 List<String> status = Collections.singletonList("readyForPayment");
                 List<Transactions> candidateTransactionsWithNoLateFee = findTransactions(lateFeeRetro, billTypes, status);
                 List<Transactions> lateFeeTransactions = createLateFeeTransactions(feeAmountPercentage, candidateTransactionsWithNoLateFee);
-                showSummary(lateFeeTransactions, jobLog);
-                log.info("Late Fee Job Finished");
+                showSummary(lateFeeTransactions);
             } catch (Exception ex) {
                 log.info(ex.getMessage());
-                jobLog.setComments("Exception: " + ex.getMessage());
             } finally {
                 lock.unlock();
             }
-            jobLog.setStatus("Finished");
+            log.info("Late Fee Job Finished");
             return true;
         }
 
         log.info("Late Fee Job didn't Start -> Already Running");
-        jobLog.setStatus("didn't Start -> Already Running");
-        jobLogService.saveJobLog(jobLog);
         return false;
     }
 
@@ -94,7 +83,7 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
         return transactionsService.saveAllTransactions(feeTransactions);
     }
 
-    private void showSummary(List<Transactions> lateFeeTransactions, JobLog jobLog) {
+    private void showSummary(List<Transactions> lateFeeTransactions) {
         String comment = "Fee Transactions Created Summary: ";
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(comment).append("\n");
@@ -111,6 +100,5 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
             stringBuilder.append(comment1).append("\n");
         });
         String comments = stringBuilder.toString();
-        jobLog.setComments(comments);
     }
 }

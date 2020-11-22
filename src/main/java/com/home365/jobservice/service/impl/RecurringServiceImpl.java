@@ -1,20 +1,17 @@
 package com.home365.jobservice.service.impl;
 
+import com.home365.jobservice.entities.RecurrentPropertyTenantProjection;
 import com.home365.jobservice.entities.Recurring;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.repository.RecurringRepository;
 import com.home365.jobservice.service.RecurringService;
 import com.home365.jobservice.service.TransactionsService;
-import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class RecurringServiceImpl implements RecurringService {
@@ -30,6 +27,16 @@ public class RecurringServiceImpl implements RecurringService {
     @Override
     public List<Recurring> findByActive(boolean isActive) {
         return recurringRepository.findByActive(true);
+    }
+
+    @Override
+    public Optional<Recurring> findById(String recurringId) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Recurring save(Recurring recurring) {
+        return null;
     }
 
     @Override
@@ -66,5 +73,15 @@ public class RecurringServiceImpl implements RecurringService {
         });
 
         return JobExecutionResults.builder().build();
+    }
+
+    @Override
+    public List<Recurring> findAllForLeaseNotification(Date startDate, Date endDate) {
+        return recurringRepository.findAllForLeaseNotification(startDate, endDate);
+    }
+
+    @Override
+    public List<RecurrentPropertyTenantProjection> getRecurrentPropertyAndTenantByRecurringIds(List<String> recurringIds) {
+        return recurringRepository.getRecurrentPropertyAndTenantByRecurringIds(recurringIds);
     }
 }

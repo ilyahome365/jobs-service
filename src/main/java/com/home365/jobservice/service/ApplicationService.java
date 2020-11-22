@@ -11,4 +11,6 @@ public interface ApplicationService {
     boolean startLateFeeJob();
 
     JobExecutionResults createTransactionsForRecurringCharges();
+
+    boolean startLeaseRecurringNotification();
 }

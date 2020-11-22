@@ -32,6 +32,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final JobLogService jobLogService;
     private final TransactionsLogService transactionsLogService;
     private final LateFeeJobService lateFeeJobService;
+    private final LeaseRecurringNotificationService leaseRecurringNotificationService;
     private final RecurringService recurringService;
 
 
@@ -39,14 +40,16 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   TransactionsService transactionsService,
                                   JobLogService jobLogService,
                                   TransactionsLogService transactionsLogService,
+                                  RecurringService recurringService,
                                   LateFeeJobService lateFeeJobService,
-                                  RecurringService recurringService) {
+                                  LeaseRecurringNotificationService leaseRecurringNotificationService) {
         this.appProperties = appProperties;
         this.transactionsService = transactionsService;
         this.jobLogService = jobLogService;
         this.transactionsLogService = transactionsLogService;
         this.lateFeeJobService = lateFeeJobService;
         this.recurringService = recurringService;
+        this.leaseRecurringNotificationService = leaseRecurringNotificationService;
     }
 
     //    @Scheduled(cron = "0 01 * * * ?")
@@ -92,6 +95,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public boolean startLateFeeJob() {
         return lateFeeJobService.startLateFeeJob();
+    }
+
+    @Override
+    public boolean startLeaseRecurringNotification() {
+        return leaseRecurringNotificationService.startLeaseRecurringNotification();
     }
 
     private void createJobLog(PendingStatusJobData pendingStatusJobData, String cycleDate) {
