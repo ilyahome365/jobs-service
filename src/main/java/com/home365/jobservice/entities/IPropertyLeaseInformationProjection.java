@@ -1,8 +1,11 @@
 package com.home365.jobservice.entities;
 
-public interface IRecurrentPropertyTenantProjection {
-    String getRecurrentId();
+import java.util.Date;
+
+public interface IPropertyLeaseInformationProjection {
     String getPropertyName();
+
     String getTenantName();
 
+    Date getEndDate();
 }

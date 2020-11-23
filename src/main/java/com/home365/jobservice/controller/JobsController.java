@@ -43,8 +43,8 @@ public class JobsController {
         return ResponseEntity.ok(jobsService.createTransactionsForRecurringCharges());
     }
 
-    @GetMapping("/lease-recurring-notification")
-    public ResponseEntity<Object> startLeaseRecurringNotification() {
-        return ResponseEntity.ok(jobsService.startLeaseRecurringNotification());
+    @GetMapping("/lease-property-notification")
+    public ResponseEntity<Object> startLeasePropertyNotification() {
+        return ResponseEntity.ok(jobsService.startLeasePropertyNotification());
     }
 }

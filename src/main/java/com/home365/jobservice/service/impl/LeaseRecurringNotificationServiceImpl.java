@@ -1,11 +1,10 @@
 package com.home365.jobservice.service.impl;
 
+import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.entities.JobLog;
-import com.home365.jobservice.entities.IRecurrentPropertyTenantProjection;
-import com.home365.jobservice.entities.Recurring;
 import com.home365.jobservice.service.JobLogService;
 import com.home365.jobservice.service.LeaseRecurringNotificationService;
-import com.home365.jobservice.service.RecurringService;
+import com.home365.jobservice.service.PropertyService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,11 +13,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -26,20 +25,17 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
 
     private final ReentrantLock lock = new ReentrantLock();
     private final JobLogService jobLogService;
-    private final RecurringService recurringService;
+    private final PropertyService propertyService;
 
     public LeaseRecurringNotificationServiceImpl(JobLogService jobLogService,
-                                                 RecurringService recurringService) {
+                                                 PropertyService propertyService) {
         this.jobLogService = jobLogService;
-        this.recurringService = recurringService;
+        this.propertyService = propertyService;
     }
 
     @Override
-    public boolean startLeaseRecurringNotification() {
+    public boolean startLeasePropertyNotification() {
         log.info("Try to Start Lease Recurring Notification Job");
-        JobLog jobLog = new JobLog();
-        jobLog.setDate(new Timestamp(new Date().getTime()));
-        jobLog.setJobName("Lease Recurring Notification Job");
         if (lock.tryLock()) {
             try {
                 log.info("Lease Recurring Notification Job Started");
@@ -48,64 +44,48 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
                 Calendar futureCalendar = Calendar.getInstance();
                 futureCalendar.add(Calendar.DAY_OF_WEEK, 60);
 
-                List<Recurring> leaseRecurring = getRecurring(currentCalendar, futureCalendar);
-                List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries = createLeaseExpiryPropertySummary(currentCalendar, leaseRecurring);
+                List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries = getPropertyExtension(currentCalendar, futureCalendar);
                 sendMail(leaseExpiryPropertySummaries);
-                showSummary(leaseExpiryPropertySummaries, jobLog);
+                showSummary(leaseExpiryPropertySummaries);
             } catch (Exception ex) {
                 log.info(ex.getMessage());
-                jobLog.setComments("Exception: " + ex.getMessage());
             } finally {
                 lock.unlock();
             }
             log.info("Lease Recurring Notification Job Finished");
-            jobLog.setStatus("Finished");
             return true;
         }
         log.info("Lease Recurring Notification Job didn't Start -> Already Running");
-        jobLog.setStatus("didn't Start -> Already Running");
-        jobLogService.saveJobLog(jobLog);
         return false;
     }
 
-    private List<Recurring> getRecurring(Calendar currentCalendar, Calendar futureCalendar) {
-        log.info(String.format("Get Lease Recurring From Today: [%s] To: [%s]",
+    private List<LeaseExpiryPropertySummary> getPropertyExtension(Calendar currentCalendar, Calendar futureCalendar) {
+        log.info(String.format("Get Lease Property From Today: [%s] To: [%s]",
                 currentCalendar.getTime().toString(),
                 futureCalendar.getTime().toString())
         );
-        return recurringService.findAllForLeaseNotification(currentCalendar.getTime(), futureCalendar.getTime());
-    }
 
-    private List<LeaseExpiryPropertySummary> createLeaseExpiryPropertySummary(Calendar currentCalendar,
-                                                                              List<Recurring> leaseRecurring) {
+        List<IPropertyLeaseInformationProjection> propertyLeaseInformationProjections = propertyService.findAllForLeaseNotification(
+                currentCalendar.getTime(),
+                futureCalendar.getTime()
+        );
+
         log.info("Create Lease Expiry Property Summary");
         List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries = new ArrayList<>();
-        Map<String, IRecurrentPropertyTenantProjection> recurrentPropertyAndTenant = getRecurrentPropertyAndTenant(leaseRecurring);
-        leaseRecurring.stream()
-                .filter(recurring -> recurrentPropertyAndTenant.containsKey(recurring.getId()))
-                .forEach(recurring -> {
-                    IRecurrentPropertyTenantProjection found = recurrentPropertyAndTenant.get(recurring.getId());
-                    if (found != null) {
+        propertyLeaseInformationProjections
+                .forEach(property -> {
+                    try {
                         LeaseExpiryPropertySummary leaseExpiryPropertySummary = new LeaseExpiryPropertySummary();
-                        leaseExpiryPropertySummary.setProperty(found.getPropertyName());
-                        leaseExpiryPropertySummary.setTenant(found.getTenantName());
-                        leaseExpiryPropertySummary.setDaysLeft(getTimeDiff(currentCalendar, recurring.getDueDate()));
-                        leaseExpiryPropertySummary.setExpiredDate(recurring.getDueDate());
+                        leaseExpiryPropertySummary.setProperty(property.getPropertyName());
+                        leaseExpiryPropertySummary.setTenant(property.getTenantName());
+                        leaseExpiryPropertySummary.setDaysLeft(getTimeDiff(currentCalendar, property.getEndDate()));
+                        leaseExpiryPropertySummary.setExpiredDate(property.getEndDate());
                         leaseExpiryPropertySummaries.add(leaseExpiryPropertySummary);
+                    } catch (Exception ex) {
+                        log.warn(ex.getMessage());
                     }
                 });
         return leaseExpiryPropertySummaries;
-    }
-
-    private Map<String, IRecurrentPropertyTenantProjection> getRecurrentPropertyAndTenant(List<Recurring> leaseRecurring) {
-        List<String> recurringIds = leaseRecurring.stream().map(Recurring::getId).collect(Collectors.toList());
-        List<IRecurrentPropertyTenantProjection> recurrentPropertyAndTenant = recurringService.getRecurrentPropertyAndTenantByRecurringIds(recurringIds);
-        return recurrentPropertyAndTenant
-                .stream()
-                .collect(Collectors.toMap(
-                        IRecurrentPropertyTenantProjection::getRecurrentId,
-                        recurrentPropertyTenantProjection -> recurrentPropertyTenantProjection)
-                );
     }
 
     private long getTimeDiff(Calendar currentCalendar, Date dueDate) {
@@ -119,7 +99,7 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
 
     }
 
-    private void showSummary(List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries, JobLog jobLog) {
+    private void showSummary(List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries) {
         leaseExpiryPropertySummaries.forEach(new Consumer<LeaseExpiryPropertySummary>() {
             @Override
             public void accept(LeaseExpiryPropertySummary leaseExpiryPropertySummary) {

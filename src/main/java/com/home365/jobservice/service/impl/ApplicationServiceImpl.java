@@ -98,8 +98,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public boolean startLeaseRecurringNotification() {
-        return leaseRecurringNotificationService.startLeaseRecurringNotification();
+    public boolean startLeasePropertyNotification() {
+        return leaseRecurringNotificationService.startLeasePropertyNotification();
     }
 
     private void createJobLog(PendingStatusJobData pendingStatusJobData, String cycleDate) {

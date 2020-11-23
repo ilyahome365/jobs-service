@@ -1,6 +1,6 @@
 package com.home365.jobservice.service.impl;
 
-import com.home365.jobservice.entities.IRecurrentPropertyTenantProjection;
+import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.entities.Recurring;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.model.JobExecutionResults;
@@ -81,7 +81,7 @@ public class RecurringServiceImpl implements RecurringService {
     }
 
     @Override
-    public List<IRecurrentPropertyTenantProjection> getRecurrentPropertyAndTenantByRecurringIds(List<String> recurringIds) {
+    public List<IPropertyLeaseInformationProjection> getRecurrentPropertyAndTenantByRecurringIds(List<String> recurringIds) {
         return recurringRepository.getRecurrentPropertyAndTenantByRecurringIds(recurringIds);
     }
 }

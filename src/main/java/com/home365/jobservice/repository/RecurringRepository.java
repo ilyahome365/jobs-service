@@ -1,6 +1,6 @@
 package com.home365.jobservice.repository;
 
-import com.home365.jobservice.entities.IRecurrentPropertyTenantProjection;
+import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.entities.Recurring;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -35,5 +35,5 @@ public interface RecurringRepository extends JpaRepository<Recurring, String> {
             "  and pte.New_PropertyUserType = 1 " +
             "  and cab.statuscode = 1 " +
             "  and a.New_BusinessType = 10 ", nativeQuery = true)
-    List<IRecurrentPropertyTenantProjection> getRecurrentPropertyAndTenantByRecurringIds(@Param("recurrentIds") List<String> recurringIds);
+    List<IPropertyLeaseInformationProjection> getRecurrentPropertyAndTenantByRecurringIds(@Param("recurrentIds") List<String> recurringIds);
 }
