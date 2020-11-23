@@ -1,8 +1,8 @@
 package com.home365.jobservice.service.impl;
 
-import com.home365.jobservice.entities.JobLog;
 import com.home365.jobservice.entities.Transactions;
-import com.home365.jobservice.service.JobLogService;
+import com.home365.jobservice.model.LateFeeConfiguration;
+import com.home365.jobservice.service.JobsConfigurationService;
 import com.home365.jobservice.service.LateFeeJobService;
 import com.home365.jobservice.service.TransactionsService;
 import lombok.extern.slf4j.Slf4j;
@@ -15,10 +15,13 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 @Service
 public class LateFeeJobServiceImpl implements LateFeeJobService {
+    private final JobsConfigurationService jobsConfigurationService;
     private final TransactionsService transactionsService;
     private final ReentrantLock lock = new ReentrantLock();
 
-    public LateFeeJobServiceImpl(TransactionsService transactionsService) {
+    public LateFeeJobServiceImpl(JobsConfigurationService jobsConfigurationService,
+                                 TransactionsService transactionsService) {
+        this.jobsConfigurationService = jobsConfigurationService;
         this.transactionsService = transactionsService;
     }
 
@@ -27,14 +30,16 @@ public class LateFeeJobServiceImpl implements LateFeeJobService {
         log.info("Try to Start Late Fee Job");
         if (lock.tryLock()) {
             try {
+                LateFeeConfiguration lateFeeConfiguration = jobsConfigurationService.getLateFeeConfiguration();
                 log.info("Late Fee Job Started");
-                int lateFeeRetro = -1;
-                double feeAmount = 5;
-                double feeAmountPercentage = feeAmount / 100;
                 List<String> billTypes = Collections.singletonList("Rent");
                 List<String> status = Collections.singletonList("readyForPayment");
-                List<Transactions> candidateTransactionsWithNoLateFee = findTransactions(lateFeeRetro, billTypes, status);
-                List<Transactions> lateFeeTransactions = createLateFeeTransactions(feeAmountPercentage, candidateTransactionsWithNoLateFee);
+                List<Transactions> candidateTransactionsWithNoLateFee = findTransactions(
+                        lateFeeConfiguration.getLateFeeRetro(),
+                        billTypes,
+                        status
+                );
+                List<Transactions> lateFeeTransactions = createLateFeeTransactions(lateFeeConfiguration.getFeeAmountPercentage(), candidateTransactionsWithNoLateFee);
                 showSummary(lateFeeTransactions);
             } catch (Exception ex) {
                 log.info(ex.getMessage());
