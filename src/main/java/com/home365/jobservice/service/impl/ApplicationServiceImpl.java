@@ -2,7 +2,6 @@ package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.JobLog;
-import com.home365.jobservice.entities.Recurring;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsLog;
 import com.home365.jobservice.entities.enums.TransactionType;
@@ -11,7 +10,6 @@ import com.home365.jobservice.model.PendingStatusJobData;
 import com.home365.jobservice.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -32,7 +30,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final JobLogService jobLogService;
     private final TransactionsLogService transactionsLogService;
     private final LateFeeJobService lateFeeJobService;
-    private final LeaseRecurringNotificationService leaseRecurringNotificationService;
+    private final LeasePropertyNotificationService leaseRecurringNotificationService;
     private final RecurringService recurringService;
 
 
@@ -42,7 +40,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   TransactionsLogService transactionsLogService,
                                   RecurringService recurringService,
                                   LateFeeJobService lateFeeJobService,
-                                  LeaseRecurringNotificationService leaseRecurringNotificationService) {
+                                  LeasePropertyNotificationService leaseRecurringNotificationService) {
         this.appProperties = appProperties;
         this.transactionsService = transactionsService;
         this.jobLogService = jobLogService;

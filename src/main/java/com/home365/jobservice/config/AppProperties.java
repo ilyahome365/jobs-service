@@ -11,4 +11,6 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class AppProperties {
     private Long trashHold;
+    private String mandrillApiKey;
+    private String mailSupport;
 }

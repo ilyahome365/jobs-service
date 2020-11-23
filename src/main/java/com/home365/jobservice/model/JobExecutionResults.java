@@ -12,6 +12,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Builder
 public class JobExecutionResults implements Serializable {
-
-    String message;
+    private boolean isSucceeded;
+    private String message;
+    private String error;
+    private String stackTrace;
 }

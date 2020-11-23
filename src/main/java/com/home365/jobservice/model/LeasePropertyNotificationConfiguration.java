@@ -10,5 +10,8 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LeasePropertyNotificationConfiguration {
-    private int amount = 60;
+    private int days = 60;
+    private String emailTemplateName = "notification-lease-expiry-date";
+    private String toMail = "shlomo@home365.co";
+    private String toName = "Shlomo";
 }

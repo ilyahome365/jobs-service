@@ -1,38 +1,46 @@
 package com.home365.jobservice.service.impl;
 
+import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.model.LeasePropertyNotificationConfiguration;
+import com.home365.jobservice.model.RecipientMail;
+import com.home365.jobservice.model.mail.MailDetails;
 import com.home365.jobservice.service.JobsConfigurationService;
-import com.home365.jobservice.service.LeaseRecurringNotificationService;
+import com.home365.jobservice.service.LeasePropertyNotificationService;
+import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.service.PropertyService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 @Slf4j
 @Service
-public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNotificationService {
+public class LeaseRecurringNotificationServiceImpl implements LeasePropertyNotificationService {
 
     private final ReentrantLock lock = new ReentrantLock();
+    private final AppProperties appProperties;
     private final PropertyService propertyService;
     private final JobsConfigurationService jobsConfigurationService;
+    private final MailService mailService;
 
-    public LeaseRecurringNotificationServiceImpl(PropertyService propertyService,
-                                                 JobsConfigurationService jobsConfigurationService) {
+    public LeaseRecurringNotificationServiceImpl(AppProperties appProperties,
+                                                 PropertyService propertyService,
+                                                 JobsConfigurationService jobsConfigurationService,
+                                                 MailService mailService) {
+        this.appProperties = appProperties;
         this.propertyService = propertyService;
         this.jobsConfigurationService = jobsConfigurationService;
+        this.mailService = mailService;
     }
 
     @Override
@@ -44,12 +52,11 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
                 Calendar currentCalendar = Calendar.getInstance();
 
                 LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration = jobsConfigurationService.getLeasePropertyNotificationConfiguration();
-
-                Calendar futureCalendar = Calendar.getInstance();
-                futureCalendar.add(Calendar.DAY_OF_WEEK, leasePropertyNotificationConfiguration.getAmount());
-
-                List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries = getPropertyExtension(currentCalendar, futureCalendar);
-                sendMail(leaseExpiryPropertySummaries);
+                List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries = getPropertyExtension(
+                        currentCalendar,
+                        leasePropertyNotificationConfiguration
+                );
+                sendMail(leasePropertyNotificationConfiguration, leaseExpiryPropertySummaries);
                 showSummary(leaseExpiryPropertySummaries);
             } catch (Exception ex) {
                 log.info(ex.getMessage());
@@ -63,7 +70,11 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
         return false;
     }
 
-    private List<LeaseExpiryPropertySummary> getPropertyExtension(Calendar currentCalendar, Calendar futureCalendar) {
+    private List<LeaseExpiryPropertySummary> getPropertyExtension(Calendar currentCalendar,
+                                                                  LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration) {
+        Calendar futureCalendar = Calendar.getInstance();
+        futureCalendar.add(Calendar.DAY_OF_WEEK, leasePropertyNotificationConfiguration.getDays());
+
         log.info(String.format("Get Lease Property From Today: [%s] To: [%s]",
                 currentCalendar.getTime().toString(),
                 futureCalendar.getTime().toString())
@@ -100,8 +111,54 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
         return TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
     }
 
-    private void sendMail(List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries) {
+    private void sendMail(LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration,
+                          List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries) {
+        MailDetails mailDetails = new MailDetails();
+        mailDetails.setFrom(appProperties.getMailSupport());
+        mailDetails.setSubject("Lease expiry");
+        mailDetails.setTemplateName(leasePropertyNotificationConfiguration.getEmailTemplateName());
+        mailDetails.setContentTemplate(getContentTemplate(leasePropertyNotificationConfiguration, leaseExpiryPropertySummaries));
+        mailDetails.setRecipients(Collections.singletonList(new RecipientMail(
+                leasePropertyNotificationConfiguration.getToName(),
+                leasePropertyNotificationConfiguration.getToMail()
+        )));
+        mailService.sendMail(mailDetails);
+    }
 
+    private Map<String, String> getContentTemplate(LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration,
+                                                   List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries) {
+        Map<String, String> contentTemplate = new HashMap<>();
+        contentTemplate.put("DAYS", String.valueOf(leasePropertyNotificationConfiguration.getDays()));
+
+
+        String html = createHTMLTable(leaseExpiryPropertySummaries);
+
+
+        contentTemplate.put("TABLE", html);
+        return contentTemplate;
+    }
+
+    private String createHTMLTable(List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries) {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<table style=\"width:100%\">")
+                .append("<tr>")
+                .append("<th>PROPERTY</th>")
+                .append("<th>TENANT</th>")
+                .append("<th>DAYS</th>")
+                .append("<th>EXP</th>")
+                .append("<tr>");
+        ListUtils.emptyIfNull(leaseExpiryPropertySummaries).forEach(leaseExpiryPropertySummary -> {
+            stringBuilder
+                    .append("<tr>")
+                    .append("<td>").append(leaseExpiryPropertySummary.getProperty()).append("<td>")
+                    .append("<td>").append(leaseExpiryPropertySummary.getTenant()).append("<td>")
+                    .append("<td>").append(leaseExpiryPropertySummary.getDaysLeft()).append("<td>")
+                    .append("<td>").append(leaseExpiryPropertySummary.getExpiredDate()).append("<td>")
+                    .append("</tr>");
+        });
+        stringBuilder.append("</table>");
+        return stringBuilder.toString();
     }
 
     private void showSummary(List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries) {
