@@ -12,6 +12,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -75,6 +76,7 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
 
         log.info("Create Lease Expiry Property Summary");
         List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries = new ArrayList<>();
+        SimpleDateFormat formatter = new SimpleDateFormat("MMMM dd, yyyy");
         propertyLeaseInformationProjections
                 .forEach(property -> {
                     try {
@@ -82,7 +84,7 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
                         leaseExpiryPropertySummary.setProperty(property.getPropertyName());
                         leaseExpiryPropertySummary.setTenant(property.getTenantName());
                         leaseExpiryPropertySummary.setDaysLeft(getTimeDiff(currentCalendar, property.getEndDate()));
-                        leaseExpiryPropertySummary.setExpiredDate(property.getEndDate());
+                        leaseExpiryPropertySummary.setExpiredDate(formatter.format(property.getEndDate()));
                         leaseExpiryPropertySummaries.add(leaseExpiryPropertySummary);
                     } catch (Exception ex) {
                         log.warn(ex.getMessage());
@@ -119,6 +121,6 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
         private String property;
         private String tenant;
         private long daysLeft;
-        private Date expiredDate;
+        private String expiredDate;
     }
 }
