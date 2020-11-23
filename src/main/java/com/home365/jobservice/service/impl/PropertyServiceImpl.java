@@ -1,7 +1,8 @@
-package com.home365.jobservice.service;
+package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.repository.PropertyRepository;
+import com.home365.jobservice.service.PropertyService;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
