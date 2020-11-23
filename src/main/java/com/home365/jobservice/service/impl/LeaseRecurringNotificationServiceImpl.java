@@ -1,6 +1,8 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
+import com.home365.jobservice.model.LeasePropertyNotificationConfiguration;
+import com.home365.jobservice.service.JobsConfigurationService;
 import com.home365.jobservice.service.LeaseRecurringNotificationService;
 import com.home365.jobservice.service.PropertyService;
 import lombok.AllArgsConstructor;
@@ -24,9 +26,12 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
 
     private final ReentrantLock lock = new ReentrantLock();
     private final PropertyService propertyService;
+    private final JobsConfigurationService jobsConfigurationService;
 
-    public LeaseRecurringNotificationServiceImpl(PropertyService propertyService) {
+    public LeaseRecurringNotificationServiceImpl(PropertyService propertyService,
+                                                 JobsConfigurationService jobsConfigurationService) {
         this.propertyService = propertyService;
+        this.jobsConfigurationService = jobsConfigurationService;
     }
 
     @Override
@@ -37,8 +42,10 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
                 log.info("Lease Property Notification Job Started");
                 Calendar currentCalendar = Calendar.getInstance();
 
+                LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration = jobsConfigurationService.getLeasePropertyNotificationConfiguration();
+
                 Calendar futureCalendar = Calendar.getInstance();
-                futureCalendar.add(Calendar.DAY_OF_WEEK, 60);
+                futureCalendar.add(Calendar.DAY_OF_WEEK, leasePropertyNotificationConfiguration.getAmount());
 
                 List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries = getPropertyExtension(currentCalendar, futureCalendar);
                 sendMail(leaseExpiryPropertySummaries);
