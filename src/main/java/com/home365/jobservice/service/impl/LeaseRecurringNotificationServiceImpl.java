@@ -1,8 +1,6 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
-import com.home365.jobservice.entities.JobLog;
-import com.home365.jobservice.service.JobLogService;
 import com.home365.jobservice.service.LeaseRecurringNotificationService;
 import com.home365.jobservice.service.PropertyService;
 import lombok.AllArgsConstructor;
@@ -12,9 +10,10 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -24,21 +23,18 @@ import java.util.function.Consumer;
 public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNotificationService {
 
     private final ReentrantLock lock = new ReentrantLock();
-    private final JobLogService jobLogService;
     private final PropertyService propertyService;
 
-    public LeaseRecurringNotificationServiceImpl(JobLogService jobLogService,
-                                                 PropertyService propertyService) {
-        this.jobLogService = jobLogService;
+    public LeaseRecurringNotificationServiceImpl(PropertyService propertyService) {
         this.propertyService = propertyService;
     }
 
     @Override
     public boolean startLeasePropertyNotification() {
-        log.info("Try to Start Lease Recurring Notification Job");
+        log.info("Try to Start Lease Property Notification Job");
         if (lock.tryLock()) {
             try {
-                log.info("Lease Recurring Notification Job Started");
+                log.info("Lease Property Notification Job Started");
                 Calendar currentCalendar = Calendar.getInstance();
 
                 Calendar futureCalendar = Calendar.getInstance();
@@ -52,10 +48,10 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
             } finally {
                 lock.unlock();
             }
-            log.info("Lease Recurring Notification Job Finished");
+            log.info("Lease Property Notification Job Finished");
             return true;
         }
-        log.info("Lease Recurring Notification Job didn't Start -> Already Running");
+        log.info("Lease Property Notification Job didn't Start -> Already Running");
         return false;
     }
 
