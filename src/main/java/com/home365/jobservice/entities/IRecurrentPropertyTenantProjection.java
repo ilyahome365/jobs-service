@@ -1,7 +1,8 @@
 package com.home365.jobservice.entities;
 
-public interface RecurrentPropertyTenantProjection {
+public interface IRecurrentPropertyTenantProjection {
     String getRecurrentId();
     String getPropertyName();
     String getTenantName();
+
 }

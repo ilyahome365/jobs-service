@@ -1,6 +1,6 @@
 package com.home365.jobservice.service;
 
-import com.home365.jobservice.entities.RecurrentPropertyTenantProjection;
+import com.home365.jobservice.entities.IRecurrentPropertyTenantProjection;
 import com.home365.jobservice.entities.Recurring;
 import com.home365.jobservice.model.JobExecutionResults;
 
@@ -19,5 +19,5 @@ public interface RecurringService {
 
     List<Recurring> findAllForLeaseNotification(Date startDate, Date endDate);
 
-    List<RecurrentPropertyTenantProjection> getRecurrentPropertyAndTenantByRecurringIds(List<String> recurringIds);
+    List<IRecurrentPropertyTenantProjection> getRecurrentPropertyAndTenantByRecurringIds(List<String> recurringIds);
 }

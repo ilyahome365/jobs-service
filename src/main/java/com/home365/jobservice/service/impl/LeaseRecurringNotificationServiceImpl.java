@@ -1,7 +1,7 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.entities.JobLog;
-import com.home365.jobservice.entities.RecurrentPropertyTenantProjection;
+import com.home365.jobservice.entities.IRecurrentPropertyTenantProjection;
 import com.home365.jobservice.entities.Recurring;
 import com.home365.jobservice.service.JobLogService;
 import com.home365.jobservice.service.LeaseRecurringNotificationService;
@@ -14,8 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -80,11 +80,11 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
                                                                               List<Recurring> leaseRecurring) {
         log.info("Create Lease Expiry Property Summary");
         List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries = new ArrayList<>();
-        Map<String, RecurrentPropertyTenantProjection> recurrentPropertyAndTenant = getRecurrentPropertyAndTenant(leaseRecurring);
+        Map<String, IRecurrentPropertyTenantProjection> recurrentPropertyAndTenant = getRecurrentPropertyAndTenant(leaseRecurring);
         leaseRecurring.stream()
                 .filter(recurring -> recurrentPropertyAndTenant.containsKey(recurring.getId()))
                 .forEach(recurring -> {
-                    RecurrentPropertyTenantProjection found = recurrentPropertyAndTenant.get(recurring.getId());
+                    IRecurrentPropertyTenantProjection found = recurrentPropertyAndTenant.get(recurring.getId());
                     if (found != null) {
                         LeaseExpiryPropertySummary leaseExpiryPropertySummary = new LeaseExpiryPropertySummary();
                         leaseExpiryPropertySummary.setProperty(found.getPropertyName());
@@ -97,19 +97,22 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
         return leaseExpiryPropertySummaries;
     }
 
-    private Map<String, RecurrentPropertyTenantProjection> getRecurrentPropertyAndTenant(List<Recurring> leaseRecurring) {
+    private Map<String, IRecurrentPropertyTenantProjection> getRecurrentPropertyAndTenant(List<Recurring> leaseRecurring) {
         List<String> recurringIds = leaseRecurring.stream().map(Recurring::getId).collect(Collectors.toList());
-        List<RecurrentPropertyTenantProjection> recurrentPropertyAndTenant = recurringService.getRecurrentPropertyAndTenantByRecurringIds(recurringIds);
+        List<IRecurrentPropertyTenantProjection> recurrentPropertyAndTenant = recurringService.getRecurrentPropertyAndTenantByRecurringIds(recurringIds);
         return recurrentPropertyAndTenant
                 .stream()
                 .collect(Collectors.toMap(
-                        RecurrentPropertyTenantProjection::getRecurrentId,
+                        IRecurrentPropertyTenantProjection::getRecurrentId,
                         recurrentPropertyTenantProjection -> recurrentPropertyTenantProjection)
                 );
     }
 
-    private int getTimeDiff(Calendar currentCalendar, Date dueDate) {
-        return 0;
+    private long getTimeDiff(Calendar currentCalendar, Date dueDate) {
+        Calendar dueDateCalendar = Calendar.getInstance();
+        dueDateCalendar.setTime(dueDate);
+        long diffInMillies = Math.abs(currentCalendar.getTime().getTime() - dueDate.getTime());
+        return TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
     }
 
     private void sendMail(List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries) {
@@ -132,7 +135,7 @@ public class LeaseRecurringNotificationServiceImpl implements LeaseRecurringNoti
     public static class LeaseExpiryPropertySummary {
         private String property;
         private String tenant;
-        private int daysLeft;
+        private long daysLeft;
         private Date expiredDate;
     }
 }
