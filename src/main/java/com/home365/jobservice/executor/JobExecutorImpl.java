@@ -37,6 +37,7 @@ public class JobExecutorImpl implements JobExecutor {
             JobExecutionResult jobExecutionResult = jobService.executeJob();
             jobExecutionResults.setJobExecutionResult(jobExecutionResult);
             setEndingTimeAndDuration(jobExecutionResults, startTime);
+            sendMailOnFail(jobExecutionResults);
         } catch (Exception ex) {
             setEndingTimeAndDuration(jobExecutionResults, startTime);
             jobExecutionResults.setError(ex.getMessage());
