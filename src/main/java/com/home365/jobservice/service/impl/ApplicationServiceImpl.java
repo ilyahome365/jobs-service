@@ -41,7 +41,6 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   TransactionsLogService transactionsLogService,
                                   RecurringService recurringService,
                                   LateFeeJobServiceImpl lateFeeJobService,
-                                  LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService) {
                                   LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
                                   DueDateNotificationService dueDateNotificationService) {
         this.appProperties = appProperties;
