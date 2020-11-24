@@ -28,10 +28,10 @@ public class MailResult {
         @Override
         public String toString() {
             return "MailSummary{" +
-                    "id ='" + id + '\'' +
-                    ", to ='" + to + '\'' +
-                    ", Status ='" + status + '\'' +
-                    ", Reject Reason ='" + error + '\'' +
+                    "id ='" + id + '\n' +
+                    ", to ='" + to + '\n' +
+                    ", Status ='" + status + '\n' +
+                    ", Reject Reason ='" + error + '\n' +
                     '}';
         }
     }

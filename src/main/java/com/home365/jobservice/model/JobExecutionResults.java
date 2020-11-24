@@ -38,11 +38,19 @@ public class JobExecutionResults implements Serializable {
 
     @Override
     public String toString() {
-        return " startTime=" + startTime + '\n' +
+        return "startTime=" + startTime + '\n' +
                 "endTime=" + endTime + '\n' +
                 "elapsedTime='" + elapsedTime + '\n' +
                 "is Succeeded='" + isSucceeded() + '\n' +
                 "error='" + error + '\n' +
                 "stackTrace='" + stackTrace;
+    }
+
+    public String getStartTimeBeautify() {
+        return dateTimeFormatter.format(startTime);
+    }
+
+    public String getEndTimeBeautify() {
+        return dateTimeFormatter.format(endTime);
     }
 }
