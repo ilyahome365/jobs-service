@@ -14,7 +14,6 @@ import com.home365.jobservice.service.PropertyService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
@@ -180,7 +179,6 @@ public class LeaseRecurringNotificationServiceImpl implements LeasePropertyNotif
     }
 
     @Data
-    @ToString
     @NoArgsConstructor
     @AllArgsConstructor
     public static class LeaseExpiryPropertySummary {
