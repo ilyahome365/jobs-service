@@ -11,6 +11,7 @@ import com.home365.jobservice.model.mail.MailResult;
 import com.home365.jobservice.service.JobsConfigurationService;
 import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.service.PropertyService;
+import com.home365.jobservice.utils.AddressUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -97,7 +98,7 @@ public class LeaseRecurringNotificationServiceImpl implements JobService {
                 .forEach(property -> {
                     try {
                         LeaseExpiryPropertySummary leaseExpiryPropertySummary = new LeaseExpiryPropertySummary();
-                        leaseExpiryPropertySummary.setProperty(property.getPropertyName());
+                        leaseExpiryPropertySummary.setProperty(AddressUtils.addUnitAndBuildingToAddress(property.getPropertyName(), property.getUnit(), property.getBuilding()));
                         leaseExpiryPropertySummary.setTenant(property.getTenantName());
                         leaseExpiryPropertySummary.setDaysLeft(getTimeDiff(currentCalendar, property.getEndDate()));
                         leaseExpiryPropertySummary.setExpiredDate(formatter.format(property.getEndDate()));

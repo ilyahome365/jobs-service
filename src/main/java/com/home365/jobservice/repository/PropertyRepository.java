@@ -13,6 +13,8 @@ public interface PropertyRepository extends JpaRepository<PropertyExtension, Str
 
 
     @Query(value = "SELECT peb.New_ShortenAddress AS propertyName, " +
+            "              peb.New_Unit            AS unit, " +
+            "              peb.New_Building        AS building, " +
             "              pt.New_TenantName      AS tenantName, " +
             "              pt.New_EndDate         AS endDate " +
             "       FROM dbo.New_property_tenantExtensionBase pte " +
