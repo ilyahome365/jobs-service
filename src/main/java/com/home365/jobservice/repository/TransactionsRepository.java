@@ -37,7 +37,7 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
     List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(
             @Param("billTypes") List<String> billTypes,
             @Param("status") List<String> status,
-            @Param("dueDate") java.sql.Timestamp dueDate
+            @Param("dueDate") Date dueDate
     );
 
     List<Transactions> findByRecurringTemplateId(String recurringTemplateId);

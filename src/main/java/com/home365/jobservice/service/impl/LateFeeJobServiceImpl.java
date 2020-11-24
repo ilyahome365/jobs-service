@@ -66,9 +66,8 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
                                                 List<String> billTypes,
                                                 List<String> status) {
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.MONTH, lateFeeRetro);
-        java.sql.Timestamp timestamp = new Timestamp(calendar.getTime().getTime());
-        return transactionsService.findAllByBillTypeAndStatusAndDueDateBefore(billTypes, status, timestamp);
+        calendar.add(Calendar.MONTH, lateFeeRetro);
+        return transactionsService.findAllByBillTypeAndStatusAndDueDateBefore(billTypes, status, calendar.getTime());
     }
 
     private List<Transactions> createLateFeeTransactions(double feeAmountPercentage,
