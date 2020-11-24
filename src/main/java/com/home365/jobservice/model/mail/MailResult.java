@@ -19,7 +19,6 @@ public class MailResult {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class MailSummary {
-        private boolean sent;
         private String id;
         private String to;
         private String status;
@@ -31,7 +30,6 @@ public class MailResult {
             return "MailSummary{" +
                     "id ='" + id + '\'' +
                     ", to ='" + to + '\'' +
-                    ", sent =" + sent +
                     ", Status ='" + status + '\'' +
                     ", Reject Reason ='" + error + '\'' +
                     '}';
