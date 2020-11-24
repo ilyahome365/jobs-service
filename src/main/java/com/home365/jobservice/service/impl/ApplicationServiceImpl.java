@@ -96,7 +96,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public boolean startLeasePropertyNotification() {
+    public JobExecutionResults startLeasePropertyNotification() {
         return leaseRecurringNotificationService.startLeasePropertyNotification();
     }
 

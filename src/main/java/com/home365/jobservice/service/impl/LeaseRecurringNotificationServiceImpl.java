@@ -2,6 +2,7 @@ package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
+import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.LeasePropertyNotificationConfiguration;
 import com.home365.jobservice.model.RecipientMail;
 import com.home365.jobservice.model.mail.MailDetails;
@@ -44,7 +45,8 @@ public class LeaseRecurringNotificationServiceImpl implements LeasePropertyNotif
     }
 
     @Override
-    public boolean startLeasePropertyNotification() {
+    public JobExecutionResults startLeasePropertyNotification() {
+        JobExecutionResults jobExecutionResults = new JobExecutionResults();
         log.info("Try to Start Lease Property Notification Job");
         if (lock.tryLock()) {
             try {
@@ -58,16 +60,20 @@ public class LeaseRecurringNotificationServiceImpl implements LeasePropertyNotif
                 );
                 sendMail(leasePropertyNotificationConfiguration, leaseExpiryPropertySummaries);
                 showSummary(leaseExpiryPropertySummaries);
-            } catch (Exception ex) {
-                log.info(ex.getMessage());
+                jobExecutionResults.setSucceeded(true);
+            } catch (Exception exception) {
+                log.info(exception.getMessage());
+                jobExecutionResults.setSucceeded(false);
+                jobExecutionResults.setError(exception.getMessage());
+                jobExecutionResults.setStackTrace(Arrays.toString(exception.getStackTrace()));
             } finally {
                 lock.unlock();
             }
             log.info("Lease Property Notification Job Finished");
-            return true;
+            return jobExecutionResults;
         }
         log.info("Lease Property Notification Job didn't Start -> Already Running");
-        return false;
+        return jobExecutionResults;
     }
 
     private List<LeaseExpiryPropertySummary> getPropertyExtension(Calendar currentCalendar,

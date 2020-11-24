@@ -12,5 +12,5 @@ public interface ApplicationService {
 
     JobExecutionResults createTransactionsForRecurringCharges();
 
-    boolean startLeasePropertyNotification();
+    JobExecutionResults startLeasePropertyNotification();
 }

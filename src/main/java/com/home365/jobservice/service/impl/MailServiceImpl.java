@@ -1,9 +1,9 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
-import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.RecipientMail;
 import com.home365.jobservice.model.mail.MailDetails;
+import com.home365.jobservice.model.mail.MailResult;
 import com.home365.jobservice.service.MailService;
 import com.microtripit.mandrillapp.lutung.MandrillApi;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage;
@@ -31,8 +31,8 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override
-    public JobExecutionResults sendMail(MailDetails mailDetails) {
-        JobExecutionResults jobExecutionResults = new JobExecutionResults();
+    public MailResult sendMail(MailDetails mailDetails) {
+        MailResult mailResult = new MailResult();
 
         List<MandrillMessage.Recipient> recipientList = createRecipients(mailDetails.getRecipients());
 
@@ -61,24 +61,24 @@ public class MailServiceImpl implements MailService {
                     false
             );
 
-            StringBuilder stringBuilder = new StringBuilder();
+            List<MailResult.MailSummary> mailSummaries = new ArrayList<>();
             Arrays.stream(messageStatusReports).forEach(mandrillMessageStatus -> {
-                stringBuilder.append(String.format("Mandrill Message Details Email [%s], Status [%s], Reject Reason [%s]",
-                        mandrillMessageStatus.getEmail(),
-                        mandrillMessageStatus.getStatus(),
-                        mandrillMessageStatus.getRejectReason()
-                        )
-                );
-                stringBuilder.append("\n");
+                MailResult.MailSummary mailSummary = new MailResult.MailSummary();
+                mailSummary.setId(mandrillMessageStatus.getId());
+                mailSummary.setTo(mandrillMessageStatus.getEmail());
+                mailSummary.setStatus(mandrillMessageStatus.getStatus());
+                mailSummary.setError(mandrillMessageStatus.getRejectReason());
+                mailSummaries.add(mailSummary);
             });
-            jobExecutionResults.setSucceeded(true);
-            jobExecutionResults.setMessage(stringBuilder.toString());
+
+            mailResult.setMailSummaries(mailSummaries);
+            mailResult.setCompleted(true);
         } catch (Exception exception) {
-            jobExecutionResults.setSucceeded(false);
-            jobExecutionResults.setError(exception.getMessage());
-            jobExecutionResults.setStackTrace(Arrays.toString(exception.getStackTrace()));
+            mailResult.setCompleted(false);
+            mailResult.setError(exception.getMessage());
+            mailResult.setStackTrace(Arrays.toString(exception.getStackTrace()));
         }
-        return jobExecutionResults;
+        return mailResult;
     }
 
     private List<MandrillMessage.Recipient> createRecipients(List<RecipientMail> recipients) {
