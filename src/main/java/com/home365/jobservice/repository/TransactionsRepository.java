@@ -40,5 +40,5 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
             @Param("dueDate") java.sql.Timestamp dueDate
     );
 
-    List<Transactions> findByRecurringTemplateIdAndDueDateAfter(String recurringTemplateId, Date date);
+    List<Transactions> findByRecurringTemplateId(String recurringTemplateId);
 }
