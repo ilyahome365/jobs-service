@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.List;
+
 @Data
 @ToString
 @NoArgsConstructor
@@ -12,6 +14,6 @@ import lombok.ToString;
 public class LeasePropertyNotificationConfiguration {
     private int days;
     private String emailTemplateName;
-    private String toMail;
     private String toName;
+    private List<String> toMail;
 }

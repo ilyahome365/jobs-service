@@ -3,7 +3,6 @@ package com.home365.jobservice.service.impl;
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.executor.JobExecutorImpl;
-import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.LeasePropertyNotificationConfiguration;
 import com.home365.jobservice.model.RecipientMail;
 import com.home365.jobservice.model.mail.MailDetails;
@@ -23,8 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -124,11 +122,13 @@ public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
         mailDetails.setSubject("Lease expiry");
         mailDetails.setTemplateName(leasePropertyNotificationConfiguration.getEmailTemplateName());
         mailDetails.setContentTemplate(getContentTemplate(leasePropertyNotificationConfiguration, leaseExpiryPropertySummaries));
-        mailDetails.setRecipients(Collections.singletonList(new RecipientMail(
-                leasePropertyNotificationConfiguration.getToName(),
-                leasePropertyNotificationConfiguration.getToMail()
-        )));
 
+        List<RecipientMail> recipientsMail = ListUtils.emptyIfNull(leasePropertyNotificationConfiguration.getToMail())
+                .stream()
+                .map(mail -> new RecipientMail(leasePropertyNotificationConfiguration.getToName(), mail))
+                .collect(Collectors.toList());
+
+        mailDetails.setRecipients(recipientsMail);
         MailResult mailResult = mailService.sendMail(mailDetails);
         log.info(mailResult.toString());
     }
@@ -146,33 +146,36 @@ public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
     private String createHTMLTable(List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries) {
 
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<table style=\"width:100%\">")
+        stringBuilder.append("<!DOCTYPE html>")
+                .append("<html>")
+                .append("<head>")
+                .append("<style>")
+                .append("th { padding: 15px; text-align: center; } td { text-align: center; }")
+                .append("</style>")
+                .append("<table style=\"width:100%\">")
                 .append("<tr>")
-                .append("<th>PROPERTY</th>")
-                .append("<th>TENANT</th>")
-                .append("<th>DAYS</th>")
-                .append("<th>EXP</th>")
+                .append("<th>").append("PROPERTY").append("</th>")
+                .append("<th>").append("TENANT").append("</th>")
+                .append("<th>").append("DAYS").append("</th>")
+                .append("<th>").append("EXP").append("</th>")
                 .append("<tr>");
         ListUtils.emptyIfNull(leaseExpiryPropertySummaries).forEach(leaseExpiryPropertySummary -> {
             stringBuilder
                     .append("<tr>")
-                    .append("<td>").append(leaseExpiryPropertySummary.getProperty()).append("<td>")
-                    .append("<td>").append(leaseExpiryPropertySummary.getTenant()).append("<td>")
-                    .append("<td>").append(leaseExpiryPropertySummary.getDaysLeft()).append("<td>")
-                    .append("<td>").append(leaseExpiryPropertySummary.getExpiredDate()).append("<td>")
+                    .append("<td>").append(leaseExpiryPropertySummary.getProperty()).append("</td>")
+                    .append("<td>").append(leaseExpiryPropertySummary.getTenant()).append("</td>")
+                    .append("<td>").append(leaseExpiryPropertySummary.getDaysLeft()).append("</td>")
+                    .append("<td>").append(leaseExpiryPropertySummary.getExpiredDate()).append("</td>")
                     .append("</tr>");
         });
-        stringBuilder.append("</table>");
+        stringBuilder.append("</table>")
+                .append("</body>")
+                .append("</html>");
         return stringBuilder.toString();
     }
 
     private void showSummary(List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries) {
-        leaseExpiryPropertySummaries.forEach(new Consumer<LeaseExpiryPropertySummary>() {
-            @Override
-            public void accept(LeaseExpiryPropertySummary leaseExpiryPropertySummary) {
-                log.info(leaseExpiryPropertySummary.toString());
-            }
-        });
+        leaseExpiryPropertySummaries.forEach(leaseExpiryPropertySummary -> log.info(leaseExpiryPropertySummary.toString()));
     }
 
     @Data
