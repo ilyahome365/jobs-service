@@ -34,6 +34,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService;
     private final RecurringService recurringService;
     private final JobExecutor jobExecutor;
+    private final DueDateNotificationService dueDateNotificationService;
 
 
     public ApplicationServiceImpl(AppProperties appProperties,
@@ -43,7 +44,8 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   RecurringService recurringService,
                                   LateFeeJobServiceImpl lateFeeJobService,
                                   LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
-                                  JobExecutor jobExecutor) {
+                                  JobExecutor jobExecutor,
+                                  DueDateNotificationService dueDateNotificationService) {
         this.appProperties = appProperties;
         this.transactionsService = transactionsService;
         this.jobLogService = jobLogService;
@@ -52,6 +54,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.recurringService = recurringService;
         this.leaseRecurringNotificationService = leaseRecurringNotificationService;
         this.jobExecutor = jobExecutor;
+        this.dueDateNotificationService = dueDateNotificationService;
     }
 
     //    @Scheduled(cron = "0 01 * * * ?")
@@ -102,6 +105,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public JobExecutionResults startLeasePropertyNotification() {
         return jobExecutor.executeJob(leaseRecurringNotificationService);
+    }
+
+    @Override
+    public JobExecutionResults dueDateTenantNotification() {
+        return dueDateNotificationService.sendNotificationForDueDateTenants();
     }
 
     private void createJobLog(PendingStatusJobData pendingStatusJobData, String cycleDate) {
