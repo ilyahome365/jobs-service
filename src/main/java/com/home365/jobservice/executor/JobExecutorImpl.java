@@ -37,6 +37,7 @@ public abstract class JobExecutorImpl implements JobService {
             jobExecutionResults.setStartTime(startTime);
             String jobExecutionResult = execute();
             jobExecutionResults.setMessage(jobExecutionResult);
+            jobExecutionResults.setJobName(getJobName());
             setEndingTimeAndDuration(jobExecutionResults, startTime);
             sendMailOnFail(getJobName(), jobExecutionResults);
         } catch (Exception ex) {

@@ -1,5 +1,6 @@
 package com.home365.jobservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -46,10 +47,12 @@ public class JobExecutionResults implements Serializable {
                 "stackTrace='" + stackTrace;
     }
 
+    @JsonIgnore
     public String getStartTimeBeautify() {
         return dateTimeFormatter.format(startTime);
     }
 
+    @JsonIgnore
     public String getEndTimeBeautify() {
         return dateTimeFormatter.format(endTime);
     }
