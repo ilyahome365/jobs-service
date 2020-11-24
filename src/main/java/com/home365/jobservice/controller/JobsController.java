@@ -47,4 +47,11 @@ public class JobsController {
     public ResponseEntity<Object> startLeasePropertyNotification() {
         return ResponseEntity.ok(jobsService.startLeasePropertyNotification());
     }
+
+    @GetMapping("/due-date-tenants-notification")
+    public ResponseEntity<JobExecutionResults> dueDateTenantNotification() {
+        return ResponseEntity.ok(jobsService.dueDateTenantNotification());
+    }
+
+
 }

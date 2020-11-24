@@ -13,4 +13,6 @@ public interface ApplicationService {
     JobExecutionResults createTransactionsForRecurringCharges();
 
     JobExecutionResults startLeasePropertyNotification();
+
+    JobExecutionResults dueDateTenantNotification();
 }
