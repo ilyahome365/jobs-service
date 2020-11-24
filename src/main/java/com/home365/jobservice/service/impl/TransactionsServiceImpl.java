@@ -37,7 +37,7 @@ public class TransactionsServiceImpl implements TransactionsService {
     }
 
     @Override
-    public List<Transactions> findByRecurringTemplateIdAndDueDateAfter(String recurringTemplateId, Date date) {
-        return transactionsRepository.findByRecurringTemplateIdAndDueDateAfter(recurringTemplateId, date);
+    public List<Transactions> findByRecurringTemplateId(String recurringTemplateId) {
+        return transactionsRepository.findByRecurringTemplateId(recurringTemplateId);
     }
 }
