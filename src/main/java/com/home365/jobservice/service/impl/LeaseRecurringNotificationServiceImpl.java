@@ -135,7 +135,7 @@ public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
 
     private Map<String, String> getContentTemplate(LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration,
                                                    List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries) {
-        leaseExpiryPropertySummaries.sort(Collections.reverseOrder(Comparator.comparingLong(LeaseExpiryPropertySummary::getDaysLeft)));
+        leaseExpiryPropertySummaries.sort(Comparator.comparingLong(LeaseExpiryPropertySummary::getDaysLeft));
         Map<String, String> contentTemplate = new HashMap<>();
         contentTemplate.put("DAYS", String.valueOf(leasePropertyNotificationConfiguration.getDays()));
         String html = createHTMLTable(leaseExpiryPropertySummaries);

@@ -13,14 +13,15 @@ public interface PropertyRepository extends JpaRepository<PropertyExtension, Str
 
 
     @Query(value = "SELECT peb.New_ShortenAddress AS propertyName, " +
-            "              peb.New_Unit            AS unit, " +
-            "              peb.New_Building        AS building, " +
-            "              pt.New_TenantName      AS tenantName, " +
+            "              peb.New_Unit           AS unit, " +
+            "              peb.New_Building       AS building, " +
+            "              cb.FullName            AS tenantName, " +
             "              pt.New_EndDate         AS endDate " +
             "       FROM dbo.New_property_tenantExtensionBase pte " +
             "         INNER JOIN dbo.New_propertyaccountExtensionBase pa on pa.new_propertyid = pte.new_propertyid " +
             "         INNER JOIN New_propertyExtensionBase peb ON peb.New_propertyId = pte.new_propertyid " +
             "         INNER JOIN New_property_tenant pt ON pt.New_propertyId = pte.new_propertyid " +
+            "         INNER JOIN ContactBase cb ON cb.ContactId = pt.new_contactid " +
             "WHERE pa.new_accountid = 'F90E128A-CD00-4DF7-B0D0-0F40F80D623A' " +
             "  AND pt.New_PropertyUserType = 1 " +
             "  AND pt.New_IsActive = 1 " +
