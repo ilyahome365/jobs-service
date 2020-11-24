@@ -6,6 +6,7 @@ import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.LeasePropertyNotificationConfiguration;
 import com.home365.jobservice.model.RecipientMail;
 import com.home365.jobservice.model.mail.MailDetails;
+import com.home365.jobservice.model.mail.MailResult;
 import com.home365.jobservice.service.JobsConfigurationService;
 import com.home365.jobservice.service.LeasePropertyNotificationService;
 import com.home365.jobservice.service.MailService;
@@ -128,7 +129,9 @@ public class LeaseRecurringNotificationServiceImpl implements LeasePropertyNotif
                 leasePropertyNotificationConfiguration.getToName(),
                 leasePropertyNotificationConfiguration.getToMail()
         )));
-        mailService.sendMail(mailDetails);
+
+        MailResult mailResult = mailService.sendMail(mailDetails);
+        log.info(mailResult.toString());
     }
 
     private Map<String, String> getContentTemplate(LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration,
