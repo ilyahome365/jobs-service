@@ -2,13 +2,13 @@ package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
-import com.home365.jobservice.model.JobExecutionResults;
+import com.home365.jobservice.executor.JobExecutionResult;
+import com.home365.jobservice.executor.JobService;
 import com.home365.jobservice.model.LeasePropertyNotificationConfiguration;
 import com.home365.jobservice.model.RecipientMail;
 import com.home365.jobservice.model.mail.MailDetails;
 import com.home365.jobservice.model.mail.MailResult;
 import com.home365.jobservice.service.JobsConfigurationService;
-import com.home365.jobservice.service.LeasePropertyNotificationService;
 import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.service.PropertyService;
 import lombok.AllArgsConstructor;
@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 
 @Slf4j
 @Service
-public class LeaseRecurringNotificationServiceImpl implements LeasePropertyNotificationService {
+public class LeaseRecurringNotificationServiceImpl implements JobService {
 
     private final ReentrantLock lock = new ReentrantLock();
     private final AppProperties appProperties;
@@ -45,8 +45,8 @@ public class LeaseRecurringNotificationServiceImpl implements LeasePropertyNotif
     }
 
     @Override
-    public JobExecutionResults startLeasePropertyNotification() {
-        JobExecutionResults jobExecutionResults = new JobExecutionResults();
+    public JobExecutionResult executeJob() throws Exception {
+        JobExecutionResult jobExecutionResult = new JobExecutionResult();
         log.info("Try to Start Lease Property Notification Job");
         if (lock.tryLock()) {
             try {
@@ -60,20 +60,19 @@ public class LeaseRecurringNotificationServiceImpl implements LeasePropertyNotif
                 );
                 sendMail(leasePropertyNotificationConfiguration, leaseExpiryPropertySummaries);
                 showSummary(leaseExpiryPropertySummaries);
-                jobExecutionResults.setSucceeded(true);
-            } catch (Exception exception) {
-                log.info(exception.getMessage());
-                jobExecutionResults.setSucceeded(false);
-                jobExecutionResults.setError(exception.getMessage());
-                jobExecutionResults.setStackTrace(Arrays.toString(exception.getStackTrace()));
+
+                log.info("Lease Property Notification Job Finished");
+                jobExecutionResult.setSucceeded(true);
+                jobExecutionResult.setMessage("Lease Property Notification Job Finished");
             } finally {
                 lock.unlock();
             }
-            log.info("Lease Property Notification Job Finished");
-            return jobExecutionResults;
+        } else {
+            log.info("Lease Property Notification Job didn't Start -> Already Running");
+            jobExecutionResult.setSucceeded(false);
+            jobExecutionResult.setError("Lease Property Notification Job didn't Start -> Already Running");
         }
-        log.info("Lease Property Notification Job didn't Start -> Already Running");
-        return jobExecutionResults;
+        return jobExecutionResult;
     }
 
     private List<LeaseExpiryPropertySummary> getPropertyExtension(Calendar currentCalendar,
@@ -137,11 +136,7 @@ public class LeaseRecurringNotificationServiceImpl implements LeasePropertyNotif
                                                    List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries) {
         Map<String, String> contentTemplate = new HashMap<>();
         contentTemplate.put("DAYS", String.valueOf(leasePropertyNotificationConfiguration.getDays()));
-
-
         String html = createHTMLTable(leaseExpiryPropertySummaries);
-
-
         contentTemplate.put("TABLE", html);
         return contentTemplate;
     }

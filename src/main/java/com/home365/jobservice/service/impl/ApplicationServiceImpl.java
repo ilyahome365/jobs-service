@@ -5,6 +5,7 @@ import com.home365.jobservice.entities.JobLog;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsLog;
 import com.home365.jobservice.entities.enums.TransactionType;
+import com.home365.jobservice.executor.JobExecutor;
 import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.PendingStatusJobData;
 import com.home365.jobservice.service.*;
@@ -29,9 +30,10 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final TransactionsService transactionsService;
     private final JobLogService jobLogService;
     private final TransactionsLogService transactionsLogService;
-    private final LateFeeJobService lateFeeJobService;
-    private final LeasePropertyNotificationService leaseRecurringNotificationService;
+    private final LateFeeJobServiceImpl lateFeeJobService;
+    private final LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService;
     private final RecurringService recurringService;
+    private final JobExecutor jobExecutor;
 
 
     public ApplicationServiceImpl(AppProperties appProperties,
@@ -39,8 +41,9 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   JobLogService jobLogService,
                                   TransactionsLogService transactionsLogService,
                                   RecurringService recurringService,
-                                  LateFeeJobService lateFeeJobService,
-                                  LeasePropertyNotificationService leaseRecurringNotificationService) {
+                                  LateFeeJobServiceImpl lateFeeJobService,
+                                  LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
+                                  JobExecutor jobExecutor) {
         this.appProperties = appProperties;
         this.transactionsService = transactionsService;
         this.jobLogService = jobLogService;
@@ -48,6 +51,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.lateFeeJobService = lateFeeJobService;
         this.recurringService = recurringService;
         this.leaseRecurringNotificationService = leaseRecurringNotificationService;
+        this.jobExecutor = jobExecutor;
     }
 
     //    @Scheduled(cron = "0 01 * * * ?")
@@ -91,13 +95,13 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public boolean startLateFeeJob() {
-        return lateFeeJobService.startLateFeeJob();
+    public JobExecutionResults startLateFeeJob() {
+        return jobExecutor.executeJob(lateFeeJobService);
     }
 
     @Override
     public JobExecutionResults startLeasePropertyNotification() {
-        return leaseRecurringNotificationService.startLeasePropertyNotification();
+        return jobExecutor.executeJob(leaseRecurringNotificationService);
     }
 
     private void createJobLog(PendingStatusJobData pendingStatusJobData, String cycleDate) {

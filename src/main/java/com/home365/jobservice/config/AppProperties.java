@@ -10,7 +10,10 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 public class AppProperties {
+    private Boolean sendMailOnJobExecutorFail;
     private Long trashHold;
     private String mandrillApiKey;
     private String mailSupport;
+    private String jobExecutorMailToName;
+    private String jobExecutorMailToEmail;
 }

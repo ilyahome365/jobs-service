@@ -10,10 +10,15 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LateFeeConfiguration {
-    private int lateFeeRetro = -1;
-    private double feeAmount = 5;
+    private int lateFeeRetro;
+    private boolean fix;
+    private double feeAmount ;
 
-    public double getFeeAmountPercentage() {
-        return feeAmount / 100;
+    public double getFeeAmount() {
+        if(fix){
+            return feeAmount;
+        }else{
+            return feeAmount / 100;
+        }
     }
 }

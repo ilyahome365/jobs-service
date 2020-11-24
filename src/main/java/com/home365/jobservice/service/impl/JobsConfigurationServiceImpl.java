@@ -1,5 +1,6 @@
 package com.home365.jobservice.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home365.jobservice.entities.JobConfiguration;
 import com.home365.jobservice.model.LateFeeConfiguration;
@@ -8,8 +9,6 @@ import com.home365.jobservice.repository.JobsConfigurationRepository;
 import com.home365.jobservice.service.JobsConfigurationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
 
 @Slf4j
 @Service
@@ -25,29 +24,15 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
     }
 
     @Override
-    public LateFeeConfiguration getLateFeeConfiguration() {
-        try {
-            JobConfiguration jobConfiguration = jobsConfigurationRepository.getOne(JOBS_ID.LATE_FEE.value);
-            return objectMapper.readValue(jobConfiguration.getConfigurationJson(), LateFeeConfiguration.class);
-        } catch (Exception e) {
-            log.error("Unable to parse Late Fee Configuration JSON using default values as specify in " + LateFeeConfiguration.class.getName());
-            log.warn(e.getMessage());
-            log.warn(Arrays.toString(e.getStackTrace()));
-        }
-        return new LateFeeConfiguration();
+    public LateFeeConfiguration getLateFeeConfiguration() throws JsonProcessingException {
+        JobConfiguration jobConfiguration = jobsConfigurationRepository.getOne(JOBS_ID.LATE_FEE.value);
+        return objectMapper.readValue(jobConfiguration.getConfigurationJson(), LateFeeConfiguration.class);
     }
 
     @Override
-    public LeasePropertyNotificationConfiguration getLeasePropertyNotificationConfiguration() {
-        try {
-            JobConfiguration jobConfiguration = jobsConfigurationRepository.getOne(JOBS_ID.LEASE_PROPERTY_NOTIFICATION.value);
-            return objectMapper.readValue(jobConfiguration.getConfigurationJson(), LeasePropertyNotificationConfiguration.class);
-        } catch (Exception e) {
-            log.error("Unable to parse Lease Property Configuration JSON using default values as specify in " + LeasePropertyNotificationConfiguration.class);
-            log.warn(e.getMessage());
-            log.warn(Arrays.toString(e.getStackTrace()));
-        }
-        return new LeasePropertyNotificationConfiguration();
+    public LeasePropertyNotificationConfiguration getLeasePropertyNotificationConfiguration() throws JsonProcessingException {
+        JobConfiguration jobConfiguration = jobsConfigurationRepository.getOne(JOBS_ID.LEASE_PROPERTY_NOTIFICATION.value);
+        return objectMapper.readValue(jobConfiguration.getConfigurationJson(), LeasePropertyNotificationConfiguration.class);
     }
 
     private enum JOBS_ID {
