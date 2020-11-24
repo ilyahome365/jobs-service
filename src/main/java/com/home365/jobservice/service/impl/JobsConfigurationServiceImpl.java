@@ -15,8 +15,6 @@ import java.util.Arrays;
 @Service
 public class JobsConfigurationServiceImpl implements JobsConfigurationService {
 
-    private final Long lateFeeId = 1L;
-
     private final JobsConfigurationRepository jobsConfigurationRepository;
     private final ObjectMapper objectMapper;
 
