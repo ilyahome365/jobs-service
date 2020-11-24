@@ -5,7 +5,6 @@ import com.home365.jobservice.entities.JobLog;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsLog;
 import com.home365.jobservice.entities.enums.TransactionType;
-import com.home365.jobservice.executor.JobExecutor;
 import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.PendingStatusJobData;
 import com.home365.jobservice.service.*;
@@ -33,7 +32,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final LateFeeJobServiceImpl lateFeeJobService;
     private final LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService;
     private final RecurringService recurringService;
-    private final JobExecutor jobExecutor;
 
 
     public ApplicationServiceImpl(AppProperties appProperties,
@@ -42,8 +40,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   TransactionsLogService transactionsLogService,
                                   RecurringService recurringService,
                                   LateFeeJobServiceImpl lateFeeJobService,
-                                  LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
-                                  JobExecutor jobExecutor) {
+                                  LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService) {
         this.appProperties = appProperties;
         this.transactionsService = transactionsService;
         this.jobLogService = jobLogService;
@@ -51,7 +48,6 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.lateFeeJobService = lateFeeJobService;
         this.recurringService = recurringService;
         this.leaseRecurringNotificationService = leaseRecurringNotificationService;
-        this.jobExecutor = jobExecutor;
     }
 
     //    @Scheduled(cron = "0 01 * * * ?")
@@ -96,12 +92,12 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public JobExecutionResults startLateFeeJob() {
-        return jobExecutor.executeJob(lateFeeJobService);
+        return lateFeeJobService.executeJob();
     }
 
     @Override
     public JobExecutionResults startLeasePropertyNotification() {
-        return jobExecutor.executeJob(leaseRecurringNotificationService);
+        return leaseRecurringNotificationService.executeJob();
     }
 
     private void createJobLog(PendingStatusJobData pendingStatusJobData, String cycleDate) {

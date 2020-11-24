@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.List;
+
 @Data
 @ToString
 @NoArgsConstructor
@@ -12,12 +14,14 @@ import lombok.ToString;
 public class LateFeeConfiguration {
     private int lateFeeRetro;
     private boolean fix;
-    private double feeAmount ;
+    private double feeAmount;
+    private List<String> billTypes;
+    private List<String> status;
 
     public double getFeeAmount() {
-        if(fix){
+        if (fix) {
             return feeAmount;
-        }else{
+        } else {
             return feeAmount / 100;
         }
     }

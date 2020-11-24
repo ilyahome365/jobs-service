@@ -1,5 +1,7 @@
 package com.home365.jobservice.executor;
 
+import com.home365.jobservice.model.JobExecutionResults;
+
 public interface JobService {
-    JobExecutionResult executeJob() throws Exception;
+    JobExecutionResults executeJob();
 }

@@ -2,8 +2,8 @@ package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
-import com.home365.jobservice.executor.JobExecutionResult;
-import com.home365.jobservice.executor.JobService;
+import com.home365.jobservice.executor.JobExecutorImpl;
+import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.LeasePropertyNotificationConfiguration;
 import com.home365.jobservice.model.RecipientMail;
 import com.home365.jobservice.model.mail.MailDetails;
@@ -24,30 +24,33 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Slf4j
 @Service
-public class LeaseRecurringNotificationServiceImpl implements JobService {
+public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
 
+    public static final String LEASE_PROPERTY_NOTIFICATION_JOB = "Lease Property Notification Job";
     private final ReentrantLock lock = new ReentrantLock();
-    private final AppProperties appProperties;
     private final PropertyService propertyService;
     private final JobsConfigurationService jobsConfigurationService;
-    private final MailService mailService;
 
     public LeaseRecurringNotificationServiceImpl(AppProperties appProperties,
+                                                 MailService mailService,
                                                  PropertyService propertyService,
-                                                 JobsConfigurationService jobsConfigurationService,
-                                                 MailService mailService) {
-        this.appProperties = appProperties;
+                                                 JobsConfigurationService jobsConfigurationService) {
+        super(appProperties, mailService);
         this.propertyService = propertyService;
         this.jobsConfigurationService = jobsConfigurationService;
-        this.mailService = mailService;
     }
 
     @Override
-    public JobExecutionResult executeJob() throws Exception {
-        JobExecutionResult jobExecutionResult = new JobExecutionResult();
+    protected String getJobName() {
+        return LEASE_PROPERTY_NOTIFICATION_JOB;
+    }
+
+    @Override
+    public String execute() throws Exception {
         log.info("Try to Start Lease Property Notification Job");
         if (lock.tryLock()) {
             try {
@@ -63,17 +66,14 @@ public class LeaseRecurringNotificationServiceImpl implements JobService {
                 showSummary(leaseExpiryPropertySummaries);
 
                 log.info("Lease Property Notification Job Finished");
-                jobExecutionResult.setSucceeded(true);
-                jobExecutionResult.setMessage("Lease Property Notification Job Finished");
+                return "Lease Property Notification Job Finished";
             } finally {
                 lock.unlock();
             }
         } else {
             log.info("Lease Property Notification Job didn't Start -> Already Running");
-            jobExecutionResult.setSucceeded(false);
-            jobExecutionResult.setError("Lease Property Notification Job didn't Start -> Already Running");
+            return "Lease Property Notification Job didn't Start -> Already Running";
         }
-        return jobExecutionResult;
     }
 
     private List<LeaseExpiryPropertySummary> getPropertyExtension(Calendar currentCalendar,
@@ -135,6 +135,7 @@ public class LeaseRecurringNotificationServiceImpl implements JobService {
 
     private Map<String, String> getContentTemplate(LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration,
                                                    List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries) {
+        leaseExpiryPropertySummaries.sort(Collections.reverseOrder(Comparator.comparingLong(LeaseExpiryPropertySummary::getDaysLeft)));
         Map<String, String> contentTemplate = new HashMap<>();
         contentTemplate.put("DAYS", String.valueOf(leasePropertyNotificationConfiguration.getDays()));
         String html = createHTMLTable(leaseExpiryPropertySummaries);

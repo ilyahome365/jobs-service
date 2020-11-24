@@ -8,7 +8,6 @@ import com.home365.jobservice.model.mail.MailResult;
 import com.home365.jobservice.service.MailService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -19,10 +18,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Component
-public class JobExecutorImpl implements JobExecutor {
-    private final AppProperties appProperties;
-    private final MailService mailService;
+public abstract class JobExecutorImpl implements JobService {
+    protected final AppProperties appProperties;
+    protected final MailService mailService;
 
     public JobExecutorImpl(AppProperties appProperties,
                            MailService mailService) {
@@ -31,24 +29,28 @@ public class JobExecutorImpl implements JobExecutor {
     }
 
     @Override
-    public JobExecutionResults executeJob(JobService jobService) {
+    public JobExecutionResults executeJob() {
         JobExecutionResults jobExecutionResults = new JobExecutionResults();
         LocalDateTime startTime = LocalDateTime.now();
         try {
             jobExecutionResults.setStartTime(startTime);
-            JobExecutionResult jobExecutionResult = jobService.executeJob();
-            jobExecutionResults.setJobExecutionResult(jobExecutionResult);
+            String jobExecutionResult = execute();
+            jobExecutionResults.setMessage(jobExecutionResult);
             setEndingTimeAndDuration(jobExecutionResults, startTime);
-            sendMailOnFail("Job Executor finished", jobExecutionResults);
+            sendMailOnFail(getJobName(), jobExecutionResults);
         } catch (Exception ex) {
             setEndingTimeAndDuration(jobExecutionResults, startTime);
             jobExecutionResults.setError(ex.getMessage());
             jobExecutionResults.setStackTrace(Arrays.toString(ex.getStackTrace()));
-            log.info("Job Executor failed -> Send Mail with the reason");
-            sendMailOnFail("Job Executor failed", jobExecutionResults);
+            log.info(String.format("Job [%s] failed -> Send Mail with the reason", getJobName()));
+            sendMailOnFail(getJobName(), jobExecutionResults);
         }
         return jobExecutionResults;
     }
+
+    protected abstract String getJobName();
+
+    protected abstract String execute() throws Exception;
 
     private void setEndingTimeAndDuration(JobExecutionResults jobExecutionResults,
                                           LocalDateTime startTime) {

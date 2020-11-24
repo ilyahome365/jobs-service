@@ -1,10 +1,12 @@
 package com.home365.jobservice.service.impl;
 
+import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.Transactions;
-import com.home365.jobservice.executor.JobExecutionResult;
-import com.home365.jobservice.executor.JobService;
+import com.home365.jobservice.executor.JobExecutorImpl;
+import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.LateFeeConfiguration;
 import com.home365.jobservice.service.JobsConfigurationService;
+import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.service.TransactionsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,31 +17,37 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 @Service
-public class LateFeeJobServiceImpl implements JobService {
+public class LateFeeJobServiceImpl extends JobExecutorImpl {
+    public static final String LATE_FEE_JOB = "Late Fee Job";
     private final JobsConfigurationService jobsConfigurationService;
     private final TransactionsService transactionsService;
     private final ReentrantLock lock = new ReentrantLock();
 
-    public LateFeeJobServiceImpl(JobsConfigurationService jobsConfigurationService,
+    public LateFeeJobServiceImpl(AppProperties appProperties,
+                                 MailService mailService,
+                                 JobsConfigurationService jobsConfigurationService,
                                  TransactionsService transactionsService) {
+        super(appProperties, mailService);
         this.jobsConfigurationService = jobsConfigurationService;
         this.transactionsService = transactionsService;
     }
 
     @Override
-    public JobExecutionResult executeJob() throws Exception{
-        JobExecutionResult jobExecutionResult = new JobExecutionResult();
+    protected String getJobName() {
+        return LATE_FEE_JOB;
+    }
+
+    @Override
+    public String execute() throws Exception {
         log.info("Try to Start Late Fee Job");
         if (lock.tryLock()) {
             try {
                 LateFeeConfiguration lateFeeConfiguration = jobsConfigurationService.getLateFeeConfiguration();
                 log.info("Late Fee Job Started");
-                List<String> billTypes = Collections.singletonList("Rent");
-                List<String> status = Collections.singletonList("readyForPayment");
                 List<Transactions> candidateTransactionsWithNoLateFee = findTransactions(
                         lateFeeConfiguration.getLateFeeRetro(),
-                        billTypes,
-                        status
+                        lateFeeConfiguration.getBillTypes(),
+                        lateFeeConfiguration.getStatus()
                 );
                 List<Transactions> lateFeeTransactions = createLateFeeTransactions(lateFeeConfiguration.getFeeAmount(), candidateTransactionsWithNoLateFee);
                 showSummary(lateFeeTransactions);
@@ -47,14 +55,11 @@ public class LateFeeJobServiceImpl implements JobService {
                 lock.unlock();
             }
             log.info("Late Fee Job Finished");
-            jobExecutionResult.setSucceeded(true);
-            jobExecutionResult.setMessage("Late Fee Job Finished");
+            return "Late Fee Job Finished";
         } else {
             log.info("Late Fee Job didn't Start -> Already Running");
-            jobExecutionResult.setSucceeded(false);
-            jobExecutionResult.setError("Late Fee Job didn't Start -> Already Running");
+            return "Late Fee Job didn't Start -> Already Running";
         }
-        return jobExecutionResult;
     }
 
     private List<Transactions> findTransactions(int lateFeeRetro,
