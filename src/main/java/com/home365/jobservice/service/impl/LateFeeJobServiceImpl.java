@@ -49,7 +49,10 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
                         lateFeeConfiguration.getBillTypes(),
                         lateFeeConfiguration.getStatus()
                 );
-                List<Transactions> lateFeeTransactions = createLateFeeTransactions(lateFeeConfiguration.getFeeAmount(), candidateTransactionsWithNoLateFee);
+                List<Transactions> lateFeeTransactions = createLateFeeTransactions(
+                        lateFeeConfiguration,
+                        candidateTransactionsWithNoLateFee
+                );
                 showSummary(lateFeeTransactions);
             } finally {
                 lock.unlock();
@@ -70,12 +73,21 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
         return transactionsService.findAllByBillTypeAndStatusAndDueDateBefore(billTypes, status, calendar.getTime());
     }
 
-    private List<Transactions> createLateFeeTransactions(double feeAmountPercentage,
+    private List<Transactions> createLateFeeTransactions(LateFeeConfiguration lateFeeConfiguration,
                                                          List<Transactions> candidateTransactionsWithNoLateFee) {
         List<Transactions> feeTransactions = new ArrayList<>();
         candidateTransactionsWithNoLateFee.forEach(transactions -> {
             String transactionId = transactions.getTransactionId();
-            long feeAmount = (long) (transactions.getAmount() * feeAmountPercentage);
+
+            double amount = lateFeeConfiguration.getFeeAmount();
+            double maxFeeAmount = lateFeeConfiguration.getMaxFeeAmount();
+
+            long feeAmount = 0;
+            if(transactions.getAmount() * amount >= maxFeeAmount){
+                feeAmount = (long) maxFeeAmount;
+            }else{
+                feeAmount = (long) (transactions.getAmount() * amount);
+            }
 
             Transactions feeTransaction = new Transactions();
             feeTransaction.setBillType("lateFee");
