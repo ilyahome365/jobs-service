@@ -1,6 +1,7 @@
 package com.home365.jobservice.controller;
 
 import com.home365.jobservice.config.AppConfiguration;
+import com.home365.jobservice.model.jobs.JobOpsRequest;
 import com.home365.jobservice.model.jobs.LocationJobsInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +22,9 @@ public class SchedulingController {
         return ResponseEntity.ok(jobs);
     }
 
-    @DeleteMapping("/{location}/{jobName}")
-    public ResponseEntity<Object> remove(@PathVariable("location") String location, @PathVariable("jobName") String jobName) {
-        appConfiguration.removeJob(location, jobName);
+    @DeleteMapping("/")
+    public ResponseEntity<Object> remove(@RequestBody JobOpsRequest jobOpsRequest) {
+        appConfiguration.removeJob(jobOpsRequest.getLocation(), jobOpsRequest.getName());
         return ResponseEntity.ok().build();
     }
 
@@ -33,9 +34,9 @@ public class SchedulingController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/start/{location}/{jobName}")
-    public ResponseEntity<Object> start(@PathVariable("location") String location, @PathVariable("jobName") String jobName) {
-        appConfiguration.startJob(location, jobName);
+    @PostMapping("/start")
+    public ResponseEntity<Object> start(@RequestBody JobOpsRequest jobOpsRequest) {
+        appConfiguration.startJob(jobOpsRequest.getLocation(), jobOpsRequest.getName());
         return ResponseEntity.ok().build();
     }
 
@@ -45,9 +46,9 @@ public class SchedulingController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/stop/{location}/{jobName}")
-    public ResponseEntity<Object> stop(@PathVariable("location") String location, @PathVariable("jobName") String jobName) {
-        appConfiguration.stopJob(location, jobName);
+    @PostMapping("/stop")
+    public ResponseEntity<Object> stop(@RequestBody JobOpsRequest jobOpsRequest) {
+        appConfiguration.stopJob(jobOpsRequest.getLocation(), jobOpsRequest.getName());
         return ResponseEntity.ok().build();
     }
 
@@ -57,9 +58,9 @@ public class SchedulingController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/restart/{location}/{jobName}")
-    public ResponseEntity<Object> restart(@PathVariable("location") String location, @PathVariable("jobName") String jobName) {
-        appConfiguration.restartJob(location, jobName);
+    @PostMapping("/restart")
+    public ResponseEntity<Object> restart(@RequestBody JobOpsRequest jobOpsRequest) {
+        appConfiguration.restartJob(jobOpsRequest.getLocation(), jobOpsRequest.getName());
         return ResponseEntity.ok().build();
     }
 }
