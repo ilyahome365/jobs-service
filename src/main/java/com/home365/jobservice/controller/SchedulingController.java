@@ -52,7 +52,7 @@ public class SchedulingController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/restart")
+    @GetMapping("/restart-all")
     public ResponseEntity<Object> restartAll() {
         appConfiguration.restartAll();
         return ResponseEntity.ok().build();
