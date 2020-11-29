@@ -13,4 +13,6 @@ public interface JobsConfigurationService {
     LeasePropertyNotificationConfiguration getLeasePropertyNotificationConfiguration() throws JsonProcessingException;
 
     Optional<JobConfiguration> getJobByName(String taskName);
+
+    Optional<JobConfiguration> getJobByLocationAndName(String location, String jobName);
 }

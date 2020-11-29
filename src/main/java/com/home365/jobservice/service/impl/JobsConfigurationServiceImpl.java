@@ -48,6 +48,11 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
         return jobsConfigurationRepository.findById(job.getKey());
     }
 
+    @Override
+    public Optional<JobConfiguration> getJobByLocationAndName(String location, String jobName) {
+        return jobsConfigurationRepository.findByLocationAndName(location, jobName);
+    }
+
     public enum JOBS_ID {
         LATE_FEE("late-fee", 1L),
         LEASE_PROPERTY_NOTIFICATION("lease-property-notification", 2L);

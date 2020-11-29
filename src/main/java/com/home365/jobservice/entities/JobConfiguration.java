@@ -25,6 +25,9 @@ public class JobConfiguration {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "location")
+    private String location;
+
     @Column(name = "cron")
     private String cron;
 
