@@ -1,6 +1,7 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
+import com.home365.jobservice.entities.LateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.JobExecutionResults;
@@ -75,6 +76,9 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
 
     private List<Transactions> createLateFeeTransactions(LateFeeConfiguration lateFeeConfiguration,
                                                          List<Transactions> candidateTransactionsWithNoLateFee) {
+
+        LateFeeAdditionalInformationProjection lateFeeAdditionalInformationProjection = transactionsService.getLateFeeAdditionalInformation();
+
         List<Transactions> feeTransactions = new ArrayList<>();
         candidateTransactionsWithNoLateFee.forEach(transactions -> {
             String transactionId = transactions.getTransactionId();
@@ -91,8 +95,13 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
 
             Transactions feeTransaction = new Transactions();
             feeTransaction.setBillType("lateFee");
-            feeTransaction.setAccountingTypeId(transactions.getAccountingTypeId());
-            feeTransaction.setCategoryId(transactions.getCategoryId());
+
+
+            feeTransaction.setAccountingTypeId(lateFeeAdditionalInformationProjection.getAccountingTypeId());
+            feeTransaction.setCategoryId(lateFeeAdditionalInformationProjection.getCategoryId());
+            feeTransaction.setCategoryName(lateFeeAdditionalInformationProjection.getCategoryName());
+            feeTransaction.setAccountingName(lateFeeAdditionalInformationProjection.getAccountingName());
+
             feeTransaction.setChargeAccountId(transactions.getChargeAccountId());
             feeTransaction.setReceiveAccountId(transactions.getReceiveAccountId());
             feeTransaction.setPmAccountId(transactions.getPmAccountId());

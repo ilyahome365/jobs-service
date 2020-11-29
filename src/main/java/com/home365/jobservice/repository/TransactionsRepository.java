@@ -1,5 +1,6 @@
 package com.home365.jobservice.repository;
 
+import com.home365.jobservice.entities.LateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.Transactions;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -41,4 +42,16 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
     );
 
     List<Transactions> findByRecurringTemplateId(String recurringTemplateId);
+
+    @Query(
+            value = "SELECT distinct  p.New_name                          AS categoryName, " +
+                    "                 na.Name                             AS accountingName," +
+                    "                 New_primaryexpertiseExtensionBaseId AS categoryId, " +
+                    "                 AccountingTypeId                    AS accountingTypeId " +
+                    "FROM AccountingTypePrimaryexpertise a " +
+                    "         INNER JOIN New_primaryexpertiseExtensionBase p on p.New_primaryexpertiseId=a.New_primaryexpertiseExtensionBaseId " +
+                    "         INNER JOIN NewAccountingType na on na.Id=a.AccountingTypeId " +
+                    "WHERE p.New_code = 11587"
+            , nativeQuery = true)
+    LateFeeAdditionalInformationProjection getLateFeeAdditionalInformation();
 }
