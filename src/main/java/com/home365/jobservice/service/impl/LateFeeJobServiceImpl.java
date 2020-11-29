@@ -106,6 +106,7 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
             feeTransaction.setPropertyId(transactions.getPropertyId());
             feeTransaction.setAmount(feeAmount);
             feeTransaction.setStatus("readyForPayment");
+            feeTransaction.setChargedBy("Home365");
             feeTransaction.setReferenceTransactionId(transactionId);
             feeTransaction.setDueDate(new Timestamp(new Date().getTime()));
             feeTransactions.add(feeTransaction);
