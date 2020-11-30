@@ -40,15 +40,14 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
     @Override
     protected String execute() throws Exception {
-        List<ILeaseInformation> allActiveLeases = propertyTenantExtensionService.getAllActivePlans();
+        List<ILeaseInformation> allActiveLeases = propertyTenantExtensionService.getAllActivePlansToUpdate();
 
         List<String> leaseToUpdateIds = new ArrayList<>();
         List<String> y2yLeaseToExtendIds = new ArrayList<>();
 
-        Calendar currentCalendar = Calendar.getInstance();
         allActiveLeases.forEach(leaseInformation -> {
             if (leaseInformation.getLeaseType().equals(LeaseType.Monthly) ||
-                    leaseInformation.getLeaseType().equals(LeaseType.Yearly) && DateAndTimeUtil.getDaysLeft(currentCalendar, leaseInformation.getEndDate()) > 0
+                    leaseInformation.getLeaseType().equals(LeaseType.Yearly) && leaseInformation.getDaysLeft() > 0
             ) {
                 leaseToUpdateIds.add(leaseInformation.getPropertyTenantId());
                 return;
@@ -59,6 +58,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.findAllByIds(leaseToUpdateIds);
         List<PropertyTenantExtension> y2yLeaseToExtend = propertyTenantExtensionService.findAllByIds(y2yLeaseToExtendIds);
 
+        Calendar currentCalendar = Calendar.getInstance();
         leaseToUpdate.forEach(propertyTenantExtension -> {
             int daysLeft = DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate());
             propertyTenantExtension.setDaysLeft(daysLeft);

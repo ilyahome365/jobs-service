@@ -6,7 +6,7 @@ import java.util.Date;
 
 public interface ILeaseInformation {
 
-    String getTenantName();
+    int getDaysLeft();
 
     Date getEndDate();
 

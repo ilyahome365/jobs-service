@@ -10,6 +10,5 @@ public interface IPropertyTenantExtensionService {
 
     void save(List<PropertyTenantExtension> allLeaseToExtend);
 
-    List<ILeaseInformation> getAllActivePlans();
-
+    List<ILeaseInformation> getAllActivePlansToUpdate();
 }
