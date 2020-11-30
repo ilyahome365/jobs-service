@@ -42,7 +42,7 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
     public String execute() throws Exception {
         LateFeeConfiguration lateFeeConfiguration = jobsConfigurationService.getLateFeeConfiguration();
 
-        List<Transactions> candidateTransactionsWithNoLateFee = transactionsService.findAllByBillTypeAndStatusAndDueDateBefore(
+        List<Transactions> candidateTransactionsWithNoLateFee = transactionsService.findAllByBillTypeAndStatus(
                 lateFeeConfiguration.getCategoryNames(),
                 lateFeeConfiguration.getStatus()
         );

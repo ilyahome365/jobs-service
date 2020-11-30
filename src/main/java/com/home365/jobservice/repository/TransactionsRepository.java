@@ -36,7 +36,7 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
                     "   WHERE BillType = 'lateFee' AND ReferenceTransactionId is not null" +
                     ")",
             nativeQuery = true)
-    List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(
+    List<Transactions> findAllByBillTypeAndStatus(
             @Param("categoryNames") List<String> categoryNames,
             @Param("status") List<String> status
     );

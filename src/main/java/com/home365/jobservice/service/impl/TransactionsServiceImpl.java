@@ -33,8 +33,8 @@ public class TransactionsServiceImpl implements TransactionsService {
     }
 
     @Override
-    public List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(List<String> categoryNames, List<String> status) {
-        return transactionsRepository.findAllByBillTypeAndStatusAndDueDateBefore(categoryNames, status);
+    public List<Transactions> findAllByBillTypeAndStatus(List<String> categoryNames, List<String> status) {
+        return transactionsRepository.findAllByBillTypeAndStatus(categoryNames, status);
     }
 
     @Override
