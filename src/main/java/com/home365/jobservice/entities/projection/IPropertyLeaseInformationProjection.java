@@ -1,4 +1,4 @@
-package com.home365.jobservice.entities;
+package com.home365.jobservice.entities.projection;
 
 import java.util.Date;
 

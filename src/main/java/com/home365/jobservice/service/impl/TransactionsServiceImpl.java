@@ -1,6 +1,6 @@
 package com.home365.jobservice.service.impl;
 
-import com.home365.jobservice.entities.LateFeeAdditionalInformationProjection;
+import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.repository.TransactionsRepository;
 import com.home365.jobservice.service.TransactionsService;
@@ -43,7 +43,7 @@ public class TransactionsServiceImpl implements TransactionsService {
     }
 
     @Override
-    public LateFeeAdditionalInformationProjection getLateFeeAdditionalInformation() {
+    public ILateFeeAdditionalInformationProjection getLateFeeAdditionalInformation() {
         return transactionsRepository.getLateFeeAdditionalInformation();
     }
 }

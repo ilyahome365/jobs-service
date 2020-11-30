@@ -1,6 +1,6 @@
 package com.home365.jobservice.service;
 
-import com.home365.jobservice.entities.LateFeeAdditionalInformationProjection;
+import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.Transactions;
 
 import java.util.Date;
@@ -15,5 +15,5 @@ public interface TransactionsService {
 
     List<Transactions> findByRecurringTemplateId(String recurringTemplateId);
 
-    LateFeeAdditionalInformationProjection getLateFeeAdditionalInformation();
+    ILateFeeAdditionalInformationProjection getLateFeeAdditionalInformation();
 }

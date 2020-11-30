@@ -1,6 +1,6 @@
 package com.home365.jobservice.repository;
 
-import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
+import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.entities.Recurring;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

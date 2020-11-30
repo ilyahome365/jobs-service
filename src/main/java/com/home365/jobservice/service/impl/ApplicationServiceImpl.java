@@ -33,7 +33,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService;
     private final RecurringService recurringService;
     private final DueDateNotificationService dueDateNotificationService;
-
+    private final LeaseUpdatingServiceImpl leaseUpdatingService;
 
     public ApplicationServiceImpl(AppProperties appProperties,
                                   TransactionsService transactionsService,
@@ -42,7 +42,8 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   RecurringService recurringService,
                                   LateFeeJobServiceImpl lateFeeJobService,
                                   LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
-                                  DueDateNotificationService dueDateNotificationService) {
+                                  DueDateNotificationService dueDateNotificationService,
+                                  LeaseUpdatingServiceImpl leaseUpdatingService) {
         this.appProperties = appProperties;
         this.transactionsService = transactionsService;
         this.jobLogService = jobLogService;
@@ -51,6 +52,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.recurringService = recurringService;
         this.leaseRecurringNotificationService = leaseRecurringNotificationService;
         this.dueDateNotificationService = dueDateNotificationService;
+        this.leaseUpdatingService = leaseUpdatingService;
     }
 
     //    @Scheduled(cron = "0 01 * * * ?")
@@ -106,6 +108,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public JobExecutionResults dueDateTenantNotification() {
         return dueDateNotificationService.sendNotificationForDueDateTenants();
+    }
+
+    @Override
+    public JobExecutionResults startLeaseEndDateExtension() {
+        return leaseUpdatingService.executeJob();
     }
 
     private void createJobLog(PendingStatusJobData pendingStatusJobData, String cycleDate) {

@@ -1,7 +1,7 @@
 package com.home365.jobservice.service.impl;
 
-import com.home365.jobservice.entities.IPlanInformation;
-import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
+import com.home365.jobservice.entities.projection.ILeaseInformation;
+import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.repository.PropertyRepository;
 import com.home365.jobservice.service.PropertyService;
 import org.springframework.stereotype.Service;
@@ -21,10 +21,5 @@ public class PropertyServiceImpl implements PropertyService {
     @Override
     public List<IPropertyLeaseInformationProjection> findAllForLeaseNotification(Date start, Date end) {
         return propertyRepository.findAllForLeaseNotification(start, end);
-    }
-
-    @Override
-    public List<IPlanInformation> getAllActivePlans() {
-        return propertyRepository.getAllActivePlans();
     }
 }

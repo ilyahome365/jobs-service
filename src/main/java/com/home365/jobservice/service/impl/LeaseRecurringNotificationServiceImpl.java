@@ -1,7 +1,7 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
-import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
+import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.LeasePropertyNotificationConfiguration;
 import com.home365.jobservice.model.RecipientMail;
@@ -11,6 +11,7 @@ import com.home365.jobservice.service.JobsConfigurationService;
 import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.service.PropertyService;
 import com.home365.jobservice.utils.AddressUtils;
+import com.home365.jobservice.utils.DateAndTimeUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -84,7 +85,7 @@ public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
                         LeaseExpiryPropertySummary leaseExpiryPropertySummary = new LeaseExpiryPropertySummary();
                         leaseExpiryPropertySummary.setProperty(AddressUtils.addUnitAndBuildingToAddress(property.getPropertyName(), property.getUnit(), property.getBuilding()));
                         leaseExpiryPropertySummary.setTenant(property.getTenantName());
-                        leaseExpiryPropertySummary.setDaysLeft(getTimeDiff(currentCalendar, property.getEndDate()));
+                        leaseExpiryPropertySummary.setDaysLeft(DateAndTimeUtil.getTimeDiff(currentCalendar, property.getEndDate()));
                         leaseExpiryPropertySummary.setExpiredDate(formatter.format(property.getEndDate()));
                         leaseExpiryPropertySummaries.add(leaseExpiryPropertySummary);
                     } catch (Exception ex) {
@@ -92,13 +93,6 @@ public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
                     }
                 });
         return leaseExpiryPropertySummaries;
-    }
-
-    private long getTimeDiff(Calendar currentCalendar, Date dueDate) {
-        Calendar dueDateCalendar = Calendar.getInstance();
-        dueDateCalendar.setTime(dueDate);
-        long diffInMillies = Math.abs(currentCalendar.getTime().getTime() - dueDate.getTime());
-        return TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
     }
 
     private void sendMail(LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration,

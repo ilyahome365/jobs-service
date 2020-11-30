@@ -1,6 +1,6 @@
 package com.home365.jobservice.repository;
 
-import com.home365.jobservice.entities.LateFeeAdditionalInformationProjection;
+import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.Transactions;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -56,5 +56,5 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
                     "         INNER JOIN NewAccountingType na on na.Id=a.AccountingTypeId " +
                     "WHERE p.New_code = 11587"
             , nativeQuery = true)
-    LateFeeAdditionalInformationProjection getLateFeeAdditionalInformation();
+    ILateFeeAdditionalInformationProjection getLateFeeAdditionalInformation();
 }

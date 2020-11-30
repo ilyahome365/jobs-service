@@ -15,4 +15,6 @@ public interface ApplicationService {
     JobExecutionResults startLeasePropertyNotification();
 
     JobExecutionResults dueDateTenantNotification();
+
+    JobExecutionResults startLeaseEndDateExtension();
 }

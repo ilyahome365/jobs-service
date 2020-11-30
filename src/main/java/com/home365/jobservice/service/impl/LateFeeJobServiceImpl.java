@@ -1,7 +1,7 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
-import com.home365.jobservice.entities.LateFeeAdditionalInformationProjection;
+import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.LateFeeConfiguration;
@@ -67,7 +67,7 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
     private List<Transactions> createLateFeeTransactions(LateFeeConfiguration lateFeeConfiguration,
                                                          List<Transactions> candidateTransactionsWithNoLateFee) {
 
-        LateFeeAdditionalInformationProjection lateFeeAdditionalInformationProjection = transactionsService.getLateFeeAdditionalInformation();
+        ILateFeeAdditionalInformationProjection lateFeeAdditionalInformationProjection = transactionsService.getLateFeeAdditionalInformation();
 
         List<Transactions> feeTransactions = new ArrayList<>();
         candidateTransactionsWithNoLateFee.forEach(transactions -> {

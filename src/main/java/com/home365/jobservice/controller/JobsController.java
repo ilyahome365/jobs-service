@@ -53,5 +53,8 @@ public class JobsController {
         return ResponseEntity.ok(jobsService.dueDateTenantNotification());
     }
 
-
+    @GetMapping("/lease-end-date-extension")
+    public ResponseEntity<JobExecutionResults> leaseEndDateExtension() {
+        return ResponseEntity.ok(jobsService.startLeaseEndDateExtension());
+    }
 }

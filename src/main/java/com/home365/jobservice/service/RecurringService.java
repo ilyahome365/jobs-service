@@ -1,6 +1,6 @@
 package com.home365.jobservice.service;
 
-import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
+import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.entities.Recurring;
 import com.home365.jobservice.model.JobExecutionResults;
 

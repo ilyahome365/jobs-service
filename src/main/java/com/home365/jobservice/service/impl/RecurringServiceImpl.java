@@ -2,7 +2,7 @@ package com.home365.jobservice.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
+import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.entities.LocationRules;
 import com.home365.jobservice.entities.Recurring;
 import com.home365.jobservice.entities.Transactions;

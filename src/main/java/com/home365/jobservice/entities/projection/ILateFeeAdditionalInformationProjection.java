@@ -1,6 +1,6 @@
-package com.home365.jobservice.entities;
+package com.home365.jobservice.entities.projection;
 
-public interface LateFeeAdditionalInformationProjection {
+public interface ILateFeeAdditionalInformationProjection {
     String getAccountingTypeId();
 
     String getCategoryId();
