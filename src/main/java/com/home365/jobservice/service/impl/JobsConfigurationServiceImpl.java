@@ -55,7 +55,8 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
 
     public enum JOBS_ID {
         LATE_FEE("late-fee", 1L),
-        LEASE_PROPERTY_NOTIFICATION("lease-property-notification", 2L);
+        LEASE_PROPERTY_NOTIFICATION("lease-property-notification", 2L),
+        LEASE_UPDATING("lease-updating", 3L);
 
         private final String name;
         private final Long key;
