@@ -3,7 +3,6 @@ package com.home365.jobservice.service.impl;
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.PropertyTenantExtension;
 import com.home365.jobservice.entities.enums.LeaseType;
-import com.home365.jobservice.entities.projection.ILeaseInformation;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.service.IPropertyTenantExtensionService;
 import com.home365.jobservice.service.MailService;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -50,20 +48,16 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
         // TODO: check moveout
 
-        List<ILeaseInformation> allActiveLeases = propertyTenantExtensionService.getAllActivePlansToUpdate();
-
-        List<String> leaseToUpdateIds = allActiveLeases.stream().map(ILeaseInformation::getPropertyTenantId).collect(Collectors.toList());
-        List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.findAllByIds(leaseToUpdateIds);
-
+        List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.getAllActivePlansToUpdate();
         leaseToUpdate.forEach(propertyTenantExtension -> {
-            if (propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) && propertyTenantExtension.getDaysLeft() <= 0) {
+            int daysLeft = DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate());
+            propertyTenantExtension.setDaysLeft(daysLeft);
+
+            if (propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) && daysLeft <= 0) {
                 propertyTenantExtension.setLeaseType(LeaseType.Monthly);
             }
             Date extendDate = DateAndTimeUtil.addMonths(1, propertyTenantExtension.getEndDate());
             propertyTenantExtension.setEndDate(extendDate);
-
-            int daysLeft = DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate());
-            propertyTenantExtension.setDaysLeft(daysLeft);
         });
 
         propertyTenantExtensionService.save(leaseToUpdate);

@@ -1,7 +1,6 @@
 package com.home365.jobservice.service;
 
 import com.home365.jobservice.entities.PropertyTenantExtension;
-import com.home365.jobservice.entities.projection.ILeaseInformation;
 
 import java.util.List;
 
@@ -10,5 +9,5 @@ public interface IPropertyTenantExtensionService {
 
     void save(List<PropertyTenantExtension> allLeaseToExtend);
 
-    List<ILeaseInformation> getAllActivePlansToUpdate();
+    List<PropertyTenantExtension> getAllActivePlansToUpdate();
 }

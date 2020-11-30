@@ -1,7 +1,6 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.entities.PropertyTenantExtension;
-import com.home365.jobservice.entities.projection.ILeaseInformation;
 import com.home365.jobservice.repository.IPropertyTenantExtensionRepository;
 import com.home365.jobservice.service.IPropertyTenantExtensionService;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,7 @@ public class PropertyTenantExtensionServiceImpl implements IPropertyTenantExtens
     }
 
     @Override
-    public List<ILeaseInformation> getAllActivePlansToUpdate() {
+    public List<PropertyTenantExtension> getAllActivePlansToUpdate() {
         return propertyTenantExtensionRepository.getAllActivePlansToUpdate();
     }
 }

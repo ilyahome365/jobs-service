@@ -1,6 +1,5 @@
 package com.home365.jobservice.service.impl;
 
-import com.home365.jobservice.entities.projection.ILeaseInformation;
 import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.repository.PropertyRepository;
 import com.home365.jobservice.service.PropertyService;
