@@ -12,9 +12,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,51 +40,32 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
     @Override
     protected String execute() throws Exception {
-        // Get All Lease.
         List<ILeaseInformation> allActiveLeases = propertyTenantExtensionService.getAllActivePlans();
 
+        List<String> leaseToUpdateIds = new ArrayList<>();
+        List<String> y2yLeaseToExtendIds = new ArrayList<>();
+
         Calendar currentCalendar = Calendar.getInstance();
-        // To All Y2Y Plans that:
-        List<String> m2mLeaseToUpdateIds = allActiveLeases
-                .stream()
-                .filter(leaseInformation -> leaseInformation.getLeaseType().equals(LeaseType.Monthly))
-                .map(ILeaseInformation::getPropertyTenantId)
-                .collect(Collectors.toList());
+        allActiveLeases.forEach(leaseInformation -> {
+            if (leaseInformation.getLeaseType().equals(LeaseType.Monthly) ||
+                    leaseInformation.getLeaseType().equals(LeaseType.Yearly) && DateAndTimeUtil.getDaysLeft(currentCalendar, leaseInformation.getEndDate()) > 0
+            ) {
+                leaseToUpdateIds.add(leaseInformation.getPropertyTenantId());
+                return;
+            }
+            y2yLeaseToExtendIds.add(leaseInformation.getPropertyTenantId());
+        });
 
-        // To All Y2Y Plans that:
-        //      - Ends today
-        //      - Moveout is empty
-        StringBuilder stringBuilder = new StringBuilder();
-        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-        List<String> y2yLeaseToUpdateIds = allActiveLeases
-                .stream()
-                .filter(leaseInformation -> leaseInformation.getLeaseType().equals(LeaseType.Yearly))
-                .filter(allInformation -> DateAndTimeUtil.getDaysLeft(currentCalendar, allInformation.getEndDate()) <= 0)
-//                .filter(leaseInformationEndsToday -> !leaseInformationEndsToday.isMoveout()) // TODO: Add when moveout added
-                .map(leaseInformation -> {
-                    String date = null;
-                    if (leaseInformation.getEndDate() != null) {
-                        date = format.format(leaseInformation.getEndDate());
-                    }
-                    log.info(String.format("Property Tenant Id [%s] with Type [%s] with End Date [%s] will be update",
-                            leaseInformation.getPropertyTenantId(),
-                            leaseInformation.getLeaseType().name(),
-                            date
-                    ));
-                    return leaseInformation.getPropertyTenantId();
-                })
-                .collect(Collectors.toList());
+        List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.findAllByIds(leaseToUpdateIds);
+        List<PropertyTenantExtension> y2yLeaseToExtend = propertyTenantExtensionService.findAllByIds(y2yLeaseToExtendIds);
 
-        List<PropertyTenantExtension> m2mLeaseToUpdate = propertyTenantExtensionService.findAllByIds(m2mLeaseToUpdateIds);
-        m2mLeaseToUpdate.forEach(propertyTenantExtension -> {
+        leaseToUpdate.forEach(propertyTenantExtension -> {
             int daysLeft = DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate());
             propertyTenantExtension.setDaysLeft(daysLeft);
         });
-
         // Then:
         //      - Change to M2M
         //      - Add 1 month
-        List<PropertyTenantExtension> y2yLeaseToExtend = propertyTenantExtensionService.findAllByIds(y2yLeaseToUpdateIds);
         y2yLeaseToExtend.forEach(propertyTenantExtension -> {
             propertyTenantExtension.setLeaseType(LeaseType.Monthly);
 
@@ -93,7 +76,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
             propertyTenantExtension.setDaysLeft(daysLeft);
         });
 
-        propertyTenantExtensionService.save(m2mLeaseToUpdate);
+        propertyTenantExtensionService.save(leaseToUpdate);
         propertyTenantExtensionService.save(y2yLeaseToExtend);
         log.info(getJobName() + " Finished");
         return getJobName() + " Finished ";
