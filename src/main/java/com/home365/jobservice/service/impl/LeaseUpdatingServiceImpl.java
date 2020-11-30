@@ -52,6 +52,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         // To All Y2Y Plans that:
         //      - Ends today
         //      - Moveout is empty
+        StringBuilder stringBuilder = new StringBuilder();
         SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
         List<String> y2yLeaseToUpdateIds = allActiveLeases
                 .stream()
@@ -95,6 +96,6 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         propertyTenantExtensionService.save(m2mLeaseToUpdate);
         propertyTenantExtensionService.save(y2yLeaseToExtend);
         log.info(getJobName() + " Finished");
-        return getJobName() + "Finished";
+        return getJobName() + " Finished ";
     }
 }
