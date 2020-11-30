@@ -11,12 +11,9 @@ import com.home365.jobservice.utils.DateAndTimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,35 +37,19 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
     @Override
     protected String execute() throws Exception {
+
+        // TODO: check moveout
+
         List<ILeaseInformation> allActiveLeases = propertyTenantExtensionService.getAllActivePlansToUpdate();
 
-        List<String> leaseToUpdateIds = new ArrayList<>();
-        List<String> y2yLeaseToExtendIds = new ArrayList<>();
-
-        allActiveLeases.forEach(leaseInformation -> {
-            if (leaseInformation.getLeaseType().equals(LeaseType.Monthly) ||
-                    leaseInformation.getLeaseType().equals(LeaseType.Yearly) && leaseInformation.getDaysLeft() > 0
-            ) {
-                leaseToUpdateIds.add(leaseInformation.getPropertyTenantId());
-                return;
-            }
-            y2yLeaseToExtendIds.add(leaseInformation.getPropertyTenantId());
-        });
-
+        List<String> leaseToUpdateIds = allActiveLeases.stream().map(ILeaseInformation::getPropertyTenantId).collect(Collectors.toList());
         List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.findAllByIds(leaseToUpdateIds);
-        List<PropertyTenantExtension> y2yLeaseToExtend = propertyTenantExtensionService.findAllByIds(y2yLeaseToExtendIds);
 
         Calendar currentCalendar = Calendar.getInstance();
         leaseToUpdate.forEach(propertyTenantExtension -> {
-            int daysLeft = DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate());
-            propertyTenantExtension.setDaysLeft(daysLeft);
-        });
-        // Then:
-        //      - Change to M2M
-        //      - Add 1 month
-        y2yLeaseToExtend.forEach(propertyTenantExtension -> {
-            propertyTenantExtension.setLeaseType(LeaseType.Monthly);
-
+            if (propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) && propertyTenantExtension.getDaysLeft() <= 0) {
+                propertyTenantExtension.setLeaseType(LeaseType.Monthly);
+            }
             Date extendDate = DateAndTimeUtil.addMonths(1, propertyTenantExtension.getEndDate());
             propertyTenantExtension.setEndDate(extendDate);
 
@@ -77,7 +58,6 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         });
 
         propertyTenantExtensionService.save(leaseToUpdate);
-        propertyTenantExtensionService.save(y2yLeaseToExtend);
         log.info(getJobName() + " Finished");
         return getJobName() + " Finished ";
     }
