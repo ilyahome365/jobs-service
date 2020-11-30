@@ -16,7 +16,7 @@ public class LateFeeConfiguration {
     private boolean fix;
     private double feeAmount;
     private double maxFeeAmount;
-    private List<String> billTypes;
+    private List<String> categoryNames;
     private List<String> status;
 
     public double getFeeAmount() {

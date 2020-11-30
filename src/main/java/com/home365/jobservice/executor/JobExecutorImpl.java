@@ -16,12 +16,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class JobExecutorImpl implements JobService {
     protected final AppProperties appProperties;
     protected final MailService mailService;
+    private final ReentrantLock lock = new ReentrantLock();
 
     public JobExecutorImpl(AppProperties appProperties,
                            MailService mailService) {
@@ -31,21 +33,30 @@ public abstract class JobExecutorImpl implements JobService {
 
     @Override
     public JobExecutionResults executeJob() {
+        log.info("Try to Start " + getJobName());
         JobExecutionResults jobExecutionResults = new JobExecutionResults();
         LocalDateTime startTime = LocalDateTime.now();
         try {
-            jobExecutionResults.setStartTime(startTime);
-            String jobExecutionResult = execute();
-            jobExecutionResults.setMessage(jobExecutionResult);
-            jobExecutionResults.setJobName(getJobName());
-            setEndingTimeAndDuration(jobExecutionResults, startTime);
-            sendMailOnFail(getJobName(), jobExecutionResults);
+            if (lock.tryLock()) {
+                log.info(getJobName() + " Started");
+                jobExecutionResults.setStartTime(startTime);
+                String jobExecutionResult = execute();
+                jobExecutionResults.setMessage(jobExecutionResult);
+                jobExecutionResults.setJobName(getJobName());
+                setEndingTimeAndDuration(jobExecutionResults, startTime);
+                sendMailOnFail(getJobName(), jobExecutionResults);
+            } else {
+                log.info(getJobName() + " -> Already Running");
+                jobExecutionResults.setMessage(getJobName() + " -> Already Running");
+            }
         } catch (Exception ex) {
             setEndingTimeAndDuration(jobExecutionResults, startTime);
             jobExecutionResults.setError(ex.getMessage());
             jobExecutionResults.setStackTrace(Arrays.toString(ex.getStackTrace()));
             log.info(String.format("Job [%s] failed -> Send Mail with the reason", getJobName()));
             sendMailOnFail(getJobName(), jobExecutionResults);
+        } finally {
+            lock.unlock();
         }
         return jobExecutionResults;
     }

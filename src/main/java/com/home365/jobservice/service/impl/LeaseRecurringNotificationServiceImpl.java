@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,7 +28,7 @@ import java.util.stream.Collectors;
 public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
 
     public static final String LEASE_PROPERTY_NOTIFICATION_JOB = "Lease Property Notification Job";
-    private final ReentrantLock lock = new ReentrantLock();
+
     private final PropertyService propertyService;
     private final JobsConfigurationService jobsConfigurationService;
 
@@ -49,29 +48,16 @@ public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
 
     @Override
     public String execute() throws Exception {
-        log.info("Try to Start Lease Property Notification Job");
-        if (lock.tryLock()) {
-            try {
-                log.info("Lease Property Notification Job Started");
-                Calendar currentCalendar = Calendar.getInstance();
-
-                LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration = jobsConfigurationService.getLeasePropertyNotificationConfiguration();
-                List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries = getPropertyExtension(
-                        currentCalendar,
-                        leasePropertyNotificationConfiguration
-                );
-                sendMail(leasePropertyNotificationConfiguration, leaseExpiryPropertySummaries);
-                showSummary(leaseExpiryPropertySummaries);
-
-                log.info("Lease Property Notification Job Finished");
-                return "Lease Property Notification Job Finished";
-            } finally {
-                lock.unlock();
-            }
-        } else {
-            log.info("Lease Property Notification Job didn't Start -> Already Running");
-            return "Lease Property Notification Job didn't Start -> Already Running";
-        }
+        Calendar currentCalendar = Calendar.getInstance();
+        LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration = jobsConfigurationService.getLeasePropertyNotificationConfiguration();
+        List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries = getPropertyExtension(
+                currentCalendar,
+                leasePropertyNotificationConfiguration
+        );
+        sendMail(leasePropertyNotificationConfiguration, leaseExpiryPropertySummaries);
+        showSummary(leaseExpiryPropertySummaries);
+        log.info("Lease Property Notification Job Finished");
+        return "Lease Property Notification Job Finished";
     }
 
     private List<LeaseExpiryPropertySummary> getPropertyExtension(Calendar currentCalendar,

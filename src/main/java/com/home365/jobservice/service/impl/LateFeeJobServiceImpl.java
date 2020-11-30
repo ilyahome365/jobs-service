@@ -4,7 +4,6 @@ import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.LateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.executor.JobExecutorImpl;
-import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.LateFeeConfiguration;
 import com.home365.jobservice.service.JobsConfigurationService;
 import com.home365.jobservice.service.MailService;
@@ -13,16 +12,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 @Slf4j
 @Service
 public class LateFeeJobServiceImpl extends JobExecutorImpl {
     public static final String LATE_FEE_JOB = "Late Fee Job";
+
     private final JobsConfigurationService jobsConfigurationService;
     private final TransactionsService transactionsService;
-    private final ReentrantLock lock = new ReentrantLock();
 
     public LateFeeJobServiceImpl(AppProperties appProperties,
                                  MailService mailService,
@@ -40,38 +41,27 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
 
     @Override
     public String execute() throws Exception {
-        log.info("Try to Start Late Fee Job");
-        if (lock.tryLock()) {
-            try {
-                LateFeeConfiguration lateFeeConfiguration = jobsConfigurationService.getLateFeeConfiguration();
-                log.info("Late Fee Job Started");
-                List<Transactions> candidateTransactionsWithNoLateFee = findTransactions(
-                        lateFeeConfiguration.getLateFeeRetro(),
-                        lateFeeConfiguration.getBillTypes(),
-                        lateFeeConfiguration.getStatus()
-                );
-                List<Transactions> lateFeeTransactions = createLateFeeTransactions(
-                        lateFeeConfiguration,
-                        candidateTransactionsWithNoLateFee
-                );
-                showSummary(lateFeeTransactions);
-            } finally {
-                lock.unlock();
-            }
-            log.info("Late Fee Job Finished");
-            return "Late Fee Job Finished";
-        } else {
-            log.info("Late Fee Job didn't Start -> Already Running");
-            return "Late Fee Job didn't Start -> Already Running";
-        }
+        LateFeeConfiguration lateFeeConfiguration = jobsConfigurationService.getLateFeeConfiguration();
+        List<Transactions> candidateTransactionsWithNoLateFee = findTransactions(
+                lateFeeConfiguration.getLateFeeRetro(),
+                lateFeeConfiguration.getCategoryNames(),
+                lateFeeConfiguration.getStatus()
+        );
+        List<Transactions> lateFeeTransactions = createLateFeeTransactions(
+                lateFeeConfiguration,
+                candidateTransactionsWithNoLateFee
+        );
+        showSummary(lateFeeTransactions);
+        log.info("Late Fee Job Finished");
+        return "Late Fee Job Finished";
     }
 
     private List<Transactions> findTransactions(int lateFeeRetro,
-                                                List<String> billTypes,
+                                                List<String> categoryNames,
                                                 List<String> status) {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.MONTH, lateFeeRetro);
-        return transactionsService.findAllByBillTypeAndStatusAndDueDateBefore(billTypes, status, calendar.getTime());
+        return transactionsService.findAllByBillTypeAndStatusAndDueDateBefore(categoryNames, status, calendar.getTime());
     }
 
     private List<Transactions> createLateFeeTransactions(LateFeeConfiguration lateFeeConfiguration,
@@ -87,9 +77,9 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
             double maxFeeAmount = lateFeeConfiguration.getMaxFeeAmount();
 
             long feeAmount = 0;
-            if(transactions.getAmount() * amount >= maxFeeAmount){
+            if (transactions.getAmount() * amount >= maxFeeAmount) {
                 feeAmount = (long) maxFeeAmount;
-            }else{
+            } else {
                 feeAmount = (long) (transactions.getAmount() * amount);
             }
 

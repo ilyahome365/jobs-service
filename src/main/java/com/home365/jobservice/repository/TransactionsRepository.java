@@ -28,7 +28,10 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
     @Query(
             value = "SELECT * " +
                     "FROM Transactions " +
-                    "WHERE BillType IN (:billTypes) AND Status IN (:status) AND DueDate < :dueDate " +
+                    "WHERE TransactionType = 'Charge' " +
+                    "      AND categoryName IN (:categoryNames)" +
+                    "      AND Status IN (:status) " +
+                    "      AND DueDate < :dueDate " +
                     "AND TransactionId NOT IN ( " +
                     "   SELECT ReferenceTransactionId " +
                     "   FROM Transactions " +
@@ -36,7 +39,7 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
                     ")",
             nativeQuery = true)
     List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(
-            @Param("billTypes") List<String> billTypes,
+            @Param("categoryNames") List<String> categoryNames,
             @Param("status") List<String> status,
             @Param("dueDate") Date dueDate
     );
