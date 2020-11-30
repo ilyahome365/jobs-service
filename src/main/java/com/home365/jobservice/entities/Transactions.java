@@ -59,4 +59,8 @@ public class Transactions implements Serializable {
     private String payBy;
     private String transactionType;
     private String recurringTemplateId;
+
+    @Version
+    @Column(name = "Version")
+    private Long version;
 }
