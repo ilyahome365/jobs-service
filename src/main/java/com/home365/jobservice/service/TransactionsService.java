@@ -11,7 +11,7 @@ public interface TransactionsService {
 
     List<Transactions> getTransactionsWithProjectedBalance(String cycleDate);
 
-    List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(List<String> categoryNames, List<String> status, Date time);
+    List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(List<String> categoryNames, List<String> status);
 
     List<Transactions> findByRecurringTemplateId(String recurringTemplateId);
 

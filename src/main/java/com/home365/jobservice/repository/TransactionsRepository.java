@@ -1,13 +1,12 @@
 package com.home365.jobservice.repository;
 
-import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.Transactions;
+import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -31,7 +30,6 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
                     "WHERE TransactionType = 'Charge' " +
                     "      AND categoryName IN (:categoryNames)" +
                     "      AND Status IN (:status) " +
-                    "      AND DueDate < :dueDate " +
                     "AND TransactionId NOT IN ( " +
                     "   SELECT ReferenceTransactionId " +
                     "   FROM Transactions " +
@@ -40,8 +38,7 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
             nativeQuery = true)
     List<Transactions> findAllByBillTypeAndStatusAndDueDateBefore(
             @Param("categoryNames") List<String> categoryNames,
-            @Param("status") List<String> status,
-            @Param("dueDate") Date dueDate
+            @Param("status") List<String> status
     );
 
     List<Transactions> findByRecurringTemplateId(String recurringTemplateId);

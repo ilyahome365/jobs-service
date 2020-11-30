@@ -1,8 +1,8 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
-import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.Transactions;
+import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.LateFeeConfiguration;
 import com.home365.jobservice.service.JobsConfigurationService;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -42,11 +41,12 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
     @Override
     public String execute() throws Exception {
         LateFeeConfiguration lateFeeConfiguration = jobsConfigurationService.getLateFeeConfiguration();
-        List<Transactions> candidateTransactionsWithNoLateFee = findTransactions(
-                lateFeeConfiguration.getLateFeeRetro(),
+
+        List<Transactions> candidateTransactionsWithNoLateFee = transactionsService.findAllByBillTypeAndStatusAndDueDateBefore(
                 lateFeeConfiguration.getCategoryNames(),
                 lateFeeConfiguration.getStatus()
         );
+
         List<Transactions> lateFeeTransactions = createLateFeeTransactions(
                 lateFeeConfiguration,
                 candidateTransactionsWithNoLateFee
@@ -54,14 +54,6 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
         showSummary(lateFeeTransactions);
         log.info("Late Fee Job Finished");
         return "Late Fee Job Finished";
-    }
-
-    private List<Transactions> findTransactions(int lateFeeRetro,
-                                                List<String> categoryNames,
-                                                List<String> status) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.MONTH, lateFeeRetro);
-        return transactionsService.findAllByBillTypeAndStatusAndDueDateBefore(categoryNames, status, calendar.getTime());
     }
 
     private List<Transactions> createLateFeeTransactions(LateFeeConfiguration lateFeeConfiguration,

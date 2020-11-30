@@ -38,6 +38,16 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
     @Override
     protected String execute() throws Exception {
 
+        // Check if this is the last day of the month
+        Calendar currentCalendar = Calendar.getInstance();
+        int lastDayOfTheMonth = currentCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        int currentDayOfTheMonth = currentCalendar.get(Calendar.DAY_OF_MONTH);
+        if (currentDayOfTheMonth != lastDayOfTheMonth) {
+            String message = String.format(" Not run -> this is not the last day of the month, Current day [%s] last Day [%s]", currentDayOfTheMonth, lastDayOfTheMonth);
+            log.info(getJobName() + message);
+            return getJobName() + message;
+        }
+
         // TODO: check moveout
 
         List<ILeaseInformation> allActiveLeases = propertyTenantExtensionService.getAllActivePlansToUpdate();
@@ -45,7 +55,6 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         List<String> leaseToUpdateIds = allActiveLeases.stream().map(ILeaseInformation::getPropertyTenantId).collect(Collectors.toList());
         List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.findAllByIds(leaseToUpdateIds);
 
-        Calendar currentCalendar = Calendar.getInstance();
         leaseToUpdate.forEach(propertyTenantExtension -> {
             if (propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) && propertyTenantExtension.getDaysLeft() <= 0) {
                 propertyTenantExtension.setLeaseType(LeaseType.Monthly);

@@ -12,7 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LateFeeConfiguration {
-    private int lateFeeRetro;
     private boolean fix;
     private double feeAmount;
     private double maxFeeAmount;
