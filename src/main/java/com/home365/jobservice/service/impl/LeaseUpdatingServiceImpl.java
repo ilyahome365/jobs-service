@@ -53,7 +53,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
             int daysLeft = DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate());
             propertyTenantExtension.setDaysLeft(daysLeft);
 
-            if (propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) && daysLeft <= 0) {
+            if (propertyTenantExtension.getLeaseType() != null && propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) && daysLeft <= 0) {
                 propertyTenantExtension.setLeaseType(LeaseType.Monthly);
             }
             Date extendDate = DateAndTimeUtil.addMonths(1, propertyTenantExtension.getEndDate());
