@@ -48,6 +48,8 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
         // TODO: check moveout
 
+        Calendar nextMonth = Calendar.getInstance();
+        nextMonth.add(Calendar.MONTH, 1);
         List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.getAllActivePlansToUpdate();
         leaseToUpdate.forEach(propertyTenantExtension -> {
             propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
@@ -57,8 +59,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
             }
 
             if(propertyTenantExtension.getLeaseType() != null && propertyTenantExtension.getLeaseType().equals(LeaseType.Monthly) && propertyTenantExtension.getDaysLeft() <= 0){
-                Date extendDate = DateAndTimeUtil.addMonths(1, propertyTenantExtension.getEndDate());
-                propertyTenantExtension.setEndDate(extendDate);
+                propertyTenantExtension.setEndDate(nextMonth.getTime());
                 propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
             }
         });
