@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -54,11 +53,15 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         leaseToUpdate.forEach(propertyTenantExtension -> {
             propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
 
-            if (propertyTenantExtension.getLeaseType() != null && propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) && propertyTenantExtension.getDaysLeft() <= 0) {
+            if (propertyTenantExtension.getLeaseType() != null &&
+                    propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) &&
+                    propertyTenantExtension.getDaysLeft() <= 0) {
                 propertyTenantExtension.setLeaseType(LeaseType.Monthly);
             }
 
-            if(propertyTenantExtension.getLeaseType() != null && propertyTenantExtension.getLeaseType().equals(LeaseType.Monthly) && propertyTenantExtension.getDaysLeft() <= 0){
+            if (propertyTenantExtension.getLeaseType() != null &&
+                    propertyTenantExtension.getLeaseType().equals(LeaseType.Monthly) &&
+                    propertyTenantExtension.getDaysLeft() <= 0) {
                 propertyTenantExtension.setEndDate(nextMonth.getTime());
                 propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
             }
