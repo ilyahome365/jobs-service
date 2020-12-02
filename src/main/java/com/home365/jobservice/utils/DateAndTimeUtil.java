@@ -24,14 +24,4 @@ public abstract class DateAndTimeUtil {
         }
         return 0;
     }
-
-    public static Date addMonths(int amount, Date endDate) {
-        if (endDate != null) {
-            Calendar dueDateCalendar = Calendar.getInstance();
-            dueDateCalendar.setTime(endDate);
-            dueDateCalendar.add(Calendar.MONTH, amount);
-            return dueDateCalendar.getTime();
-        }
-        return new Date();
-    }
 }
