@@ -36,8 +36,6 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
     @Override
     protected String execute() throws Exception {
 
-        // TODO: check cron implementation
-        // 59 23 28-31 * * [ “$(date +\%d -d tomorrow)” = “01” ]
         // Check if this is the last day of the month
         Calendar currentCalendar = Calendar.getInstance();
         int lastDayOfTheMonth = currentCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
@@ -50,16 +48,20 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
         // TODO: check moveout
 
+        Calendar nextMonth = Calendar.getInstance();
+        nextMonth.add(Calendar.MONTH, 1);
         List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.getAllActivePlansToUpdate();
         leaseToUpdate.forEach(propertyTenantExtension -> {
-            int daysLeft = DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate());
-            propertyTenantExtension.setDaysLeft(daysLeft);
+            propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
 
-            if (propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) && daysLeft <= 0) {
+            if (propertyTenantExtension.getLeaseType() != null && propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) && propertyTenantExtension.getDaysLeft() <= 0) {
                 propertyTenantExtension.setLeaseType(LeaseType.Monthly);
             }
-            Date extendDate = DateAndTimeUtil.addMonths(1, propertyTenantExtension.getEndDate());
-            propertyTenantExtension.setEndDate(extendDate);
+
+            if(propertyTenantExtension.getLeaseType() != null && propertyTenantExtension.getLeaseType().equals(LeaseType.Monthly) && propertyTenantExtension.getDaysLeft() <= 0){
+                propertyTenantExtension.setEndDate(nextMonth.getTime());
+                propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
+            }
         });
 
         propertyTenantExtensionService.save(leaseToUpdate);

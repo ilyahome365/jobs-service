@@ -111,7 +111,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public JobExecutionResults startLeaseEndDateExtension() {
+    public JobExecutionResults startLeaseUpdating() {
         return leaseUpdatingService.executeJob();
     }
 
