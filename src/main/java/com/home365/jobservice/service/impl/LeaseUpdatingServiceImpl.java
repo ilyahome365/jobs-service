@@ -60,7 +60,6 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
                 Date extendDate = DateAndTimeUtil.addMonths(1, propertyTenantExtension.getEndDate());
                 propertyTenantExtension.setEndDate(extendDate);
                 propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
-
             }
         });
 
