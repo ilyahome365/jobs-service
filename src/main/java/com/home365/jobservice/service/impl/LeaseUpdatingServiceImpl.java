@@ -36,8 +36,6 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
     @Override
     protected String execute() throws Exception {
 
-        // TODO: check cron implementation
-        // 59 23 28-31 * * [ “$(date +\%d -d tomorrow)” = “01” ]
         // Check if this is the last day of the month
         Calendar currentCalendar = Calendar.getInstance();
         int lastDayOfTheMonth = currentCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
