@@ -2,15 +2,19 @@ package com.home365.jobservice.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.home365.jobservice.entities.*;
 import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.entities.LocationRules;
 import com.home365.jobservice.entities.Recurring;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.repository.RecurringRepository;
+import com.home365.jobservice.repository.TypeCategoryRepository;
 import com.home365.jobservice.service.LocationRulesService;
 import com.home365.jobservice.service.RecurringService;
 import com.home365.jobservice.service.TransactionsService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -21,6 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class RecurringServiceImpl implements RecurringService {
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -28,12 +33,14 @@ public class RecurringServiceImpl implements RecurringService {
     private final RecurringRepository recurringRepository;
     private final TransactionsService transactionsService;
     private final LocationRulesService locationRulesService;
+    private final TypeCategoryRepository typeCategoryRepository;
 
     public RecurringServiceImpl(RecurringRepository recurringRepository, TransactionsService transactionsService,
-                                LocationRulesService locationRulesService) {
+                                LocationRulesService locationRulesService, TypeCategoryRepository typeCategoryRepository) {
         this.recurringRepository = recurringRepository;
         this.transactionsService = transactionsService;
         this.locationRulesService = locationRulesService;
+        this.typeCategoryRepository = typeCategoryRepository;
     }
 
     @Override
@@ -69,44 +76,61 @@ public class RecurringServiceImpl implements RecurringService {
 
         final Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
-        int daysToCreateRecurring = Integer.parseInt(rules.get("days_to_create_recurring"));
+        int daysToCreateRecurring = Integer.parseInt(rules.get("days_ahead_to_create_recurring"));
+        int dayInMonthToCreateRecurring = Integer.parseInt(rules.get("day_in_month_to_create_recurring"));
 
-        calendar.add(Calendar.DAY_OF_MONTH, daysToCreateRecurring);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.add(Calendar.MONTH, 1);
+        calendar.add(Calendar.DAY_OF_MONTH, -daysToCreateRecurring);
         Date dateToCreateRecurring = calendar.getTime();
 
         calendar.setTime(now);
         calendar.add(Calendar.MONTH, 1);
-        calendar.set(Calendar.DAY_OF_MONTH, 5);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
         Date nextDueDate = calendar.getTime();
 
         activeRecurringChargeList.forEach(recurringCharge -> {
-            List<Transactions> existingRecurringTransactions = transactionsService.findByRecurringTemplateId(recurringCharge.getId());
-            if (CollectionUtils.isEmpty(existingRecurringTransactions)) {
-                final long relativeAmount = getRelativeAmount(recurringCharge.getAmount());
-                Transactions transactions = Transactions.builder()
-                        .amount(relativeAmount)
-                        .pmAccountId(recurringCharge.getPmAccountId())
-                        .accountingTypeId(recurringCharge.getAccountingTypeId())
-                        .amountBeforeDiscount(relativeAmount)
-                        .billType(recurringCharge.getBillType())
-                        .categoryId(recurringCharge.getCategoryId())
-                        .memo(recurringCharge.getMemo())
-                        .dueDate(new Timestamp(now.getTime()))
-                        .chargedBy(recurringCharge.getChargedBy())
-                        .recurringTemplateId(recurringCharge.getId())
-                        .chargeAccountId(recurringCharge.getChargeAccountId())
-                        .isDeductible("false")
-                        .isRecurring("true")
-                        .propertyId(recurringCharge.getPropertyId())
-                        .receiveAccountId(recurringCharge.getReceiveAccountId())
-                        .status("readyForPayment")
-                        .transactionId(UUID.randomUUID().toString())
-                        .build();
+            List<IPropertyLeaseInformation> leaseList = recurringRepository.getLeaseDatesByLeaseId(recurringCharge.getLeaseId());
+            if(CollectionUtils.isEmpty(leaseList) || leaseList.size() != 1) {
+                log.error("Cannot create transactions for recurring charges of propertyId {} since no active lease or more than 1 active lease has been found", recurringCharge.getPropertyId());
+                return;
+            }
 
-                List<Transactions> transactionsList = new ArrayList<>();
-                transactionsList.add(transactions);
-                transactionsService.saveAllTransactions(transactionsList);
-            } else if (dateToCreateRecurring.equals(nextDueDate)) {
+            Date leaseStartDate = leaseList.get(0).getStartDate();
+            Date leaseEndDate = leaseList.get(0).getEndDate();
+
+            List<Transactions> existingRecurringTransactions = transactionsService.findByRecurringTemplateId(recurringCharge.getId());
+            if (CollectionUtils.isEmpty(existingRecurringTransactions) ) {
+//                final long relativeAmount = getRelativeAmount(recurringCharge.getAmount());
+//                Transactions transactions = Transactions.builder()
+//                        .amount(relativeAmount)
+//                        .pmAccountId(recurringCharge.getPmAccountId())
+//                        .accountingTypeId(recurringCharge.getAccountingTypeId())
+//                        .accountingName(typeCategoryRepository.getTypeNameByID(recurringCharge.getAccountingTypeId()))
+//                        .amountBeforeDiscount(relativeAmount)
+//                        .billType(recurringCharge.getBillType())
+//                        .categoryId(recurringCharge.getCategoryId())
+//                        .categoryName(typeCategoryRepository.getCategoryNameByID(recurringCharge.getCategoryId()))
+//                        .memo(recurringCharge.getMemo())
+//                        .dueDate(new Timestamp(now.getTime()))
+//                        .chargedBy(recurringCharge.getChargedBy())
+//                        .recurringTemplateId(recurringCharge.getId())
+//                        .chargeAccountId(recurringCharge.getChargeAccountId())
+//                        .isDeductible("false")
+//                        .isRecurring("true")
+//                        .propertyId(recurringCharge.getPropertyId())
+//                        .receiveAccountId(recurringCharge.getReceiveAccountId())
+//                        .status("readyForPayment")
+//                        .transactionId(UUID.randomUUID().toString())
+//                        .statementType(recurringCharge.getStatementType())
+//                        .build();
+//
+//                List<Transactions> transactionsList = new ArrayList<>();
+//                transactionsList.add(transactions);
+//                transactionsService.saveAllTransactions(transactionsList);
+                log.error("Cannot create transactions for recurring charges of propertyId {} since no first charge have been found", recurringCharge.getPropertyId());
+                return;
+            } else if (dayInMonthToCreateRecurring == calendar.get(Calendar.DAY_OF_MONTH) && nextDueDate.before(leaseEndDate)) {
                 existingRecurringTransactions = existingRecurringTransactions.stream().filter(transactions -> {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                     LocalDate localDueDate = LocalDate.parse(sdf.format(transactions.getDueDate()));
@@ -118,9 +142,11 @@ public class RecurringServiceImpl implements RecurringService {
                             .amount((long) recurringCharge.getAmount())
                             .pmAccountId(recurringCharge.getPmAccountId())
                             .accountingTypeId(recurringCharge.getAccountingTypeId())
+                            .accountingName(typeCategoryRepository.getTypeNameByID(recurringCharge.getAccountingTypeId()))
                             .amountBeforeDiscount(recurringCharge.getAmountBeforeDiscount() == null ? (long) recurringCharge.getAmount() : (long) recurringCharge.getAmountBeforeDiscount().doubleValue())
                             .billType(recurringCharge.getBillType())
                             .categoryId(recurringCharge.getCategoryId())
+                            .categoryName(typeCategoryRepository.getCategoryNameByID(recurringCharge.getCategoryId()))
                             .memo(recurringCharge.getMemo())
                             .dueDate(new Timestamp(nextDueDate.getTime()))
                             .chargedBy(recurringCharge.getChargedBy())
@@ -132,6 +158,7 @@ public class RecurringServiceImpl implements RecurringService {
                             .receiveAccountId(recurringCharge.getReceiveAccountId())
                             .status("readyForPayment")
                             .transactionId(UUID.randomUUID().toString())
+                            .statementType(recurringCharge.getStatementType())
                             .build();
 
                     List<Transactions> transactionsList = new ArrayList<>();
@@ -161,5 +188,10 @@ public class RecurringServiceImpl implements RecurringService {
     @Override
     public List<IPropertyLeaseInformationProjection> getRecurrentPropertyAndTenantByRecurringIds(List<String> recurringIds) {
         return recurringRepository.getRecurrentPropertyAndTenantByRecurringIds(recurringIds);
+    }
+
+    @Override
+    public List<IPropertyLeaseInformation> getLeaseDatesByLeaseId(@Param("leaseId") String leaseId) {
+        return recurringRepository.getLeaseDatesByLeaseId(leaseId);
     }
 }

@@ -1,5 +1,7 @@
 package com.home365.jobservice.repository;
 
+import com.home365.jobservice.entities.IPropertyLeaseInformation;
+import com.home365.jobservice.entities.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.entities.Recurring;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -36,4 +38,8 @@ public interface RecurringRepository extends JpaRepository<Recurring, String> {
             "  and cab.statuscode = 1 " +
             "  and a.New_BusinessType = 10 ", nativeQuery = true)
     List<IPropertyLeaseInformationProjection> getRecurrentPropertyAndTenantByRecurringIds(@Param("recurrentIds") List<String> recurringIds);
+
+    @Query(value = "select New_StartDate as startDate, New_EndDate as endDate from New_property_tenantExtensionBase where New_property_tenantId = :leaseId and New_IsActive = 1",
+    nativeQuery = true)
+    List<IPropertyLeaseInformation> getLeaseDatesByLeaseId(@Param("leaseId") String leaseId);
 }

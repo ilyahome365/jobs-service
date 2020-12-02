@@ -42,5 +42,5 @@ public class Recurring {
     private String type;
     private String chargedBy;
     private Boolean active;
-
+    private String leaseId;
 }

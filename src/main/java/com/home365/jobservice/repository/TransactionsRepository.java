@@ -41,7 +41,9 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
             @Param("status") List<String> status
     );
 
-    List<Transactions> findByRecurringTemplateId(String recurringTemplateId);
+    @Query(value = "select * from Transactons where RecurringTemplateId = :recurringTemplateId and status not in ('cancel')",
+    nativeQuery = true)
+    List<Transactions> findByRecurringTemplateId(@Param("recurringTemplateId") String recurringTemplateId);
 
     @Query(
             value = "SELECT distinct  p.New_name                          AS categoryName, " +
