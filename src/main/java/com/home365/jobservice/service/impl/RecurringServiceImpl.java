@@ -2,11 +2,11 @@ package com.home365.jobservice.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.home365.jobservice.entities.*;
-import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
+import com.home365.jobservice.entities.IPropertyLeaseInformation;
 import com.home365.jobservice.entities.LocationRules;
 import com.home365.jobservice.entities.Recurring;
 import com.home365.jobservice.entities.Transactions;
+import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.repository.RecurringRepository;
 import com.home365.jobservice.repository.TypeCategoryRepository;
@@ -17,8 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
@@ -74,10 +76,22 @@ public class RecurringServiceImpl implements RecurringService {
             e.printStackTrace();
         }
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
         final Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
         int daysToCreateRecurring = Integer.parseInt(rules.get("days_ahead_to_create_recurring"));
         int dayInMonthToCreateRecurring = Integer.parseInt(rules.get("day_in_month_to_create_recurring"));
+        String logicalDateStr = rules.get("logical_date");
+
+        try {
+            if (!StringUtils.isEmpty(logicalDateStr)) {
+                now = sdf.parse(logicalDateStr);
+            }
+        } catch (ParseException e) {
+            log.error("Cannot set logical date");
+        }
+
 
         calendar.set(Calendar.DAY_OF_MONTH, 1);
         calendar.add(Calendar.MONTH, 1);
@@ -89,9 +103,11 @@ public class RecurringServiceImpl implements RecurringService {
         calendar.set(Calendar.DAY_OF_MONTH, 1);
         Date nextDueDate = calendar.getTime();
 
+        calendar.setTime(now);
+
         activeRecurringChargeList.forEach(recurringCharge -> {
             List<IPropertyLeaseInformation> leaseList = recurringRepository.getLeaseDatesByLeaseId(recurringCharge.getLeaseId());
-            if(CollectionUtils.isEmpty(leaseList) || leaseList.size() != 1) {
+            if (CollectionUtils.isEmpty(leaseList) || leaseList.size() != 1) {
                 log.error("Cannot create transactions for recurring charges of propertyId {} since no active lease or more than 1 active lease has been found", recurringCharge.getPropertyId());
                 return;
             }
@@ -100,7 +116,7 @@ public class RecurringServiceImpl implements RecurringService {
             Date leaseEndDate = leaseList.get(0).getEndDate();
 
             List<Transactions> existingRecurringTransactions = transactionsService.findByRecurringTemplateId(recurringCharge.getId());
-            if (CollectionUtils.isEmpty(existingRecurringTransactions) ) {
+            if (CollectionUtils.isEmpty(existingRecurringTransactions)) {
 //                final long relativeAmount = getRelativeAmount(recurringCharge.getAmount());
 //                Transactions transactions = Transactions.builder()
 //                        .amount(relativeAmount)
@@ -131,13 +147,29 @@ public class RecurringServiceImpl implements RecurringService {
                 log.error("Cannot create transactions for recurring charges of propertyId {} since no first charge have been found", recurringCharge.getPropertyId());
                 return;
             } else if (dayInMonthToCreateRecurring == calendar.get(Calendar.DAY_OF_MONTH) && nextDueDate.before(leaseEndDate)) {
+                if (existingRecurringTransactions.size() == 1) {
+                    Transactions firstTransaction = existingRecurringTransactions.get(0);
+                    Date firstDueDate = firstTransaction.getDueDate();
+                    double firstAmount = firstTransaction.getAmount();
+
+                    if (firstAmount > recurringCharge.getAmount()) {
+                        calendar.setTime(firstDueDate);
+                        calendar.add(Calendar.MONTH, 1);
+
+                        int firstDueDateMonthInc = calendar.get(Calendar.MONTH);
+                        calendar.setTime(nextDueDate);
+                        if (firstDueDateMonthInc == calendar.get(Calendar.MONTH)) {
+                            return;
+                        }
+                    }
+                }
                 existingRecurringTransactions = existingRecurringTransactions.stream().filter(transactions -> {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
                     LocalDate localDueDate = LocalDate.parse(sdf.format(transactions.getDueDate()));
                     LocalDate localNextDueDate = LocalDate.parse(sdf.format(nextDueDate.getTime()));
                     return localDueDate.equals(localNextDueDate);
                 }).collect(Collectors.toList());
-                if(CollectionUtils.isEmpty(existingRecurringTransactions)) {
+                if (CollectionUtils.isEmpty(existingRecurringTransactions)) {
                     Transactions transactions = Transactions.builder()
                             .amount((long) recurringCharge.getAmount())
                             .pmAccountId(recurringCharge.getPmAccountId())
@@ -158,6 +190,7 @@ public class RecurringServiceImpl implements RecurringService {
                             .receiveAccountId(recurringCharge.getReceiveAccountId())
                             .status("readyForPayment")
                             .transactionId(UUID.randomUUID().toString())
+                            .transactionType("Charge")
                             .statementType(recurringCharge.getStatementType())
                             .build();
 
