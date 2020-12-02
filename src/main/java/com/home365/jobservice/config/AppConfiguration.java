@@ -47,17 +47,33 @@ public class AppConfiguration implements SchedulingConfigurer {
             this.scheduledTaskRegistrar.setScheduler(configurePool());
         }
 
-        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(), "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-                () -> log.info("------------------------> RUN LATE_FEE JOB <------------------------"));
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
+                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
+                () -> log.info("------------------------> RUN LATE_FEE JOB <------------------------")
+        );
 
-        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_PROPERTY_NOTIFICATION.getName(), "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-                () -> log.info("------------------------> RUN LEASE_PROPERTY_NOTIFICATION JOB <------------------------"));
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_PROPERTY_NOTIFICATION.getName(),
+                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
+                () -> log.info("------------------------> RUN LEASE_PROPERTY_NOTIFICATION JOB <------------------------")
+        );
 
-        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(), "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-                () -> log.info("------------------------> RUN LEASE_UPDATING JOB <------------------------"));
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
+                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
+                () -> log.info("------------------------> RUN LEASE_UPDATING JOB <------------------------")
+        );
 
-//        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(), applicationService::startLateFeeJob);
-//        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_PROPERTY_NOTIFICATION.getName(),applicationService::startLeasePropertyNotification);
+//        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
+//                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
+//                applicationService::startLateFeeJob
+//        );
+//        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_PROPERTY_NOTIFICATION.getName(),
+//                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
+//                applicationService::startLeasePropertyNotification
+//        );
+//        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
+//                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
+//                applicationService::startLeaseUpdating
+//        );
     }
 
     @Bean
