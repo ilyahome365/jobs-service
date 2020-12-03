@@ -45,8 +45,9 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
                 .filter(propertyTenantExtension -> propertyTenantExtension.getLeaseType() != null)
                 .peek(propertyTenantExtension -> {
                             propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
-                            log.info(String.format("PropertyTenantExtension with id [%s], Days Left [%d]",
+                            log.info(String.format("PropertyTenantExtension with id [%s], Lease Type [%s], Days Left [%d]",
                                     propertyTenantExtension.getPropertyTenantId(),
+                                    propertyTenantExtension.getLeaseType().name(),
                                     propertyTenantExtension.getDaysLeft()));
                         }
                 )
