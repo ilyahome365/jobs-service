@@ -35,6 +35,10 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
     @Override
     protected String execute() throws Exception {
 
+        // Change to run every day
+
+
+
         // Check if this is the last day of the month
         Calendar currentCalendar = Calendar.getInstance();
         int lastDayOfTheMonth = currentCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
