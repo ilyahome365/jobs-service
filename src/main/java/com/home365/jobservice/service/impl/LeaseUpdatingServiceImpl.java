@@ -45,16 +45,12 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
                 .filter(propertyTenantExtension -> propertyTenantExtension.getLeaseType() != null)
                 .peek(propertyTenantExtension -> propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate())))
                 .peek(propertyTenantExtension -> {
-                    if(propertyTenantExtension.getDaysLeft() > 0){
-                        return;
-                    }
-
-                    if (propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly)) {
+                    if (propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) && propertyTenantExtension.getDaysLeft() <= 0) {
                         propertyTenantExtension.setLeaseType(LeaseType.Monthly);
                     }
                 })
                 .peek(propertyTenantExtension -> {
-                    if (propertyTenantExtension.getLeaseType().equals(LeaseType.Monthly)) {
+                    if (propertyTenantExtension.getLeaseType().equals(LeaseType.Monthly) && propertyTenantExtension.getDaysLeft() <= 0) {
                         propertyTenantExtension.setEndDate(nextMonth.getTime());
                         propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
                     }
