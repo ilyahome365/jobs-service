@@ -16,7 +16,6 @@ public interface IPropertyTenantExtensionRepository extends JpaRepository<Proper
             "WHERE pa.new_accountid = 'F90E128A-CD00-4DF7-B0D0-0F40F80D623A' " +
             "  AND pte.New_PropertyUserType = 1 " +
             "  AND pte.New_IsActive = 1 " +
-            "  AND [dbo].[GetTenentAccountIdByPropertyId](pte.new_propertyid) is not null " +
-            "  AND DATEDIFF(day, GETDATE(), pte.New_EndDate) <= 1", nativeQuery = true)
+            "  AND [dbo].[GetTenentAccountIdByPropertyId](pte.new_propertyid) is not null ", nativeQuery = true)
     List<PropertyTenantExtension> getAllActivePlansToUpdate();
 }

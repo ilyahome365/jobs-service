@@ -11,8 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,34 +35,44 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
     @Override
     protected String execute() throws Exception {
-
-        // Check if this is the last day of the month
         Calendar currentCalendar = Calendar.getInstance();
-        int lastDayOfTheMonth = currentCalendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-        int currentDayOfTheMonth = currentCalendar.get(Calendar.DAY_OF_MONTH);
-        if (currentDayOfTheMonth != lastDayOfTheMonth) {
-            String message = String.format(" Not run -> this is not the last day of the month, Current day [%s] last Day [%s]", currentDayOfTheMonth, lastDayOfTheMonth);
-            log.info(getJobName() + message);
-            return getJobName() + message;
-        }
-
-        // TODO: check moveout
 
         Calendar nextMonth = Calendar.getInstance();
         nextMonth.add(Calendar.MONTH, 1);
-        List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.getAllActivePlansToUpdate();
-        leaseToUpdate.forEach(propertyTenantExtension -> {
-            propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
 
-            if (propertyTenantExtension.getLeaseType() != null && propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) && propertyTenantExtension.getDaysLeft() <= 0) {
-                propertyTenantExtension.setLeaseType(LeaseType.Monthly);
-            }
-
-            if(propertyTenantExtension.getLeaseType() != null && propertyTenantExtension.getLeaseType().equals(LeaseType.Monthly) && propertyTenantExtension.getDaysLeft() <= 0){
-                propertyTenantExtension.setEndDate(nextMonth.getTime());
-                propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
-            }
-        });
+        List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.getAllActivePlansToUpdate()
+                .stream()
+                .filter(propertyTenantExtension -> propertyTenantExtension.getLeaseType() != null)
+                .peek(propertyTenantExtension -> {
+                            propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
+                            log.info(String.format("PropertyTenantExtension with id [%s], Lease Type [%s], Days Left [%d]",
+                                    propertyTenantExtension.getPropertyTenantId(),
+                                    propertyTenantExtension.getLeaseType().name(),
+                                    propertyTenantExtension.getDaysLeft()));
+                        }
+                )
+                .peek(propertyTenantExtension -> {
+                            if (propertyTenantExtension.getLeaseType().equals(LeaseType.Yearly) && propertyTenantExtension.getDaysLeft() <= 0) {
+                                propertyTenantExtension.setLeaseType(LeaseType.Monthly);
+                                log.info(String.format("Change PropertyTenantExtension with id [%s], to Lease Type [%s]",
+                                        propertyTenantExtension.getPropertyTenantId(),
+                                        propertyTenantExtension.getLeaseType().name())
+                                );
+                            }
+                        }
+                )
+                .peek(propertyTenantExtension -> {
+                            if (propertyTenantExtension.getLeaseType().equals(LeaseType.Monthly) && propertyTenantExtension.getDaysLeft() <= 0) {
+                                propertyTenantExtension.setEndDate(nextMonth.getTime());
+                                propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate()));
+                                log.info(String.format("Change PropertyTenantExtension with id [%s], Days Left [%d]",
+                                        propertyTenantExtension.getPropertyTenantId(),
+                                        propertyTenantExtension.getDaysLeft())
+                                );
+                            }
+                        }
+                )
+                .collect(Collectors.toList());
 
         propertyTenantExtensionService.save(leaseToUpdate);
         log.info(getJobName() + " Finished");
