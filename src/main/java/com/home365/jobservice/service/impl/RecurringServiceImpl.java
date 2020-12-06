@@ -80,7 +80,7 @@ public class RecurringServiceImpl implements RecurringService {
 
         final Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
-        int daysToCreateRecurring = Integer.parseInt(rules.get("days_ahead_to_create_recurring"));
+        //int daysToCreateRecurring = Integer.parseInt(rules.get("days_ahead_to_create_recurring"));
         int dayInMonthToCreateRecurring = Integer.parseInt(rules.get("day_in_month_to_create_recurring"));
         String logicalDateStr = rules.get("logical_date");
 
@@ -93,10 +93,10 @@ public class RecurringServiceImpl implements RecurringService {
         }
 
 
-        calendar.set(Calendar.DAY_OF_MONTH, 1);
-        calendar.add(Calendar.MONTH, 1);
-        calendar.add(Calendar.DAY_OF_MONTH, -daysToCreateRecurring);
-        Date dateToCreateRecurring = calendar.getTime();
+//        calendar.set(Calendar.DAY_OF_MONTH, 1);
+//        calendar.add(Calendar.MONTH, 1);
+//        calendar.add(Calendar.DAY_OF_MONTH, -daysToCreateRecurring);
+//        Date dateToCreateRecurring = calendar.getTime();
 
         calendar.setTime(now);
         calendar.add(Calendar.MONTH, 1);
