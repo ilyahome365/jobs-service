@@ -143,7 +143,11 @@ public class ApplicationServiceImpl implements ApplicationService {
         String dayOfNextCycle = "14";
         LocalDateTime now = LocalDateTime.now().plusMonths(1);
         String month = String.valueOf(now.getMonth().getValue());
-        String year = String.valueOf(now.getYear());
+        String year;
+        if (now.getMonth().getValue() == 1)
+            year = String.valueOf(now.getYear() + 1);
+        else
+            year = String.valueOf(now.getYear());
         return year + "-" + month + "-" + dayOfNextCycle;
 
     }
