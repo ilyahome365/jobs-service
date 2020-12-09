@@ -6,7 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "New_property_tenantExtensionBase")
@@ -22,6 +23,9 @@ public class PropertyTenantExtension {
     @Column(name = "new_propertyid")
     private String propertyId;
 
+    @Column(name = "new_contactid")
+    private String contactId;
+
     @Column(name = "New_RentAmount")
     private Long rentAmount;
 
@@ -32,10 +36,10 @@ public class PropertyTenantExtension {
     private Integer userType;
 
     @Column(name = "New_EndDate")
-    private Date endDate;
+    private LocalDateTime endDate;
 
     @Column(name = "New_StartDate")
-    private Date startDate;
+    private LocalDateTime startDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "lease_type")
@@ -43,4 +47,13 @@ public class PropertyTenantExtension {
 
     @Column(name = "days_left")
     private Integer daysLeft;
+
+    @Column(name = "moveOutDate")
+    private LocalDate moveOutDate;
+
+    @Column(name = "New_InactiveDate")
+    private LocalDate inactiveDate;
+
+    @Column(name = "new_propertyaccountid")
+    private String propertAccountId;
 }

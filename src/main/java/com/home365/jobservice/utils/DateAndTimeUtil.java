@@ -1,5 +1,7 @@
 package com.home365.jobservice.utils;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
@@ -18,10 +20,16 @@ public abstract class DateAndTimeUtil {
         return 0;
     }
 
-    public static int getDaysLeft(Calendar currentCalendar, Date dueDate) {
+    public static int getDaysLeft(LocalDate currentCalendar, LocalDate dueDate) {
         if (dueDate != null) {
-            return (int) ChronoUnit.DAYS.between(currentCalendar.toInstant(), dueDate.toInstant());
+            return (int) ChronoUnit.DAYS.between(currentCalendar, dueDate);
         }
         return 0;
+    }
+
+    public static Date convertFromLocalDateToDate(LocalDate localDate){
+        return java.util.Date.from(localDate.atStartOfDay()
+                .atZone(ZoneId.systemDefault())
+                .toInstant());
     }
 }

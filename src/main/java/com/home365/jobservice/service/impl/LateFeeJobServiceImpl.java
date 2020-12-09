@@ -114,5 +114,6 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
             stringBuilder.append(comment1).append("\n");
         });
         String comments = stringBuilder.toString();
+        log.info(comments);
     }
 }
