@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class ApplicationServiceImpl implements ApplicationService {
 
     private final String JOB_PENDING_DUE = "PendingDueDateJob";
-    private LocalDate localDate = LocalDate.now();
+
 
     private final AppProperties appProperties;
     private final TransactionsService transactionsService;
@@ -118,7 +118,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private void createJobLog(PendingStatusJobData pendingStatusJobData, String cycleDate) {
         log.info("create job log with ready for payment : {}  , pendingContribution: {} , with cycle date : {} "
                 , pendingStatusJobData.getReadyForPayment(), pendingStatusJobData.getPendingContribution(), cycleDate);
-
+         LocalDate localDate = LocalDate.now();
         Date date = new Date();
         Timestamp currentTimeAndDate = new Timestamp(date.getTime());
         JobLog jobLog = new JobLog();
@@ -161,7 +161,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     private void createTransactionLog(Transactions transaction) {
-
+         LocalDate localDate = LocalDate.now();
         TransactionsLog transactionsLog = new TransactionsLog();
         transactionsLog.setTransactionId(transaction.getTransactionId());
         transactionsLog.setArgument(JOB_PENDING_DUE + " : Cant change this transaction " + transaction.getTransactionId());
