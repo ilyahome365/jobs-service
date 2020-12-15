@@ -1,13 +1,14 @@
 package com.home365.jobservice.service.impl;
 
+import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.repository.TransactionsRepository;
+import com.home365.jobservice.repository.TransactionsWithProjectedBalanceRepo;
 import com.home365.jobservice.service.TransactionsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -15,9 +16,11 @@ import java.util.List;
 public class TransactionsServiceImpl implements TransactionsService {
 
     private final TransactionsRepository transactionsRepository;
+    private final TransactionsWithProjectedBalanceRepo transactionsWithProjectedBalanceRepo;
 
-    public TransactionsServiceImpl(TransactionsRepository transactionsRepository) {
+    public TransactionsServiceImpl(TransactionsRepository transactionsRepository, TransactionsWithProjectedBalanceRepo transactionsWithProjectedBalanceRepo) {
         this.transactionsRepository = transactionsRepository;
+        this.transactionsWithProjectedBalanceRepo = transactionsWithProjectedBalanceRepo;
     }
 
     @Override
@@ -27,9 +30,9 @@ public class TransactionsServiceImpl implements TransactionsService {
     }
 
     @Override
-    public List<Transactions> getTransactionsWithProjectedBalance(String cycleDate) {
+    public List<TransactionsWithProjectedBalance> getTransactionsWithProjectedBalance(String cycleDate) {
         log.info("Enter to get all transactions for cycle : {}", cycleDate);
-        return transactionsRepository.getTransactionsWithProjectedBalance(cycleDate);
+        return transactionsWithProjectedBalanceRepo.getTransactionsWithProjectedBalance(cycleDate);
     }
 
     @Override

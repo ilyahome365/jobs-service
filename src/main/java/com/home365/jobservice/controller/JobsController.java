@@ -1,6 +1,7 @@
 package com.home365.jobservice.controller;
 
 import com.home365.jobservice.entities.Transactions;
+import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.service.impl.ApplicationServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +30,8 @@ public class JobsController {
     }
 
     @GetMapping("/change-bill-state")
-    public ResponseEntity<List<Transactions>> changeBillStates() {
-        return ResponseEntity.ok(this.jobsService.pendingStatusChange());
+    public ResponseEntity<JobExecutionResults> changeBillStates() {
+        return ResponseEntity.ok(jobsService.startChangeBillStatusJob());
     }
 
     @GetMapping("/late-fee")

@@ -1,6 +1,7 @@
 package com.home365.jobservice.repository;
 
 import com.home365.jobservice.entities.Transactions;
+import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,18 +12,7 @@ import java.util.List;
 
 @Repository
 public interface TransactionsRepository extends JpaRepository<Transactions, String> {
-    @Query(
-            value = "select (select SUM(projected_balance) as projected_balance " +
-                    "        from PROPERTY_BALANCE " +
-                    "        where account_id = t.ChargeAccountId) " +
-                    "           projected_balance, t.*" +
-                    "FROM Transactions t " +
-                    "         inner join [dbo].[AccountExtensionBase] c_ace on t.ChargeAccountId = c_ace.AccountId " +
-                    "where c_ace.New_BusinessType = 8 " +
-                    "  and t.Status = 'pendingDue' " +
-                    "  and convert(date, DueDate) <= :cycleDate",
-            nativeQuery = true)
-    List<Transactions> getTransactionsWithProjectedBalance(@Param("cycleDate") String cycleDate);
+
 
     @Query(
             value = "SELECT * " +

@@ -47,6 +47,9 @@ public class AppConfiguration implements SchedulingConfigurer {
             this.scheduledTaskRegistrar.setScheduler(configurePool());
         }
 
+
+
+
 //        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
 //                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
 //                () -> log.info("------------------------> RUN LATE_FEE JOB <------------------------")
@@ -111,11 +114,7 @@ public class AppConfiguration implements SchedulingConfigurer {
         }
         JobConfiguration jobConfiguration = jobConfigurationOptional.get();
 
-        Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.get(location);
-        if (locationJobs == null) {
-            locationJobs = new HashMap<>();
-            jobLocationToJob.put(location, locationJobs);
-        }
+        Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.computeIfAbsent(location, k -> new HashMap<>());
 
         JobScheduledWrapper scheduledFutureWrapper = new JobScheduledWrapper(jobName, location, jobConfiguration.getCron(), task);
         startJob(scheduledFutureWrapper);

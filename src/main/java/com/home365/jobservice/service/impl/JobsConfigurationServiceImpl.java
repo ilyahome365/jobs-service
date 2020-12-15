@@ -2,6 +2,7 @@ package com.home365.jobservice.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.home365.jobservice.entities.ChangeBillConfiguration;
 import com.home365.jobservice.entities.JobConfiguration;
 import com.home365.jobservice.model.LateFeeConfiguration;
 import com.home365.jobservice.model.LeasePropertyNotificationConfiguration;
@@ -51,6 +52,12 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
     @Override
     public Optional<JobConfiguration> getJobByLocationAndName(String location, String jobName) {
         return jobsConfigurationRepository.findByLocationAndName(location, jobName);
+    }
+
+    @Override
+    public ChangeBillConfiguration getChangeBillConfiguration() {
+
+        return null;
     }
 
     public enum JOBS_ID {

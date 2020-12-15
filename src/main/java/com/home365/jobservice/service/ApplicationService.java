@@ -1,12 +1,12 @@
 package com.home365.jobservice.service;
 
-import com.home365.jobservice.entities.Transactions;
+import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.model.JobExecutionResults;
 
 import java.util.List;
 
 public interface ApplicationService {
-   List<Transactions> pendingStatusChange();
+   List<TransactionsWithProjectedBalance> pendingStatusChange();
 
     JobExecutionResults startLateFeeJob();
 
@@ -17,4 +17,8 @@ public interface ApplicationService {
     JobExecutionResults dueDateTenantNotification();
 
     JobExecutionResults startLeaseUpdating();
+
+    JobExecutionResults startChangeBillStatusJob() throws Exception;
+
+
 }

@@ -6,7 +6,7 @@ import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsLog;
 import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.enums.TransactionType;
-import com.home365.jobservice.model.JobExecutionResults;
+import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.PendingStatusJobData;
 import com.home365.jobservice.service.*;
 import com.home365.jobservice.utils.Converters;
@@ -20,53 +20,32 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
 @Slf4j
-public class ApplicationServiceImpl implements ApplicationService {
-
+@Service
+public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
     private final String JOB_PENDING_DUE = "ChangeBillStatusJob";
 
-
-    private final AppProperties appProperties;
     private final TransactionsService transactionsService;
     private final JobLogService jobLogService;
     private final TransactionsLogService transactionsLogService;
-    private final LateFeeJobServiceImpl lateFeeJobService;
-    private final LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService;
-    private final ChangeBillStatusServiceImpl changeBillStatusService;
-    private final RecurringService recurringService;
-    private final DueDateNotificationService dueDateNotificationService;
-    private final LeaseUpdatingServiceImpl leaseUpdatingService;
+    private final JobsConfigurationService jobsConfigurationService;
 
-    public ApplicationServiceImpl(AppProperties appProperties,
-                                  TransactionsService transactionsService,
-                                  JobLogService jobLogService,
-                                  TransactionsLogService transactionsLogService,
-                                  ChangeBillStatusServiceImpl changeBillStatusService, RecurringService recurringService,
-                                  LateFeeJobServiceImpl lateFeeJobService,
-                                  LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
-                                  DueDateNotificationService dueDateNotificationService,
-                                  LeaseUpdatingServiceImpl leaseUpdatingService) {
-        this.appProperties = appProperties;
+
+    public ChangeBillStatusServiceImpl(AppProperties appProperties, MailService mailService, TransactionsService transactionsService, JobLogService jobLogService, TransactionsLogService transactionsLogService, JobsConfigurationService jobsConfigurationService) {
+        super(appProperties, mailService);
         this.transactionsService = transactionsService;
         this.jobLogService = jobLogService;
         this.transactionsLogService = transactionsLogService;
-        this.changeBillStatusService = changeBillStatusService;
-        this.lateFeeJobService = lateFeeJobService;
-        this.recurringService = recurringService;
-        this.leaseRecurringNotificationService = leaseRecurringNotificationService;
-        this.dueDateNotificationService = dueDateNotificationService;
-        this.leaseUpdatingService = leaseUpdatingService;
-    }
-
-    //    @Scheduled(cron = "0 01 * * * ?")
-    public void generatePendingStatusJob() {
-        this.pendingStatusChange();
+        this.jobsConfigurationService = jobsConfigurationService;
     }
 
     @Override
-    public List<TransactionsWithProjectedBalance> pendingStatusChange() {
+    protected String getJobName() {
+        return JOB_PENDING_DUE;
+    }
 
+    @Override
+    protected String execute()  {
         log.info("Enter to pendingStatusChange on date {}", LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
@@ -79,6 +58,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         List<TransactionsWithProjectedBalance> failedTransactions = new ArrayList<>();
         for (String account : accounts) {
             log.info("get transactions for account {}", account);
+            List<Transactions> transactionsToSave = new ArrayList<>();
             try {
                 List<TransactionsWithProjectedBalance> transactionsPerAccount = transactions.parallelStream().
                         filter(transactions1 -> transactions1.getChargeAccountId()
@@ -88,44 +68,22 @@ public class ApplicationServiceImpl implements ApplicationService {
                         .collect(Collectors.toList());
 
                 transactionsPerAccount = changeStatusByAmount(transactionsPerAccount, failedTransactions, pendingStatusJobData);
-                List<Transactions> transactionsToSave = transactionsPerAccount.stream().map(Converters::fromTransactionsWithProjectedBalanceToTransactions).collect(Collectors.toList());
+                transactionsToSave = transactionsPerAccount.stream().map(Converters::fromTransactionsWithProjectedBalanceToTransactions).collect(Collectors.toList());
                 transactionsService.saveAllTransactions(transactionsToSave);
 
             } catch (Exception e) {
                 log.error(e.getMessage());
+                pendingStatusJobData.setFailedToChange(pendingStatusJobData.getFailedToChange() + transactionsToSave.size());
+
+
             }
 
         }
         createJobLog(pendingStatusJobData, cycleDate);
 
-        return failedTransactions;
+        return String.format("[%s] : Finished for cycleDate [%s] with results : [%s] ", getJobName(), cycleDate, pendingStatusJobData.toString());
     }
 
-    @Override
-    public JobExecutionResults startLateFeeJob() {
-        return lateFeeJobService.executeJob();
-    }
-
-    @Override
-    public JobExecutionResults startLeasePropertyNotification() {
-        return leaseRecurringNotificationService.executeJob();
-    }
-
-    @Override
-    public JobExecutionResults dueDateTenantNotification() {
-        return dueDateNotificationService.sendNotificationForDueDateTenants();
-    }
-
-    @Override
-    public JobExecutionResults startLeaseUpdating() {
-        return leaseUpdatingService.executeJob();
-    }
-
-    @Override
-    public JobExecutionResults startChangeBillStatusJob() {
-        return changeBillStatusService.executeJob();
-
-    }
 
     private void createJobLog(PendingStatusJobData pendingStatusJobData, String cycleDate) {
         log.info("create job log with ready for payment : {}  , pendingContribution: {} , with cycle date : {} "
@@ -167,6 +125,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 log.error("the Exception reason : " + e.getLocalizedMessage());
                 failedTransactions.add(transaction);
                 createTransactionLog(Converters.fromTransactionsWithProjectedBalanceToTransactions(transaction));
+                pendingStatusJobData.setFailedToChange(pendingStatusJobData.getFailedToChange() + 1);
             }
         }
         return transactions;
@@ -194,8 +153,4 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     }
 
-    @Override
-    public JobExecutionResults createTransactionsForRecurringCharges() {
-        return recurringService.createTransactionsForRecurringCharges();
-    }
 }

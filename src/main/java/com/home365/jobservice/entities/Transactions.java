@@ -28,7 +28,7 @@ public class Transactions implements Serializable {
     private String chargeAccountId;
     private String propertyId;
     private String paymentId;
-    private long amount;
+    private Long amount;
     private long amountBeforeDiscount;
     private String status;
     private String billType;
@@ -63,4 +63,7 @@ public class Transactions implements Serializable {
     @Version
     @Column(name = "Version")
     private Long version;
+
+
+
 }
