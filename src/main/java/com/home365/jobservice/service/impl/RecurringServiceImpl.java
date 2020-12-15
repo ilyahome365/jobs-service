@@ -103,9 +103,9 @@ public class RecurringServiceImpl implements RecurringService {
         calendar.set(Calendar.DAY_OF_MONTH, 1);
         Date nextDueDate = calendar.getTime();
 
-        calendar.setTime(now);
-
+        Date finalNow = now;
         activeRecurringChargeList.forEach(recurringCharge -> {
+            calendar.setTime(finalNow);
             List<IPropertyLeaseInformation> leaseList = recurringRepository.getLeaseDatesByLeaseId(recurringCharge.getLeaseId());
             if (CollectionUtils.isEmpty(leaseList) || leaseList.size() != 1) {
                 log.error("Cannot create transactions for recurring charges of propertyId {} since no active lease or more than 1 active lease has been found", recurringCharge.getPropertyId());
@@ -116,7 +116,7 @@ public class RecurringServiceImpl implements RecurringService {
             Date leaseEndDate = leaseList.get(0).getEndDate();
 
             List<Transactions> existingRecurringTransactions = transactionsService.findByRecurringTemplateId(recurringCharge.getId());
-            if (CollectionUtils.isEmpty(existingRecurringTransactions)) {
+            if (CollectionUtils.isEmpty(existingRecurringTransactions) && !"Old Recurring Charges".equals(recurringCharge.getMemo())) {
 //                final long relativeAmount = getRelativeAmount(recurringCharge.getAmount());
 //                Transactions transactions = Transactions.builder()
 //                        .amount(relativeAmount)
