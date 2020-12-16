@@ -6,7 +6,7 @@ import com.home365.jobservice.model.JobExecutionResults;
 import java.util.List;
 
 public interface ApplicationService {
-   List<TransactionsWithProjectedBalance> pendingStatusChange();
+//   List<TransactionsWithProjectedBalance> pendingStatusChange();
 
     JobExecutionResults startLateFeeJob(String locationId);
 

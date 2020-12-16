@@ -51,7 +51,7 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
         PendingStatusJobData pendingStatusJobData = new PendingStatusJobData();
 
         String cycleDate = createNextCycleDate();
-        List<TransactionsWithProjectedBalance> transactions = transactionsService.getTransactionsWithProjectedBalance(cycleDate);
+        List<TransactionsWithProjectedBalance> transactions = transactionsService.getTransactionsWithProjectedBalance(cycleDate,locationId);
         List<String> accounts = transactions.parallelStream().map(TransactionsWithProjectedBalance::getChargeAccountId).distinct().collect(Collectors.toList());
         List<TransactionsWithProjectedBalance> failedTransactions = new ArrayList<>();
         List<TransactionsWithProjectedBalance> transactionsPerAccount = new ArrayList<>();

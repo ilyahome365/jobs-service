@@ -20,7 +20,7 @@ public interface TransactionsWithProjectedBalanceRepo extends JpaRepository<Tran
                     "         inner join [dbo].[AccountExtensionBase] c_ace on t.ChargeAccountId = c_ace.AccountId " +
                     "where c_ace.New_BusinessType = 8 " +
                     "  and t.Status = 'pendingDue' " +
-                    "  and convert(date, DueDate) <= :cycleDate",
+                    "  and convert(date, DueDate) <= :cycleDate"+"  and t.PmAccountId =:pmAccountId",
             nativeQuery = true)
-    List<TransactionsWithProjectedBalance> getTransactionsWithProjectedBalance(@Param("cycleDate") String cycleDate);
+    List<TransactionsWithProjectedBalance> getTransactionsWithProjectedBalance(@Param("cycleDate") String cycleDate,@Param("pmAccountId") String pmAccountId);
 }

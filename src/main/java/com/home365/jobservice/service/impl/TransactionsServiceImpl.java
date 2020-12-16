@@ -1,8 +1,8 @@
 package com.home365.jobservice.service.impl;
 
+import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
-import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.repository.TransactionsRepository;
 import com.home365.jobservice.repository.TransactionsWithProjectedBalanceRepo;
 import com.home365.jobservice.service.TransactionsService;
@@ -32,9 +32,9 @@ public class TransactionsServiceImpl implements TransactionsService {
     }
 
     @Override
-    public List<TransactionsWithProjectedBalance> getTransactionsWithProjectedBalance(String cycleDate) {
+    public List<TransactionsWithProjectedBalance> getTransactionsWithProjectedBalance(String cycleDate, String locationId) {
         log.info("Enter to get all transactions for cycle : {}", cycleDate);
-        return transactionsWithProjectedBalanceRepo.getTransactionsWithProjectedBalance(cycleDate);
+        return transactionsWithProjectedBalanceRepo.getTransactionsWithProjectedBalance(cycleDate, locationId);
     }
 
     @Override
@@ -64,13 +64,13 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     @Override
     public void saveTransaction(Transactions transactions) {
-        log.info("Save transaction id : {} " ,transactions.getTransactionId());
+        log.info("Save transaction id : {} ", transactions.getTransactionId());
         transactionsRepository.save(transactions);
     }
 
     @Override
     public void saveAllTransactionsWithProjectedBalance(List<TransactionsWithProjectedBalance> transactionsWithProjectedBalances) {
-        log.info("Save all transactions : {} " , transactionsWithProjectedBalances);
+        log.info("Save all transactions : {} ", transactionsWithProjectedBalances);
         transactionsWithProjectedBalanceRepo.saveAll(transactionsWithProjectedBalances);
     }
 }

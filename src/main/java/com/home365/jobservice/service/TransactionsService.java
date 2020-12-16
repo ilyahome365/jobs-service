@@ -9,7 +9,7 @@ import java.util.List;
 public interface TransactionsService {
     List<Transactions> saveAllTransactions(List<Transactions> transactions);
 
-    List<TransactionsWithProjectedBalance> getTransactionsWithProjectedBalance(String cycleDate);
+    List<TransactionsWithProjectedBalance> getTransactionsWithProjectedBalance(String cycleDate, String locationId);
 
     List<Transactions> findAllByBillTypeAndStatus(List<String> categoryNames, List<String> status);
 

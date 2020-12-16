@@ -13,7 +13,6 @@ import com.home365.jobservice.service.*;
 import com.home365.jobservice.utils.Converters;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -30,7 +29,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
 
     private final AppProperties appProperties;
-    private final TransactionsService transactionsService;
+
     private final JobLogService jobLogService;
     private final TransactionsLogService transactionsLogService;
     private final LateFeeJobServiceImpl lateFeeJobService;
@@ -50,7 +49,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   DueDateNotificationService dueDateNotificationService,
                                   LeaseUpdatingServiceImpl leaseUpdatingService) {
         this.appProperties = appProperties;
-        this.transactionsService = transactionsService;
+
         this.jobLogService = jobLogService;
         this.transactionsLogService = transactionsLogService;
         this.changeBillStatusService = changeBillStatusService;
@@ -61,47 +60,6 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.leaseUpdatingService = leaseUpdatingService;
     }
 
-    //    @Scheduled(cron = "0 01 * * * ?")
-    public void generatePendingStatusJob() {
-        this.pendingStatusChange();
-    }
-
-    @Override
-    public List<TransactionsWithProjectedBalance> pendingStatusChange() {
-
-        log.info("Enter to pendingStatusChange on date {}", LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-
-        PendingStatusJobData pendingStatusJobData = new PendingStatusJobData();
-
-        String cycleDate = createNextCycleDate();
-        List<TransactionsWithProjectedBalance> transactions = transactionsService.getTransactionsWithProjectedBalance(cycleDate);
-        List<String> accounts = transactions.parallelStream().map(TransactionsWithProjectedBalance::getChargeAccountId).distinct().collect(Collectors.toList());
-//        transactions.stream().map(TransactionsWithProjectedBalance::getTransactions).map(Transactions::getChargeAccountId).
-        List<TransactionsWithProjectedBalance> failedTransactions = new ArrayList<>();
-        for (String account : accounts) {
-            log.info("get transactions for account {}", account);
-            try {
-                List<TransactionsWithProjectedBalance> transactionsPerAccount = transactions.parallelStream().
-                        filter(transactions1 -> transactions1.getChargeAccountId()
-                                .equals(account)).
-                        sorted(Comparator.comparing(TransactionsWithProjectedBalance::getDueDate).thenComparing(Comparator.comparing(TransactionsWithProjectedBalance::getAmount).reversed()))
-
-                        .collect(Collectors.toList());
-
-                transactionsPerAccount = changeStatusByAmount(transactionsPerAccount, failedTransactions, pendingStatusJobData);
-                List<Transactions> transactionsToSave = transactionsPerAccount.stream().map(Converters::fromTransactionsWithProjectedBalanceToTransactions).collect(Collectors.toList());
-                transactionsService.saveAllTransactions(transactionsToSave);
-
-            } catch (Exception e) {
-                log.error(e.getMessage());
-            }
-
-        }
-        createJobLog(pendingStatusJobData, cycleDate);
-
-        return failedTransactions;
-    }
 
     @Override
     public JobExecutionResults startLateFeeJob(String locationId) {
@@ -129,77 +87,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     }
 
-    private void createJobLog(PendingStatusJobData pendingStatusJobData, String cycleDate) {
-        log.info("create job log with ready for payment : {}  , pendingContribution: {} , with cycle date : {} "
-                , pendingStatusJobData.getReadyForPayment(), pendingStatusJobData.getPendingContribution(), cycleDate);
-        LocalDate localDate = LocalDate.now();
-        Date date = new Date();
-        Timestamp currentTimeAndDate = new Timestamp(date.getTime());
-        JobLog jobLog = new JobLog();
-//        jobLog.setId(UUID.randomUUID().toString());
-        jobLog.setJobName(JOB_PENDING_DUE);
-        jobLog.setLastRun(localDate);
-        jobLog.setDate(currentTimeAndDate);
-        String jobComment = "job " + JOB_PENDING_DUE + " run - readyForPayment : "
-                + pendingStatusJobData.getReadyForPayment() + " , pendingContribution : " + pendingStatusJobData.getPendingContribution() + ", with cycle date : " + cycleDate;
-        jobLog.setComments(jobComment);
-        jobLogService.saveJobLog(jobLog);
-    }
 
-    private List<TransactionsWithProjectedBalance> changeStatusByAmount(List<TransactionsWithProjectedBalance> transactions, List<TransactionsWithProjectedBalance> failedTransactions, PendingStatusJobData pendingStatusJobData) {
-        double billBalance = 0.0;
-
-        for (TransactionsWithProjectedBalance transaction : transactions) {
-            try {
-                billBalance = billBalance + transaction.getAmount();
-                double projectedBalanceWithTrashHold = appProperties.getTrashHold() + transaction.getProjected_balance();
-                log.info("transaction id {} with billBalance {}   and projected balance {}", transaction.getTransactionId(), billBalance, projectedBalanceWithTrashHold);
-                if (projectedBalanceWithTrashHold >= billBalance) {
-                    log.info("Change transaction {} to readyForPayment", transaction.getTransactionId());
-                    transaction.setStatus(TransactionType.readyForPayment.name());
-
-                    pendingStatusJobData.setReadyForPayment(pendingStatusJobData.getReadyForPayment() + 1);
-                } else {
-                    log.info("Change transaction {} to pendingContribution", transaction.getTransactionId());
-                    transaction.setStatus(TransactionType.pendingContribution.name());
-                    pendingStatusJobData.setPendingContribution(pendingStatusJobData.getPendingContribution() + 1);
-                }
-            } catch (Exception e) {
-                log.error("Failed to change transaction {}  for account {}  ", transaction.getTransactionId(), transaction.getChargeAccountId());
-                log.error("the Exception reason : " + e.getLocalizedMessage());
-                failedTransactions.add(transaction);
-                createTransactionLog(Converters.fromTransactionsWithProjectedBalanceToTransactions(transaction));
-                pendingStatusJobData.setFailedToChange(pendingStatusJobData.getFailedToChange() +1);
-                TransactionsFailedToChange transactionsFailedToChange = new TransactionsFailedToChange();
-                transactionsFailedToChange.setTransactionId(transaction.getTransactionId());
-                transactionsFailedToChange.setReasonFailedToChange("No Projected Balance for this account :" + transaction.getChargeAccountId());
-                pendingStatusJobData.getTransactionsFailedToChanges().add(transactionsFailedToChange);
-            }
-        }
-        return transactions;
-    }
-
-    private void createTransactionLog(Transactions transaction) {
-        LocalDate localDate = LocalDate.now();
-        TransactionsLog transactionsLog = new TransactionsLog();
-        transactionsLog.setTransactionId(transaction.getTransactionId());
-        transactionsLog.setArgument(JOB_PENDING_DUE + " : Cant change this transaction " + transaction.getTransactionId());
-        transactionsLog.setEventName(7);
-        transactionsLog.setContactAccountId(transaction.getChargeAccountId());
-        transactionsLog.setTransactionLogId(UUID.randomUUID().toString());
-        transactionsLog.setDate(localDate);
-        transactionsLogService.saveTransactionLog(transactionsLog);
-
-    }
-
-    private String createNextCycleDate() {
-        String dayOfNextCycle = "14";
-        LocalDateTime now = LocalDateTime.now().plusMonths(1);
-        String month = String.valueOf(now.getMonth().getValue());
-        String year = String.valueOf(now.getYear());
-        return year + "-" + month + "-" + dayOfNextCycle;
-
-    }
 
     @Override
     public JobExecutionResults createTransactionsForRecurringCharges( String locationId) {
