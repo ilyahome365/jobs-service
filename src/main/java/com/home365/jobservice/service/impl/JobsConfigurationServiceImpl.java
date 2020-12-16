@@ -55,15 +55,20 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
     }
 
     @Override
-    public ChangeBillConfiguration getChangeBillConfiguration() {
+    public ChangeBillConfiguration getChangeBillConfiguration(String locationId) throws JsonProcessingException {
+        String jobName = "bills-status-change";
+        Optional<JobConfiguration> jobConfiguration = getJobByLocationAndName(locationId, jobName);
+//        JobConfiguration jobConfiguration = jobsConfigurationRepository.getOne(JOBS_ID.CHANGE_BILL_STATUS.key);
 
-        return null;
+        return objectMapper.readValue(jobConfiguration.get().getConfigurationJson(),ChangeBillConfiguration.class);
     }
 
     public enum JOBS_ID {
         LATE_FEE("late-fee", 1L),
         LEASE_PROPERTY_NOTIFICATION("lease-property-notification", 2L),
-        LEASE_UPDATING("lease-updating", 3L);
+        LEASE_UPDATING("lease-updating", 3L),
+        CHANGE_BILL_STATUS("bills-status-change", 4L);
+
 
         private final String name;
         private final Long key;

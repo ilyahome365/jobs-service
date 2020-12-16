@@ -2,10 +2,15 @@ package com.home365.jobservice.model;
 
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 public class PendingStatusJobData {
 
-    Long readyForPayment = 0L;
-    Long pendingContribution = 0L;
-    Long failedToChange = 0L;
+    private Long readyForPayment = 0L;
+    private Long pendingContribution = 0L;
+    private Long failedToChange = 0L;
+    private List<TransactionsFailedToChange> transactionsFailedToChanges = new ArrayList<>();
+
 }

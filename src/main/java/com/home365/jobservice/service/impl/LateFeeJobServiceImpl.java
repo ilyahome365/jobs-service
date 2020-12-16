@@ -39,7 +39,7 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
     }
 
     @Override
-    public String execute() throws Exception {
+    public String execute(String locationId) throws Exception {
         LateFeeConfiguration lateFeeConfiguration = jobsConfigurationService.getLateFeeConfiguration();
 
         List<Transactions> candidateTransactionsWithNoLateFee = transactionsService.findAllByBillTypeAndStatus(

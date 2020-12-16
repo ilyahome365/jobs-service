@@ -48,7 +48,7 @@ public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
     }
 
     @Override
-    public String execute() throws Exception {
+    public String execute(String locationId) throws Exception {
         Calendar currentCalendar = Calendar.getInstance();
         LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration = jobsConfigurationService.getLeasePropertyNotificationConfiguration();
         List<LeaseExpiryPropertySummary> leaseExpiryPropertySummaries = getPropertyExtension(
