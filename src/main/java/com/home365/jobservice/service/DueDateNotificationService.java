@@ -4,5 +4,5 @@ import com.home365.jobservice.model.JobExecutionResults;
 
 public interface DueDateNotificationService {
 
-    JobExecutionResults sendNotificationForDueDateTenants();
+    JobExecutionResults sendNotificationForDueDateTenants(String locationId);
 }

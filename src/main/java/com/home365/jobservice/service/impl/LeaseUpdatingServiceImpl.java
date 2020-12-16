@@ -46,7 +46,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
     }
 
     @Override
-    protected String execute() throws Exception {
+    protected String execute(String locationId) throws Exception {
          LocalDate currentCalendar = LocalDate.now();
         LocalDate nextMonth = LocalDate.now().plusMonths(1);
 

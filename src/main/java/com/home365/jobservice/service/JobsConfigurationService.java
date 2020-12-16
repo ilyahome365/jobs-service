@@ -16,7 +16,7 @@ public interface JobsConfigurationService {
     Optional<JobConfiguration> getJobByName(String taskName);
 
     Optional<JobConfiguration> getJobByLocationAndName(String location, String jobName);
-    ChangeBillConfiguration getChangeBillConfiguration();
+    ChangeBillConfiguration getChangeBillConfiguration(String locationId) throws JsonProcessingException;
 
 
 }

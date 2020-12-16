@@ -8,17 +8,17 @@ import java.util.List;
 public interface ApplicationService {
    List<TransactionsWithProjectedBalance> pendingStatusChange();
 
-    JobExecutionResults startLateFeeJob();
+    JobExecutionResults startLateFeeJob(String locationId);
 
-    JobExecutionResults createTransactionsForRecurringCharges();
+    JobExecutionResults createTransactionsForRecurringCharges(String locationId);
 
-    JobExecutionResults startLeasePropertyNotification();
+    JobExecutionResults startLeasePropertyNotification(String locationId);
 
-    JobExecutionResults dueDateTenantNotification();
+    JobExecutionResults dueDateTenantNotification(String locationId);
 
-    JobExecutionResults startLeaseUpdating();
+    JobExecutionResults startLeaseUpdating(String locationId);
 
-    JobExecutionResults startChangeBillStatusJob() throws Exception;
+    JobExecutionResults startChangeBillStatusJob(String locationId) throws Exception;
 
 
 }

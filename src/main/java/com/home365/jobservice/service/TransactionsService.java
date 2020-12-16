@@ -16,6 +16,9 @@ public interface TransactionsService {
     List<Transactions> findByRecurringTemplateId(String recurringTemplateId);
 
     ILateFeeAdditionalInformationProjection getLateFeeAdditionalInformation();
+    void saveTransaction(Transactions transactions);
+
+    void saveAllTransactionsWithProjectedBalance(List<TransactionsWithProjectedBalance >transactionsWithProjectedBalances);
 
     List<Transactions> findTenantRentTransactionsByPropertyId(String propertyId);
 

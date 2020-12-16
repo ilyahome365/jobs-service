@@ -8,10 +8,12 @@ import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.enums.TransactionType;
 import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.PendingStatusJobData;
+import com.home365.jobservice.model.TransactionsFailedToChange;
 import com.home365.jobservice.service.*;
 import com.home365.jobservice.utils.Converters;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -102,28 +104,28 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public JobExecutionResults startLateFeeJob() {
-        return lateFeeJobService.executeJob();
+    public JobExecutionResults startLateFeeJob(String locationId) {
+        return lateFeeJobService.executeJob(locationId);
     }
 
     @Override
-    public JobExecutionResults startLeasePropertyNotification() {
-        return leaseRecurringNotificationService.executeJob();
+    public JobExecutionResults startLeasePropertyNotification(String locationId) {
+        return leaseRecurringNotificationService.executeJob(locationId);
     }
 
     @Override
-    public JobExecutionResults dueDateTenantNotification() {
-        return dueDateNotificationService.sendNotificationForDueDateTenants();
+    public JobExecutionResults dueDateTenantNotification(String locationId) {
+        return dueDateNotificationService.sendNotificationForDueDateTenants(locationId);
     }
 
     @Override
-    public JobExecutionResults startLeaseUpdating() {
-        return leaseUpdatingService.executeJob();
+    public JobExecutionResults startLeaseUpdating( String locationId) {
+        return leaseUpdatingService.executeJob(locationId);
     }
 
     @Override
-    public JobExecutionResults startChangeBillStatusJob() {
-        return changeBillStatusService.executeJob();
+    public JobExecutionResults startChangeBillStatusJob( String locationId) {
+        return changeBillStatusService.executeJob(locationId);
 
     }
 
@@ -167,6 +169,11 @@ public class ApplicationServiceImpl implements ApplicationService {
                 log.error("the Exception reason : " + e.getLocalizedMessage());
                 failedTransactions.add(transaction);
                 createTransactionLog(Converters.fromTransactionsWithProjectedBalanceToTransactions(transaction));
+                pendingStatusJobData.setFailedToChange(pendingStatusJobData.getFailedToChange() +1);
+                TransactionsFailedToChange transactionsFailedToChange = new TransactionsFailedToChange();
+                transactionsFailedToChange.setTransactionId(transaction.getTransactionId());
+                transactionsFailedToChange.setReasonFailedToChange("No Projected Balance for this account :" + transaction.getChargeAccountId());
+                pendingStatusJobData.getTransactionsFailedToChanges().add(transactionsFailedToChange);
             }
         }
         return transactions;
@@ -195,7 +202,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public JobExecutionResults createTransactionsForRecurringCharges() {
+    public JobExecutionResults createTransactionsForRecurringCharges( String locationId) {
         return recurringService.createTransactionsForRecurringCharges();
     }
 }

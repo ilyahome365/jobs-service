@@ -8,11 +8,13 @@ import com.home365.jobservice.repository.TransactionsWithProjectedBalanceRepo;
 import com.home365.jobservice.service.TransactionsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @Slf4j
+@Transactional
 public class TransactionsServiceImpl implements TransactionsService {
 
     private final TransactionsRepository transactionsRepository;
@@ -58,5 +60,17 @@ public class TransactionsServiceImpl implements TransactionsService {
     @Override
     public void save(Transactions transaction) {
         transactionsRepository.save(transaction);
+    }
+
+    @Override
+    public void saveTransaction(Transactions transactions) {
+        log.info("Save transaction id : {} " ,transactions.getTransactionId());
+        transactionsRepository.save(transactions);
+    }
+
+    @Override
+    public void saveAllTransactionsWithProjectedBalance(List<TransactionsWithProjectedBalance> transactionsWithProjectedBalances) {
+        log.info("Save all transactions : {} " , transactionsWithProjectedBalances);
+        transactionsWithProjectedBalanceRepo.saveAll(transactionsWithProjectedBalances);
     }
 }

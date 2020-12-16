@@ -22,7 +22,7 @@ import java.util.UUID;
 public class Transactions implements Serializable {
 
     @Id
-    private String transactionId = UUID.randomUUID().toString();
+    private String transactionId;
     private String pmAccountId;
     private String receiveAccountId;
     private String chargeAccountId;

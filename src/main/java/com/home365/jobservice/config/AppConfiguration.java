@@ -48,7 +48,10 @@ public class AppConfiguration implements SchedulingConfigurer {
         }
 
 
-
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
+                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
+                () -> log.info("------------------------> RUN LATE_FEE JOB <------------------------")
+        );
 
 //        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
 //                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
@@ -67,7 +70,8 @@ public class AppConfiguration implements SchedulingConfigurer {
 
 //        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
 //                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-//                applicationService::startLateFeeJob
+////                applicationService::startLateFeeJob
+//                ()-> applicationService.startLateFeeJob()
 //        );
 //        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_PROPERTY_NOTIFICATION.getName(),
 //                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
@@ -77,6 +81,8 @@ public class AppConfiguration implements SchedulingConfigurer {
 //                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
 //                applicationService::startLeaseUpdating
 //        );
+
+
     }
 
     @Bean

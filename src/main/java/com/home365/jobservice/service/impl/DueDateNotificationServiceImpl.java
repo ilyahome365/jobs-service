@@ -28,7 +28,7 @@ public class DueDateNotificationServiceImpl implements DueDateNotificationServic
     }
 
     @Override
-    public JobExecutionResults sendNotificationForDueDateTenants() {
+    public JobExecutionResults sendNotificationForDueDateTenants(String locationId) {
         String query = "select ChargeAccountId, max(DueDate) MaxDueDate, caeb.new_contactid, c.FullName, c.EMailAddress1  from Transactions tr\n" +
                 "inner join New_contactaccountExtensionBase caeb on caeb.new_accountid = tr.ChargeAccountId\n" +
                 "inner join Contact c on c.ContactId = caeb.new_contactid\n" +

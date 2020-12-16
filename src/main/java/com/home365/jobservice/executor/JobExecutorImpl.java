@@ -32,7 +32,7 @@ public abstract class JobExecutorImpl implements JobService {
     }
 
     @Override
-    public JobExecutionResults executeJob() {
+    public JobExecutionResults executeJob(String locationId) {
         log.info("Try to Start " + getJobName());
         JobExecutionResults jobExecutionResults = new JobExecutionResults();
         LocalDateTime startTime = LocalDateTime.now();
@@ -40,7 +40,7 @@ public abstract class JobExecutorImpl implements JobService {
             if (lock.tryLock()) {
                 log.info(getJobName() + " Started");
                 jobExecutionResults.setStartTime(startTime);
-                String jobExecutionResult = execute();
+                String jobExecutionResult = execute(locationId);
                 jobExecutionResults.setMessage(jobExecutionResult);
                 jobExecutionResults.setJobName(getJobName());
                 setEndingTimeAndDuration(jobExecutionResults, startTime);
@@ -65,7 +65,9 @@ public abstract class JobExecutorImpl implements JobService {
 
     protected abstract String getJobName();
 
-    protected abstract String execute() throws Exception;
+    protected abstract String execute(String locationId) throws Exception;
+
+
 
     private void setEndingTimeAndDuration(JobExecutionResults jobExecutionResults,
                                           LocalDateTime startTime) {
