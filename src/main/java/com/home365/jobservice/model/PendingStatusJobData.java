@@ -7,4 +7,5 @@ public class PendingStatusJobData {
 
     Long readyForPayment = 0L;
     Long pendingContribution = 0L;
+    Long failedToChange = 0L;
 }

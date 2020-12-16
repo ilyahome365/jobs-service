@@ -44,6 +44,7 @@ public abstract class JobExecutorImpl implements JobService {
                 jobExecutionResults.setMessage(jobExecutionResult);
                 jobExecutionResults.setJobName(getJobName());
                 setEndingTimeAndDuration(jobExecutionResults, startTime);
+
             } else {
                 log.info(getJobName() + " -> Already Running");
                 jobExecutionResults.setMessage(getJobName() + " -> Already Running");
@@ -52,11 +53,12 @@ public abstract class JobExecutorImpl implements JobService {
             setEndingTimeAndDuration(jobExecutionResults, startTime);
             jobExecutionResults.setError(ex.getMessage());
             jobExecutionResults.setStackTrace(Arrays.toString(ex.getStackTrace()));
-            sendMailOnFail(getJobName(), jobExecutionResults);
+//            sendMailOnFail(getJobName(), jobExecutionResults);
             log.info(String.format("Job [%s] failed -> Send Mail with the reason", getJobName()));
             ex.printStackTrace();
         } finally {
             lock.unlock();
+            sendMailOnFail(getJobName(), jobExecutionResults);
         }
         return jobExecutionResults;
     }
@@ -107,4 +109,5 @@ public abstract class JobExecutorImpl implements JobService {
         contentTemplate.put("STACK_TRACE", StringUtils.isEmpty(jobExecutionResults.getStackTrace()) ? "" : jobExecutionResults.getStackTrace());
         return contentTemplate;
     }
+
 }

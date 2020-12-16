@@ -28,7 +28,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
     public static final String LEASE_UPDATING_JOB = "Lease Updating Job";
     private final IPropertyTenantExtensionService propertyTenantExtensionService;
     private final TenantFeignService tenantFeignService;
-    private LocalDate currentCalendar = LocalDate.now();
+
     private PropertyAccountRepository propertyAccountRepository;
 
     public LeaseUpdatingServiceImpl(AppProperties appProperties,
@@ -47,7 +47,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
     @Override
     protected String execute() throws Exception {
-
+         LocalDate currentCalendar = LocalDate.now();
         LocalDate nextMonth = LocalDate.now().plusMonths(1);
 
         List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.getAllActivePlansToUpdate().stream().
@@ -84,6 +84,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
     }
 
     private void changePropertyTenantLease(PropertyTenantExtension propertyTenantExtension, LeaseType leaseType, LocalDateTime endDate) {
+         LocalDate currentCalendar = LocalDate.now();
         propertyTenantExtension.setLeaseType(leaseType);
         propertyTenantExtension.setEndDate(endDate);
         propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate().toLocalDate()));
