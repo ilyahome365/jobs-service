@@ -23,6 +23,7 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,12 +58,15 @@ public class RecurringServiceImpl implements RecurringService {
 
     @Override
     public Recurring save(Recurring recurring) {
-        return null;
+        return recurringRepository.save(recurring);
     }
 
     @Override
     public JobExecutionResults createTransactionsForRecurringCharges() {
         List<Recurring> activeRecurringChargeList = findByActive(true);
+
+        List<Recurring> installmentsRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> recurring.getNumOfInstallments() > 0).collect(Collectors.toList());
+        activeRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> recurring.getNumOfInstallments() == 0).collect(Collectors.toList());
 
         String lvPmAccountId = "F90E128A-CD00-4DF7-B0D0-0F40F80D623A";
 
@@ -80,7 +84,6 @@ public class RecurringServiceImpl implements RecurringService {
 
         final Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
-        //int daysToCreateRecurring = Integer.parseInt(rules.get("days_ahead_to_create_recurring"));
         int dayInMonthToCreateRecurring = Integer.parseInt(rules.get("day_in_month_to_create_recurring"));
         String logicalDateStr = rules.get("logical_date");
 
@@ -92,12 +95,6 @@ public class RecurringServiceImpl implements RecurringService {
             log.error("Cannot set logical date");
         }
 
-
-//        calendar.set(Calendar.DAY_OF_MONTH, 1);
-//        calendar.add(Calendar.MONTH, 1);
-//        calendar.add(Calendar.DAY_OF_MONTH, -daysToCreateRecurring);
-//        Date dateToCreateRecurring = calendar.getTime();
-
         calendar.setTime(now);
         calendar.add(Calendar.MONTH, 1);
         calendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -105,6 +102,7 @@ public class RecurringServiceImpl implements RecurringService {
 
         Date finalNow = now;
         activeRecurringChargeList.forEach(recurringCharge -> {
+
             calendar.setTime(finalNow);
             List<IPropertyLeaseInformation> leaseList = recurringRepository.getLeaseDatesByLeaseId(recurringCharge.getLeaseId());
             if (CollectionUtils.isEmpty(leaseList) || leaseList.size() != 1) {
@@ -112,38 +110,10 @@ public class RecurringServiceImpl implements RecurringService {
                 return;
             }
 
-            Date leaseStartDate = leaseList.get(0).getStartDate();
             Date leaseEndDate = leaseList.get(0).getEndDate();
 
             List<Transactions> existingRecurringTransactions = transactionsService.findByRecurringTemplateId(recurringCharge.getId());
             if (CollectionUtils.isEmpty(existingRecurringTransactions) && !"Old Recurring Charges".equals(recurringCharge.getMemo())) {
-//                final long relativeAmount = getRelativeAmount(recurringCharge.getAmount());
-//                Transactions transactions = Transactions.builder()
-//                        .amount(relativeAmount)
-//                        .pmAccountId(recurringCharge.getPmAccountId())
-//                        .accountingTypeId(recurringCharge.getAccountingTypeId())
-//                        .accountingName(typeCategoryRepository.getTypeNameByID(recurringCharge.getAccountingTypeId()))
-//                        .amountBeforeDiscount(relativeAmount)
-//                        .billType(recurringCharge.getBillType())
-//                        .categoryId(recurringCharge.getCategoryId())
-//                        .categoryName(typeCategoryRepository.getCategoryNameByID(recurringCharge.getCategoryId()))
-//                        .memo(recurringCharge.getMemo())
-//                        .dueDate(new Timestamp(now.getTime()))
-//                        .chargedBy(recurringCharge.getChargedBy())
-//                        .recurringTemplateId(recurringCharge.getId())
-//                        .chargeAccountId(recurringCharge.getChargeAccountId())
-//                        .isDeductible("false")
-//                        .isRecurring("true")
-//                        .propertyId(recurringCharge.getPropertyId())
-//                        .receiveAccountId(recurringCharge.getReceiveAccountId())
-//                        .status("readyForPayment")
-//                        .transactionId(UUID.randomUUID().toString())
-//                        .statementType(recurringCharge.getStatementType())
-//                        .build();
-//
-//                List<Transactions> transactionsList = new ArrayList<>();
-//                transactionsList.add(transactions);
-//                transactionsService.saveAllTransactions(transactionsList);
                 log.error("Cannot create transactions for recurring charges of propertyId {} since no first charge have been found", recurringCharge.getPropertyId());
                 return;
             } else if (dayInMonthToCreateRecurring == calendar.get(Calendar.DAY_OF_MONTH) && nextDueDate.before(leaseEndDate)) {
@@ -170,30 +140,7 @@ public class RecurringServiceImpl implements RecurringService {
                     return localDueDate.equals(localNextDueDate);
                 }).collect(Collectors.toList());
                 if (CollectionUtils.isEmpty(existingRecurringTransactions)) {
-                    Transactions transactions = Transactions.builder()
-                            .amount((long) recurringCharge.getAmount())
-                            .pmAccountId(recurringCharge.getPmAccountId())
-                            .accountingTypeId(recurringCharge.getAccountingTypeId())
-                            .accountingName(typeCategoryRepository.getTypeNameByID(recurringCharge.getAccountingTypeId()))
-                            .amountBeforeDiscount(recurringCharge.getAmountBeforeDiscount() == null ? (long) recurringCharge.getAmount() : (long) recurringCharge.getAmountBeforeDiscount().doubleValue())
-                            .billType(recurringCharge.getBillType())
-                            .categoryId(recurringCharge.getCategoryId())
-                            .categoryName(typeCategoryRepository.getCategoryNameByID(recurringCharge.getCategoryId()))
-                            .memo(recurringCharge.getMemo())
-                            .dueDate(new Timestamp(nextDueDate.getTime()))
-                            .chargedBy(recurringCharge.getChargedBy())
-                            .recurringTemplateId(recurringCharge.getId())
-                            .chargeAccountId(recurringCharge.getChargeAccountId())
-                            .isDeductible("false")
-                            .isRecurring("true")
-                            .propertyId(recurringCharge.getPropertyId())
-                            .receiveAccountId(recurringCharge.getReceiveAccountId())
-                            .status("readyForPayment")
-                            .transactionId(UUID.randomUUID().toString())
-                            .transactionType("Charge")
-                            .statementType(recurringCharge.getStatementType())
-                            .build();
-
+                    Transactions transactions = createTransaction(recurringCharge, nextDueDate);
                     List<Transactions> transactionsList = new ArrayList<>();
                     transactionsList.add(transactions);
                     transactionsService.saveAllTransactions(transactionsList);
@@ -201,16 +148,35 @@ public class RecurringServiceImpl implements RecurringService {
             }
         });
 
+        handleInstallmentsCharges(installmentsRecurringChargeList, nextDueDate);
+
         return JobExecutionResults.builder().build();
     }
 
-    private long getRelativeAmount(double amount) {
-        Calendar calendar = Calendar.getInstance();
-        double lastDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-        double currentDay = calendar.get(Calendar.DAY_OF_MONTH);
-        double daysLeft = lastDay - currentDay;
+    private void handleInstallmentsCharges(List<Recurring> installmentsRecurringChargeList, Date nextDueDate) {
+        for (Recurring recurringCharge : installmentsRecurringChargeList) {
+            int remainInstallments = recurringCharge.getRemainInstallments();
+            if (remainInstallments == 0) {
+                return;
+            }
+            String propertyId = recurringCharge.getPropertyId();
+            List<Transactions> rentTransactions = transactionsService.findTenantRentTransactionsByPropertyId(propertyId);
 
-        return (long) (amount * (daysLeft / lastDay));
+            rentTransactions = rentTransactions.stream().filter(transaction -> {
+                LocalDate transactionDueDate = transaction.getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                LocalDate nextLocalDueDate = nextDueDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                return nextLocalDueDate.isEqual(transactionDueDate);
+            }).collect(Collectors.toList());
+
+            if (!CollectionUtils.isEmpty(rentTransactions) && rentTransactions.size() == 1) {
+                Transactions transaction = createTransaction(recurringCharge, nextDueDate);
+                transaction.setReferenceTransactionId(rentTransactions.get(0).getTransactionId());
+
+                recurringCharge.setRemainInstallments(remainInstallments - 1);
+                save(recurringCharge);
+                transactionsService.save(transaction);
+            }
+        }
     }
 
     @Override
@@ -226,5 +192,33 @@ public class RecurringServiceImpl implements RecurringService {
     @Override
     public List<IPropertyLeaseInformation> getLeaseDatesByLeaseId(@Param("leaseId") String leaseId) {
         return recurringRepository.getLeaseDatesByLeaseId(leaseId);
+    }
+
+    private Transactions createTransaction(Recurring recurringCharge, Date dueDate) {
+        Transactions transaction = Transactions.builder()
+                .amount((long) recurringCharge.getAmount())
+                .pmAccountId(recurringCharge.getPmAccountId())
+                .accountingTypeId(recurringCharge.getAccountingTypeId())
+                .accountingName(typeCategoryRepository.getTypeNameByID(recurringCharge.getAccountingTypeId()))
+                .amountBeforeDiscount(recurringCharge.getAmountBeforeDiscount() == null ? (long) recurringCharge.getAmount() : (long) recurringCharge.getAmountBeforeDiscount().doubleValue())
+                .billType(recurringCharge.getBillType())
+                .categoryId(recurringCharge.getCategoryId())
+                .categoryName(typeCategoryRepository.getCategoryNameByID(recurringCharge.getCategoryId()))
+                .memo(recurringCharge.getMemo())
+                .dueDate(new Timestamp(dueDate.getTime()))
+                .chargedBy(recurringCharge.getChargedBy())
+                .recurringTemplateId(recurringCharge.getId())
+                .chargeAccountId(recurringCharge.getChargeAccountId())
+                .isDeductible("false")
+                .isRecurring("true")
+                .propertyId(recurringCharge.getPropertyId())
+                .receiveAccountId(recurringCharge.getReceiveAccountId())
+                .status("readyForPayment")
+                .transactionId(UUID.randomUUID().toString())
+                .transactionType("Charge")
+                .statementType(recurringCharge.getStatementType())
+                .build();
+
+        return transaction;
     }
 }

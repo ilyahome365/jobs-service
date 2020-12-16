@@ -16,7 +16,7 @@ import java.sql.Timestamp;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Immutable
+//@Immutable
 public class Recurring {
     @Id
     private String id;
@@ -43,4 +43,6 @@ public class Recurring {
     private String chargedBy;
     private Boolean active;
     private String leaseId;
+    private int numOfInstallments;
+    private int remainInstallments;
 }

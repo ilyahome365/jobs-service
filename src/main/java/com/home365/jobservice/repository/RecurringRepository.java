@@ -38,7 +38,7 @@ public interface RecurringRepository extends JpaRepository<Recurring, String> {
             "  and a.New_BusinessType = 10 ", nativeQuery = true)
     List<IPropertyLeaseInformationProjection> getRecurrentPropertyAndTenantByRecurringIds(@Param("recurrentIds") List<String> recurringIds);
 
-    @Query(value = "select New_StartDate as startDate, New_EndDate as endDate from New_property_tenantExtensionBase where New_property_tenantId = :leaseId and New_IsActive = 1",
+    @Query(value = "select New_StartDate as startDate, New_EndDate as endDate from New_property_tenantExtensionBase where New_property_tenantId = :leaseId",
     nativeQuery = true)
     List<IPropertyLeaseInformation> getLeaseDatesByLeaseId(@Param("leaseId") String leaseId);
 }

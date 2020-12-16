@@ -46,4 +46,14 @@ public class TransactionsServiceImpl implements TransactionsService {
     public ILateFeeAdditionalInformationProjection getLateFeeAdditionalInformation() {
         return transactionsRepository.getLateFeeAdditionalInformation();
     }
+
+    @Override
+    public List<Transactions> findTenantRentTransactionsByPropertyId(String propertyId) {
+        return transactionsRepository.findTenantRentTransactionsByPropertyId(propertyId);
+    }
+
+    @Override
+    public void save(Transactions transaction) {
+        transactionsRepository.save(transaction);
+    }
 }

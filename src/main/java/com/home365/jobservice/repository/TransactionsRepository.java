@@ -56,4 +56,8 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
                     "WHERE p.New_code = 11587"
             , nativeQuery = true)
     ILateFeeAdditionalInformationProjection getLateFeeAdditionalInformation();
+
+    @Query(value = "select * from Transactions where propertyId = :propertyId and " +
+            "CategoryName = 'Tenant Rent' and status not in ('paid', 'cancel') ", nativeQuery = true)
+    List<Transactions> findTenantRentTransactionsByPropertyId(@Param("propertyId") String propertyId);
 }
