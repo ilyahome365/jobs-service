@@ -8,7 +8,7 @@ import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.TenantStatusChangeRequest;
 import com.home365.jobservice.repository.PropertyAccountRepository;
-import com.home365.jobservice.rest.TenantFeignService;
+import com.home365.jobservice.rest.TenantServiceExternal;
 import com.home365.jobservice.service.IPropertyTenantExtensionService;
 import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.utils.DateAndTimeUtil;
@@ -27,16 +27,18 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
     public static final String LEASE_UPDATING_JOB = "Lease Updating Job";
     private final IPropertyTenantExtensionService propertyTenantExtensionService;
-    private final TenantFeignService tenantFeignService;
+
+    private final TenantServiceExternal tenantServiceExternal;
 
     private PropertyAccountRepository propertyAccountRepository;
 
     public LeaseUpdatingServiceImpl(AppProperties appProperties,
                                     MailService mailService,
-                                    IPropertyTenantExtensionService propertyTenantExtensionService, TenantFeignService tenantFeignService, PropertyAccountRepository propertyAccountRepository) {
+                                    IPropertyTenantExtensionService propertyTenantExtensionService, TenantServiceExternal tenantServiceExternal, PropertyAccountRepository propertyAccountRepository) {
         super(appProperties, mailService);
         this.propertyTenantExtensionService = propertyTenantExtensionService;
-        this.tenantFeignService = tenantFeignService;
+        this.tenantServiceExternal = tenantServiceExternal;
+
         this.propertyAccountRepository = propertyAccountRepository;
     }
 
@@ -103,7 +105,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         Optional<PropertyAccountExtension> propertyAccount = propertyAccountRepository.findById(propertyTenantExtension.getPropertAccountId());
         propertyAccount.ifPresent(propertyAccountExtension -> tenantStatusChangeRequest.setAccountId(propertyAccountExtension.getAccountId()));
         try {
-            tenantFeignService.changeTenantStatus(tenantStatusChangeRequest);
+            tenantServiceExternal.changeTenantStatus(tenantStatusChangeRequest);
         } catch (GeneralException e) {
             e.printStackTrace();
             log.error(e.getMessage());

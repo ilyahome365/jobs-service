@@ -106,6 +106,12 @@
             <artifactId>feign-jackson</artifactId>
             <version>8.18.0</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.github.openfeign.form/feign-form -->
+        <dependency>
+            <groupId>io.github.openfeign.form</groupId>
+            <artifactId>feign-form</artifactId>
+            <version>3.8.0</version>
+        </dependency>
     </dependencies>
 
     <build>
