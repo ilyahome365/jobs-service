@@ -7,6 +7,7 @@ import com.home365.jobservice.model.mail.MailDetails;
 import com.home365.jobservice.model.mail.MailResult;
 import com.home365.jobservice.service.DueDateNotificationService;
 import com.home365.jobservice.service.MailService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,9 @@ public class DueDateNotificationServiceImpl implements DueDateNotificationServic
     private final AppProperties appProperties;
     private final MailService mailService;
 
+    @Value("${tenant.login.url}")
+    String tenantLoginUrl;
+
     public DueDateNotificationServiceImpl(JdbcTemplate jdbcTemplate, AppProperties appProperties, MailService mailService) {
         this.jdbcTemplate = jdbcTemplate;
         this.appProperties = appProperties;
@@ -29,7 +33,7 @@ public class DueDateNotificationServiceImpl implements DueDateNotificationServic
 
     @Override
     public JobExecutionResults sendNotificationForDueDateTenants(String locationId) {
-        String query = "select ChargeAccountId, max(DueDate) MaxDueDate, caeb.new_contactid, c.FullName, c.EMailAddress1  from Transactions tr\n" +
+        String query = "select ChargeAccountId, max(DueDate) MaxDueDate, caeb.new_contactid, c.FirstName, c.LastName, c.EMailAddress1  from Transactions tr\n" +
                 "inner join New_contactaccountExtensionBase caeb on caeb.new_accountid = tr.ChargeAccountId\n" +
                 "inner join Contact c on c.ContactId = caeb.new_contactid\n" +
                 "where ChargeAccountId in (\n" +
@@ -40,16 +44,16 @@ public class DueDateNotificationServiceImpl implements DueDateNotificationServic
                 "         inner join dbo.AccountExtensionBase a on a.AccountId=ca.New_AccountId\n" +
                 "where cab.statuscode=1 and a.New_status in(1,4,6)\n" +
                 "    and a.New_BusinessType = 10\n" +
-                ") and status in ('readyForPayment') group by ChargeAccountId, caeb.new_contactid, c.FullName, c.EMailAddress1";
+                ") and status in ('readyForPayment') group by ChargeAccountId, caeb.new_contactid, c.FirstName, c.LastName, c.EMailAddress1";
 
         List<Map<String, Object>> tenantChargesList = jdbcTemplate.queryForList(query);
 
-        tenantChargesList.forEach(entry -> sendDueDateNotification((Timestamp) entry.get("MaxDueDate"), (String) entry.get("FullName"), (String) entry.get("EMailAddress1")));
+        tenantChargesList.forEach(entry -> sendDueDateNotification((Timestamp) entry.get("MaxDueDate"), entry.get("FirstName") + " " + entry.get("LastName"), (String) entry.get("EMailAddress1")));
 
         return JobExecutionResults.builder().build();
     }
 
-    private void sendDueDateNotification(Timestamp maxDueDate, String fullName, String eMailAddress1) {
+    private void sendDueDateNotification(Timestamp maxDueDate, String fullName, String eMailAddress) {
 
         Calendar calendar = Calendar.getInstance();
         double lastDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
@@ -66,13 +70,14 @@ public class DueDateNotificationServiceImpl implements DueDateNotificationServic
 
         MailDetails mailDetails = new MailDetails();
         mailDetails.setFrom(appProperties.getMailSupport());
-        mailDetails.setSubject("Your payment is required");
+        mailDetails.setSubject("Payment Reminder");
         mailDetails.setTemplateName("duedate-payment-notification");
         mailDetails.setContentTemplate(getContentTemplate(fullName, maxDueDate));
-        mailDetails.setRecipients(Collections.singletonList(new RecipientMail(
-                fullName,
-                "shauly@home365.co"
-        )));
+        List<RecipientMail> recipients = new ArrayList<>() {{
+            add(new RecipientMail(fullName, eMailAddress));
+            add(new RecipientMail("Shauly Yonay", "shauly@home365.co"));
+        }};
+        mailDetails.setRecipients(recipients);
 
         MailResult mailResult = mailService.sendMail(mailDetails);
     }
@@ -82,7 +87,7 @@ public class DueDateNotificationServiceImpl implements DueDateNotificationServic
         Map<String, String> contentTemplate = new HashMap<>();
         contentTemplate.put("TENANT_NAME", fullName);
         contentTemplate.put("PAYMENT_DUE", sdf.format(maxDueDate));
-        contentTemplate.put("LINK_URL", "https://pmcrm.home365.co/pages/login");
+        contentTemplate.put("LINK_URL", tenantLoginUrl);
         return contentTemplate;
     }
 }
