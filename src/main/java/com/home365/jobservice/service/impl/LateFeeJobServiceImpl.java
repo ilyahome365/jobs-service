@@ -83,7 +83,7 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
             feeTransaction.setAccountingName(lateFeeAdditionalInformationProjection.getAccountingName());
             feeTransaction.setTransactionType("Charge");
             feeTransaction.setChargeAccountId(transactions.getChargeAccountId());
-            feeTransaction.setReceiveAccountId(transactions.getReceiveAccountId());
+            feeTransaction.setReceiveAccountId("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
             feeTransaction.setPmAccountId(transactions.getPmAccountId());
             feeTransaction.setPropertyId(transactions.getPropertyId());
             feeTransaction.setAmount(feeAmount);
