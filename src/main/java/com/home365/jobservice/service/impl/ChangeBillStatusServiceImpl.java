@@ -62,7 +62,6 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
                         filter(transactions1 -> transactions1.getChargeAccountId()
                                 .equals(account)).
                         sorted(Comparator.comparing(TransactionsWithProjectedBalance::getDueDate).thenComparing(Comparator.comparing(TransactionsWithProjectedBalance::getAmount).reversed()))
-
                         .collect(Collectors.toList());
 
                 changeStatusByAmount(transactionsPerAccount, failedTransactions, pendingStatusJobData, changeBillConf);
