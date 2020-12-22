@@ -51,7 +51,7 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
         PendingStatusJobData pendingStatusJobData = new PendingStatusJobData();
 
         String cycleDate = createNextCycleDate();
-        List<TransactionsWithProjectedBalance> transactions = transactionsService.getTransactionsWithProjectedBalance(cycleDate,locationId);
+        List<TransactionsWithProjectedBalance> transactions = transactionsService.getTransactionsWithProjectedBalance(cycleDate, locationId);
         List<String> accounts = transactions.parallelStream().map(TransactionsWithProjectedBalance::getChargeAccountId).distinct().collect(Collectors.toList());
         List<TransactionsWithProjectedBalance> failedTransactions = new ArrayList<>();
         List<TransactionsWithProjectedBalance> transactionsPerAccount = new ArrayList<>();
@@ -64,13 +64,13 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
                         sorted(Comparator.comparing(TransactionsWithProjectedBalance::getDueDate).thenComparing(Comparator.comparing(TransactionsWithProjectedBalance::getAmount).reversed()))
                         .collect(Collectors.toList());
 
-                changeStatusByAmount(transactionsPerAccount, failedTransactions, pendingStatusJobData, changeBillConf);
-//                transactionsToSave = transactionsPerAccount.stream().map(Converters::fromTransactionsWithProjectedBalanceToTransactions).collect(Collectors.toList());
-                transactionsService.saveAllTransactionsWithProjectedBalance(transactionsPerAccount);
-//                transactionsService.saveAllTransactions(transactionsToSave);
-
+                transactionsPerAccount = changeStatusByAmount(transactionsPerAccount, failedTransactions, pendingStatusJobData, changeBillConf);
+                List<Transactions> transactionToSave = createTransactionFromTransactionsWithProjectBalance(transactionsPerAccount);
+                saveAllTransactions(transactionToSave, pendingStatusJobData);
             } catch (Exception e) {
+                System.out.println(e);
                 log.error(e.getMessage());
+                log.error(Arrays.toString(e.getStackTrace()));
                 pendingStatusJobData.setFailedToChange(pendingStatusJobData.getFailedToChange() + transactionsPerAccount.size());
             }
 
@@ -80,11 +80,51 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
         return String.format("%s : Finished get  : %d transactions  until date %s with results : %s ", getJobName(), transactions.size(), cycleDate, pendingStatusJobData.toString());
     }
 
-    private void saveAllTransactions(List<Transactions> transactionsToSave) {
-        for (Transactions transactions : transactionsToSave) {
-
-            transactionsService.saveTransaction(transactions);
+    private void saveAllTrsnactionsWithProjectedBalance(List<TransactionsWithProjectedBalance> transactionsPerAccount) {
+        for (TransactionsWithProjectedBalance transactionsWithProjectedBalance : transactionsPerAccount) {
+            transactionsService.saveTransactionsWithBalance(transactionsWithProjectedBalance);
         }
+    }
+
+    private List<Transactions> createTransactionFromTransactionsWithProjectBalance(List<TransactionsWithProjectedBalance> transactionsPerAccount) {
+        List<Transactions> transactions = new ArrayList<>();
+        for (TransactionsWithProjectedBalance transactionsWithProjectedBalance : transactionsPerAccount) {
+
+            Optional<Transactions> transaction = transactionsService.findTransaction(transactionsWithProjectedBalance.getTransactionId());
+            if (transaction.isPresent()) {
+                if (transaction.get().getVersion() == null)
+                    transaction.get().setVersion(0L);
+                transaction.get().setStatus(transactionsWithProjectedBalance.getStatus());
+                transactions.add(transaction.get());
+            }
+        }
+        return transactions;
+    }
+
+    private void saveAllTransactions(List<Transactions> transactionsToSave, PendingStatusJobData pendingStatusJobData) {
+        for (Transactions transactions : transactionsToSave) {
+            try {
+                Transactions transactionAfterSave = transactionsService.save(transactions);
+                saveStatistics(transactionAfterSave, pendingStatusJobData);
+            } catch (Exception e) {
+                log.error(Arrays.toString(e.getStackTrace()));
+                log.error(e.getMessage());
+                createTransactionLog(transactions);
+                pendingStatusJobData.setFailedToChange(pendingStatusJobData.getFailedToChange() + 1);
+                TransactionsFailedToChange transactionsFailedToChange = new TransactionsFailedToChange();
+                transactionsFailedToChange.setTransactionId(transactions.getTransactionId());
+                transactionsFailedToChange.setReasonFailedToChange(e.getMessage());
+                pendingStatusJobData.getTransactionsFailedToChanges().add(transactionsFailedToChange);
+            }
+        }
+    }
+
+    private void saveStatistics(Transactions transactionAfterSave, PendingStatusJobData pendingStatusJobData) {
+        String transactionStatus = transactionAfterSave.getStatus();
+        if (transactionStatus.equals(TransactionType.readyForPayment.name()))
+            pendingStatusJobData.setReadyForPayment(pendingStatusJobData.getReadyForPayment() + 1);
+        else if (transactionStatus.equals(TransactionType.pendingContribution.name()))
+            pendingStatusJobData.setPendingContribution(pendingStatusJobData.getPendingContribution() + 1);
     }
 
 
@@ -92,6 +132,7 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
         log.info("create job log with ready for payment : {}  , pendingContribution: {} , with cycle date : {} "
                 , pendingStatusJobData.getReadyForPayment(), pendingStatusJobData.getPendingContribution(), cycleDate);
         LocalDate localDate = LocalDate.now();
+
         Date date = new Date();
         Timestamp currentTimeAndDate = new Timestamp(date.getTime());
         JobLog jobLog = new JobLog();
@@ -111,13 +152,12 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
         for (TransactionsWithProjectedBalance transaction : transactions) {
             try {
                 billBalance = billBalance + transaction.getAmount();
-                double projectedBalanceWithTrashHold = changeBillConf.getTrashHold() + transaction.getProjected_balance();
+                double projectedBalanceWithTrashHold = changeBillConf.getTrashHold() + transaction.getProjected_balance().doubleValue();
                 log.info("transaction id {} with billBalance {}   and projected balance {}", transaction.getTransactionId(), billBalance, projectedBalanceWithTrashHold);
                 if (projectedBalanceWithTrashHold >= billBalance) {
                     log.info("Change transaction {} to readyForPayment", transaction.getTransactionId());
                     transaction.setStatus(TransactionType.readyForPayment.name());
 
-                    pendingStatusJobData.setReadyForPayment(pendingStatusJobData.getReadyForPayment() + 1);
                 } else {
                     log.info("Change transaction {} to pendingContribution", transaction.getTransactionId());
                     transaction.setStatus(TransactionType.pendingContribution.name());
@@ -154,7 +194,7 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
     private String createNextCycleDate() {
         String dayOfNextCycle = "14";
         LocalDateTime now = LocalDateTime.now();
-        if (now.getDayOfMonth() > 14 )
+        if (now.getDayOfMonth() > 14)
             now = now.plusMonths(2);
         else
             now = now.plusMonths(1);

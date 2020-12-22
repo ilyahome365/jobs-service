@@ -51,8 +51,7 @@ public class Transactions implements Serializable {
     private String checkMemo;
     @Column(updatable = false, insertable = false)
     private String transactionNumber;
-    @Enumerated(value = EnumType.STRING)
-    private OwnerDrawStatus ownerDrawStatus;
+    private String ownerDrawStatus;
     private String fileUrl;
     private String discountDescription;
     private String chargedBy;
@@ -60,7 +59,6 @@ public class Transactions implements Serializable {
     private String transactionType;
     private String recurringTemplateId;
 
-    @Version
     @Column(name = "Version")
     private Long version;
 

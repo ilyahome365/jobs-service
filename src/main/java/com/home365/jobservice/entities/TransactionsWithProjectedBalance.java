@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.UUID;
 
@@ -48,8 +49,7 @@ public class TransactionsWithProjectedBalance implements Serializable {
     private String checkMemo;
     @Column(updatable = false, insertable = false)
     private String transactionNumber;
-    @Enumerated(value = EnumType.STRING)
-    private OwnerDrawStatus ownerDrawStatus;
+    private String ownerDrawStatus;
     private String fileUrl;
     private String discountDescription;
     private String chargedBy;
@@ -62,7 +62,7 @@ public class TransactionsWithProjectedBalance implements Serializable {
     private Long version;
 
     @Column(insertable = false, updatable = false)
-    private Double projected_balance;
+    private BigDecimal projected_balance;
 
 
 }

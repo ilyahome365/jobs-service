@@ -5,6 +5,7 @@ import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationP
 import com.home365.jobservice.entities.Transactions;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TransactionsService {
     List<Transactions> saveAllTransactions(List<Transactions> transactions);
@@ -22,5 +23,7 @@ public interface TransactionsService {
 
     List<Transactions> findTenantRentTransactionsByPropertyId(String propertyId);
 
-    void save(Transactions transaction);
+    Transactions save(Transactions transaction);
+    void saveTransactionsWithBalance(TransactionsWithProjectedBalance transactionsWithProjectedBalance);
+    Optional<Transactions> findTransaction(String transactionId);
 }

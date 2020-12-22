@@ -1,9 +1,10 @@
 package com.home365.jobservice.repository;
 
 import com.home365.jobservice.entities.JobLog;
+import com.home365.jobservice.entities.JobLogTest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface JobLogRepository extends JpaRepository<JobLog, Integer> {
+public interface JobLogTestRepository extends JpaRepository<JobLogTest, Integer> {
 }
