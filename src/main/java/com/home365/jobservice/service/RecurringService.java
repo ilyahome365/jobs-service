@@ -17,11 +17,12 @@ public interface RecurringService {
 
     Recurring save(Recurring recurring);
 
-    JobExecutionResults createTransactionsForRecurringCharges();
+    String createTransactionsForRecurringCharges(String lvPmAccountId);
 
     List<Recurring> findAllForLeaseNotification(Date startDate, Date endDate);
 
     List<IPropertyLeaseInformationProjection> getRecurrentPropertyAndTenantByRecurringIds(List<String> recurringIds);
 
     List<IPropertyLeaseInformation> getLeaseDatesByLeaseId(@Param("leaseId") String leaseId);
+
 }

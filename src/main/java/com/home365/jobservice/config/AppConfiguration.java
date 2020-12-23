@@ -63,10 +63,10 @@ public class AppConfiguration implements SchedulingConfigurer {
 //                () -> log.info("------------------------> RUN LEASE_PROPERTY_NOTIFICATION JOB <------------------------")
 //        );
 //
-//        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
-//                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-//                () -> log.info("------------------------> RUN LEASE_UPDATING JOB <------------------------")
-//        );
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
+                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
+                () -> log.info("------------------------> RUN LEASE_UPDATING JOB <------------------------")
+        );
 
 //        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
 //                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",

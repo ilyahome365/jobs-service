@@ -6,4 +6,6 @@ public interface IPropertyLeaseInformation {
     Date getEndDate();
 
     Date getStartDate();
+
+    Date getMoveOutDate();
 }

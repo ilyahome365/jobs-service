@@ -24,6 +24,10 @@ public interface TransactionsService {
     List<Transactions> findTenantRentTransactionsByPropertyId(String propertyId);
 
     Transactions save(Transactions transaction);
+
+    Optional<Transactions> findById(String accountId);
+
     void saveTransactionsWithBalance(TransactionsWithProjectedBalance transactionsWithProjectedBalance);
+
     Optional<Transactions> findTransaction(String transactionId);
 }

@@ -35,7 +35,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final LateFeeJobServiceImpl lateFeeJobService;
     private final LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService;
     private final ChangeBillStatusServiceImpl changeBillStatusService;
-    private final RecurringService recurringService;
+    private final RecurringServiceImpl recurringService;
     private final DueDateNotificationService dueDateNotificationService;
     private final LeaseUpdatingServiceImpl leaseUpdatingService;
 
@@ -43,7 +43,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   TransactionsService transactionsService,
                                   JobLogService jobLogService,
                                   TransactionsLogService transactionsLogService,
-                                  ChangeBillStatusServiceImpl changeBillStatusService, RecurringService recurringService,
+                                  ChangeBillStatusServiceImpl changeBillStatusService, RecurringServiceImpl recurringService,
                                   LateFeeJobServiceImpl lateFeeJobService,
                                   LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
                                   DueDateNotificationService dueDateNotificationService,
@@ -91,6 +91,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public JobExecutionResults createTransactionsForRecurringCharges( String locationId) {
-        return recurringService.createTransactionsForRecurringCharges();
+        //return recurringService.createTransactionsForRecurringCharges(locationId);
+        return recurringService.executeJob(locationId);
     }
 }

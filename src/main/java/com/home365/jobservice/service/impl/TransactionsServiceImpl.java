@@ -85,4 +85,9 @@ public class TransactionsServiceImpl implements TransactionsService {
         log.info("Save all transactions : {} ", transactionsWithProjectedBalances);
         transactionsWithProjectedBalanceRepo.saveAll(transactionsWithProjectedBalances);
     }
+
+    @Override
+    public Optional<Transactions> findById(String accountId) {
+        return transactionsRepository.findById(accountId);
+    }
 }
