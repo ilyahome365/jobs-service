@@ -72,29 +72,6 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
         List<Recurring> installmentsRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> recurring.getNumOfInstallments() > 0).collect(Collectors.toList());
         activeRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> recurring.getNumOfInstallments() == 0).collect(Collectors.toList());
 
-        Set<String> exclude = new HashSet<>() {{
-            add("49B7039E-858D-401C-A42A-0B284A8C73BB");
-            add("8CBDB6EA-000F-41D8-94B5-1023FC79ABF1");
-            add("42845563-1224-4BF5-BA2E-1A2172F29408");
-            add("E9BB496F-FD7D-4543-A026-2696B1AF7422");
-            add("17F5C486-BE43-4D0E-8DC9-296F5F9A7B63");
-            add("2F39BD7C-0A89-45EC-9300-324AF9E887B9");
-            add("EDA14E12-E505-4256-B335-3E14349BE039");
-            add("D0BDF256-FD68-4D87-A054-575FED214069");
-            add("7E6D9291-0818-4AC5-AF4B-5A827C9659E6");
-            add("7159E6AD-BB61-42E4-AC77-6676257D7CEC");
-            add("39F957D2-C1A9-472E-82DE-76256B7FE1B2");
-            add("53C7DE73-8C55-4FF0-AF0B-7BA216DE060F");
-            add("2D51EA27-D77B-43C4-A1F6-96BC73FA9721");
-            add("A54847E0-FF6F-4086-A232-9F2DDC73F4B3");
-            add("E6DC4923-7FE4-419F-8A2F-A3FF5BE1AD7A");
-            add("343557E8-7AD2-4A0E-9F4C-AE2EB36D1C7A");
-            add("8A0C3C46-3D7B-4CC5-BB7F-B18A0F62B478");
-            add("952757F8-0ED9-456B-9E5B-C21945CBC519");
-            add("431DB937-7DCD-4FA4-A198-F22DCB1B68D6");
-        }};
-        activeRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> exclude.contains(recurring.getId())).collect(Collectors.toList());
-
         StringBuffer responseStr = new StringBuffer();
         responseStr.append("Number of recurring charges: "+ activeRecurringChargeList.size()+ "\n");
         responseStr.append("Number of installments charges: "+ installmentsRecurringChargeList.size()+ "\n");
