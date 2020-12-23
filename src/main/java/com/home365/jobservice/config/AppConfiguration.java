@@ -81,6 +81,10 @@ public class AppConfiguration implements SchedulingConfigurer {
 //                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
 //              ()->applicationService.startLeaseUpdating("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
 //        );
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.CHANGE_BILL_STATUS.getName(),
+                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
+              ()->applicationService.startChangeBillStatusJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+        );
 
 
     }

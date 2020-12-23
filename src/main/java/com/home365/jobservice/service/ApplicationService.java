@@ -18,7 +18,7 @@ public interface ApplicationService {
 
     JobExecutionResults startLeaseUpdating(String locationId);
 
-    JobExecutionResults startChangeBillStatusJob(String locationId) throws Exception;
+    JobExecutionResults startChangeBillStatusJob(String locationId);
 
 
 }

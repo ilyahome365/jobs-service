@@ -68,15 +68,17 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
                 List<Transactions> transactionToSave = createTransactionFromTransactionsWithProjectBalance(transactionsPerAccount);
                 saveAllTransactions(transactionToSave, pendingStatusJobData);
             } catch (Exception e) {
-                System.out.println(e);
                 log.error(e.getMessage());
                 log.error(Arrays.toString(e.getStackTrace()));
                 pendingStatusJobData.setFailedToChange(pendingStatusJobData.getFailedToChange() + transactionsPerAccount.size());
             }
 
         }
-        createJobLog(pendingStatusJobData, cycleDate);
-
+        try {
+            createJobLog(pendingStatusJobData, cycleDate);
+        }catch (Exception e){
+            log.error(e.getMessage());
+        }
         return String.format("%s : Finished get  : %d transactions  until date %s with results : %s ", getJobName(), transactions.size(), cycleDate, pendingStatusJobData.toString());
     }
 
