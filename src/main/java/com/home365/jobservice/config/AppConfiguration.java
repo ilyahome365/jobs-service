@@ -65,7 +65,7 @@ public class AppConfiguration implements SchedulingConfigurer {
 //
         addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
                 "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-                () -> log.info("------------------------> RUN LEASE_UPDATING JOB <------------------------")
+                () -> applicationService.startLeaseUpdating("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
         );
 
 //        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
