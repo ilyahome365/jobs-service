@@ -1,10 +1,12 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
+import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.RecipientMail;
 import com.home365.jobservice.model.mail.MailDetails;
 import com.home365.jobservice.model.mail.MailResult;
 import com.home365.jobservice.service.MailService;
+import com.home365.jobservice.utils.Templates;
 import com.microtripit.mandrillapp.lutung.MandrillApi;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessageStatus;
@@ -12,10 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -81,6 +80,25 @@ public class MailServiceImpl implements MailService {
         return mailResult;
     }
 
+    @Override
+    public MailResult sendMailFromJobExecuteResults(JobExecutionResults jobExecutionResults, String from, List<String> recipientList, String TemplateName) {
+        MailDetails mailDetails = new MailDetails();
+        mailDetails.setFrom(from);
+        mailDetails.setSubject(jobExecutionResults.getJobName());
+        mailDetails.setTemplateName(TemplateName);
+        List<RecipientMail> recipientMails = ListUtils
+                .emptyIfNull(recipientList)
+                .stream()
+                .map(email -> {
+                    RecipientMail recipientMail = new RecipientMail();
+                    recipientMail.setName(appProperties.getJobExecutorMailToName());
+                    recipientMail.setEmail(email);
+                    return recipientMail;
+                }).collect(Collectors.toList());
+        mailDetails.setRecipients(recipientMails);
+        mailDetails.setContentTemplate(Templates.getJobsContentTemplate(jobExecutionResults));
+        return sendMail(mailDetails);
+    }
     private List<MandrillMessage.Recipient> createRecipients(List<RecipientMail> recipients) {
         return recipients
                 .stream()
