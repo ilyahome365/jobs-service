@@ -9,8 +9,10 @@ import com.home365.jobservice.service.JobsConfigurationService;
 import com.home365.jobservice.service.impl.JobsConfigurationServiceImpl;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
@@ -83,7 +85,7 @@ public class AppConfiguration implements SchedulingConfigurer {
 //        );
         addJob(JobsConfigurationServiceImpl.JOBS_ID.CHANGE_BILL_STATUS.getName(),
                 "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-              ()->applicationService.startChangeBillStatusJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+                () -> applicationService.startChangeBillStatusJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
         );
 
 
@@ -117,18 +119,20 @@ public class AppConfiguration implements SchedulingConfigurer {
     }
 
     public synchronized void addJob(String jobName, String location, Runnable task) {
-        Optional<JobConfiguration> jobConfigurationOptional = jobsConfigurationService.getJobByLocationAndName(location, jobName);
-        if (jobConfigurationOptional.isEmpty()) {
-            log.error(String.format("Unable to find Job configuration with location [%s] name [%s] -> please verify JobConfiguration is added to DB", location, jobName));
-            return;
-        }
-        JobConfiguration jobConfiguration = jobConfigurationOptional.get();
 
-        Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.computeIfAbsent(location, k -> new HashMap<>());
+            Optional<JobConfiguration> jobConfigurationOptional = jobsConfigurationService.getJobByLocationAndName(location, jobName);
+            if (jobConfigurationOptional.isEmpty()) {
+                log.error(String.format("Unable to find Job configuration with location [%s] name [%s] -> please verify JobConfiguration is added to DB", location, jobName));
+                return;
+            }
+            JobConfiguration jobConfiguration = jobConfigurationOptional.get();
 
-        JobScheduledWrapper scheduledFutureWrapper = new JobScheduledWrapper(jobName, location, jobConfiguration.getCron(), task);
-        startJob(scheduledFutureWrapper);
-        locationJobs.put(scheduledFutureWrapper.getName(), scheduledFutureWrapper);
+            Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.computeIfAbsent(location, k -> new HashMap<>());
+
+            JobScheduledWrapper scheduledFutureWrapper = new JobScheduledWrapper(jobName, location, jobConfiguration.getCron(), task);
+            startJob(scheduledFutureWrapper);
+            locationJobs.put(scheduledFutureWrapper.getName(), scheduledFutureWrapper);
+
     }
 
     public synchronized void removeJob(String location, String jobName) {
