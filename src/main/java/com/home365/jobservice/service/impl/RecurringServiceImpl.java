@@ -9,7 +9,6 @@ import com.home365.jobservice.entities.Recurring;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.executor.JobExecutorImpl;
-import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.repository.RecurringRepository;
 import com.home365.jobservice.repository.TypeCategoryRepository;
 import com.home365.jobservice.service.LocationRulesService;
@@ -225,7 +224,7 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
                 .status("readyForPayment")
                 .transactionId(UUID.randomUUID().toString())
                 .transactionType("Charge")
-                .statementType(recurringCharge.getStatementType())
+                .statementType(recurringCharge.getStatementType().toLowerCase())
                 .build();
 
         return transaction;

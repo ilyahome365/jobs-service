@@ -8,6 +8,8 @@ import com.home365.jobservice.model.mail.MailResult;
 import com.home365.jobservice.service.MailService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
@@ -25,8 +27,10 @@ public abstract class JobExecutorImpl implements JobService {
     protected final MailService mailService;
     private final ReentrantLock lock = new ReentrantLock();
 
-    public JobExecutorImpl(AppProperties appProperties,
-                           MailService mailService) {
+    @Autowired
+    private Environment environment;
+
+    public JobExecutorImpl(AppProperties appProperties, MailService mailService) {
         this.appProperties = appProperties;
         this.mailService = mailService;
     }
@@ -102,11 +106,14 @@ public abstract class JobExecutorImpl implements JobService {
     }
 
     private Map<String, String> getContentTemplate(JobExecutionResults jobExecutionResults) {
+        String[] activeProfile = environment.getActiveProfiles();
+        String activeProfileStr = String.join(",",activeProfile);
+        String message = activeProfileStr + " " + (StringUtils.isEmpty(jobExecutionResults.getMessage()) ? "" : jobExecutionResults.getMessage());
         Map<String, String> contentTemplate = new HashMap<>();
         contentTemplate.put("START_TIME", jobExecutionResults.getStartTimeBeautify());
         contentTemplate.put("END_TIME", jobExecutionResults.getEndTimeBeautify());
         contentTemplate.put("ELAPSED_TIME", jobExecutionResults.getElapsedTime());
-        contentTemplate.put("JOB_RESULT", StringUtils.isEmpty(jobExecutionResults.getMessage()) ? "" : jobExecutionResults.getMessage());
+        contentTemplate.put("JOB_RESULT", message);
         contentTemplate.put("ERROR", StringUtils.isEmpty(jobExecutionResults.getError()) ? "" : jobExecutionResults.getError());
         contentTemplate.put("STACK_TRACE", StringUtils.isEmpty(jobExecutionResults.getStackTrace()) ? "" : jobExecutionResults.getStackTrace());
         return contentTemplate;
