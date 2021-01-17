@@ -11,14 +11,17 @@ import org.springframework.stereotype.Service;
 public class JobLogServiceImpl implements JobLogService {
     private final JobLogRepository jobLogRepository;
 
+
     public JobLogServiceImpl(JobLogRepository jobLogRepository) {
         this.jobLogRepository = jobLogRepository;
+
     }
 
     @Override
     public JobLog saveJobLog(JobLog jobLog) {
         log.info("save Job Log : {} ", jobLog);
         return jobLogRepository.save(jobLog);
-
     }
+
+
 }

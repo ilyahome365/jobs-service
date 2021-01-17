@@ -4,14 +4,14 @@ import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.JobLog;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsLog;
+import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.enums.TransactionType;
+import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.PendingStatusJobData;
-import com.home365.jobservice.service.ApplicationService;
-import com.home365.jobservice.service.JobLogService;
-import com.home365.jobservice.service.TransactionsLogService;
-import com.home365.jobservice.service.TransactionsService;
+import com.home365.jobservice.model.TransactionsFailedToChange;
+import com.home365.jobservice.service.*;
+import com.home365.jobservice.utils.Converters;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -25,117 +25,65 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ApplicationServiceImpl implements ApplicationService {
 
-    private final String JOB_PENDING_DUE = "PendingDueDateJob";
-    private LocalDate localDate = LocalDate.now();
+    private final String JOB_PENDING_DUE = "ChangeBillStatusJob";
+
 
     private final AppProperties appProperties;
-    private final TransactionsService transactionsService;
+
     private final JobLogService jobLogService;
     private final TransactionsLogService transactionsLogService;
+    private final LateFeeJobServiceImpl lateFeeJobService;
+    private final LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService;
+    private final ChangeBillStatusServiceImpl changeBillStatusService;
+    private final RecurringServiceImpl recurringService;
+    private final DueDateNotificationService dueDateNotificationService;
+    private final LeaseUpdatingServiceImpl leaseUpdatingService;
 
-
-    public ApplicationServiceImpl(AppProperties appProperties, TransactionsService transactionsService, JobLogService jobLogService, TransactionsLogService transactionsLogService) {
+    public ApplicationServiceImpl(AppProperties appProperties,
+                                  TransactionsService transactionsService,
+                                  JobLogService jobLogService,
+                                  TransactionsLogService transactionsLogService,
+                                  ChangeBillStatusServiceImpl changeBillStatusService, RecurringServiceImpl recurringService,
+                                  LateFeeJobServiceImpl lateFeeJobService,
+                                  LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
+                                  DueDateNotificationService dueDateNotificationService,
+                                  LeaseUpdatingServiceImpl leaseUpdatingService) {
         this.appProperties = appProperties;
-        this.transactionsService = transactionsService;
+
         this.jobLogService = jobLogService;
         this.transactionsLogService = transactionsLogService;
+        this.changeBillStatusService = changeBillStatusService;
+        this.lateFeeJobService = lateFeeJobService;
+        this.recurringService = recurringService;
+        this.leaseRecurringNotificationService = leaseRecurringNotificationService;
+        this.dueDateNotificationService = dueDateNotificationService;
+        this.leaseUpdatingService = leaseUpdatingService;
     }
 
-    @Scheduled(cron = "0 01 * * * ?")
-    public void generatePendingStatusJob() {
-        this.pendingStatusChange();
+
+    @Override
+    public JobExecutionResults startLateFeeJob(String locationId) {
+        return lateFeeJobService.executeJob(locationId);
     }
 
     @Override
-    public List<Transactions> pendingStatusChange() {
-
-        log.info("Enter to pendingStatusChange on date {}", LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-
-        PendingStatusJobData pendingStatusJobData = new PendingStatusJobData();
-
-        String cycleDate = createNextCycleDate();
-        List<Transactions> transactions = transactionsService.getTransactionsWithProjectedBalance(cycleDate);
-        List<String> accounts = transactions.stream().map(Transactions::getChargeAccountId).distinct().collect(Collectors.toList());
-        List<Transactions> failedTransactions = new ArrayList<>();
-        for (String account : accounts) {
-            log.info("get transactions for account {}", account);
-            try {
-                List<Transactions> transactionsPerAccount = transactions.stream().
-                        filter(transactions1 -> transactions1.getChargeAccountId()
-                                .equals(account)).
-                        sorted(Comparator.comparing(Transactions::getDueDate).reversed()
-                                .thenComparing(Transactions::getAmount).reversed())
-                        .collect(Collectors.toList());
-
-                transactionsPerAccount = changeStatusByAmount(transactionsPerAccount, failedTransactions, pendingStatusJobData);
-                transactionsService.saveAllTransactions(transactionsPerAccount);
-
-            } catch (Exception e) {
-                log.error(e.getMessage());
-            }
-
-        }
-        createJobLog(pendingStatusJobData, cycleDate);
-
-        return failedTransactions;
+    public JobExecutionResults startLeasePropertyNotification(String locationId) {
+        return leaseRecurringNotificationService.executeJob(locationId);
     }
 
-    private void createJobLog(PendingStatusJobData pendingStatusJobData, String cycleDate) {
-        log.info("create job log with ready for payment : {}  , pendingContribution: {} , with cycle date : {} "
-                , pendingStatusJobData.getReadyForPayment(), pendingStatusJobData.getPendingContribution(), cycleDate);
-
-        Date date = new Date();
-        Timestamp currentTimeAndDate = new Timestamp(date.getTime());
-        JobLog jobLog = new JobLog();
-//        jobLog.setId(UUID.randomUUID().toString());
-        jobLog.setJobName(JOB_PENDING_DUE);
-        jobLog.setLastRun(localDate);
-        jobLog.setDate(currentTimeAndDate);
-        String jobComment = "job " + JOB_PENDING_DUE + " run - readyForPayment : "
-                + pendingStatusJobData.getReadyForPayment() + " , pendingContribution : " + pendingStatusJobData.getPendingContribution() + ", with cycle date : " + cycleDate;
-        jobLog.setComments(jobComment);
-        jobLogService.saveJobLog(jobLog);
+    @Override
+    public JobExecutionResults dueDateTenantNotification(String locationId) {
+        return dueDateNotificationService.sendNotificationForDueDateTenants(locationId);
     }
 
-    private List<Transactions> changeStatusByAmount(List<Transactions> transactions, List<Transactions> failedTransactions, PendingStatusJobData pendingStatusJobData) {
-        double billBalance = 0.0;
-
-        for (Transactions transaction : transactions) {
-            try {
-                billBalance = billBalance + transaction.getAmount();
-                double projectedBalanceWithTrashHold = transaction.getProjected_balance() + appProperties.getTrashHold();
-                log.info("transaction id {} with billBalance {}   and projected balance {}", transaction.getTransactionId(), billBalance, projectedBalanceWithTrashHold);
-                if (projectedBalanceWithTrashHold >= billBalance) {
-                    log.info("Change transaction {} to readyForPayment", transaction.getTransactionId());
-                    transaction.setStatus(TransactionType.readyForPayment.name());
-
-                    pendingStatusJobData.setReadyForPayment(pendingStatusJobData.getReadyForPayment() + 1);
-                } else {
-                    log.info("Change transaction {} to pendingContribution", transaction.getTransactionId());
-                    transaction.setStatus(TransactionType.pendingContribution.name());
-                    pendingStatusJobData.setPendingContribution(pendingStatusJobData.getPendingContribution() + 1);
-                }
-            } catch (Exception e) {
-                log.error("Failed to change transaction {}  for account {}  ", transaction.getTransactionId(), transaction.getChargeAccountId());
-                log.error("the Exception reason : " + e.getLocalizedMessage());
-                failedTransactions.add(transaction);
-                createTransactionLog(transaction);
-            }
-        }
-        return transactions;
+    @Override
+    public JobExecutionResults startLeaseUpdating( String locationId) {
+        return leaseUpdatingService.executeJob(locationId);
     }
 
-    private void createTransactionLog(Transactions transaction) {
-
-        TransactionsLog transactionsLog = new TransactionsLog();
-        transactionsLog.setTransactionId(transaction.getTransactionId());
-        transactionsLog.setArgument(JOB_PENDING_DUE + " : Cant change this transaction " + transaction.getTransactionId());
-        transactionsLog.setEventName(7);
-        transactionsLog.setContactAccountId(transaction.getChargeAccountId());
-        transactionsLog.setTransactionLogId(UUID.randomUUID().toString());
-        transactionsLog.setDate(localDate);
-        transactionsLogService.saveTransactionLog(transactionsLog);
+    @Override
+    public JobExecutionResults startChangeBillStatusJob( String locationId) {
+        return changeBillStatusService.executeJob(locationId);
 
     }
 
@@ -150,5 +98,10 @@ public class ApplicationServiceImpl implements ApplicationService {
             year = String.valueOf(now.getYear());
         return year + "-" + month + "-" + dayOfNextCycle;
 
+
+    @Override
+    public JobExecutionResults createTransactionsForRecurringCharges( String locationId) {
+        //return recurringService.createTransactionsForRecurringCharges(locationId);
+        return recurringService.executeJob(locationId);
     }
 }
