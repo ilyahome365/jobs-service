@@ -3,6 +3,9 @@ package com.home365.jobservice;
 import com.home365.jobservice.entities.JobLog;
 import com.home365.jobservice.model.PendingStatusJobData;
 import com.home365.jobservice.service.JobLogService;
+import com.home365.jobservice.service.impl.DueDateNotificationServiceImpl;
+import com.home365.jobservice.service.impl.LateFeeJobServiceImpl;
+import com.home365.jobservice.service.impl.LeaseUpdatingServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +18,17 @@ import java.util.Date;
 
 @SpringBootTest
 @Slf4j
-@ActiveProfiles("prod")
+@ActiveProfiles("dev")
 class JobServiceApplicationTests {
     private final String JOB_PENDING_DUE ="jobPendingJobTest";
     @Autowired
     JobLogService jobLogService;
+    @Autowired
+    LateFeeJobServiceImpl lateFeeJobService;
+    @Autowired
+    DueDateNotificationServiceImpl dueDateNotificationService;
+    @Autowired
+    LeaseUpdatingServiceImpl leaseUpdatingService;
     @Test
     void contextLoads() {
     }
@@ -49,6 +58,21 @@ class JobServiceApplicationTests {
                 + pendingStatusJobData.getReadyForPayment() + " , pendingContribution : " + pendingStatusJobData.getPendingContribution() + ", with cycle date : " + cycleDate;
         jobLog.setComments(jobComment);
         jobLogService.saveJobLog(jobLog);
+    }
+
+    @Test
+    public void lateFeeTest() throws Exception {
+        lateFeeJobService.execute("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
+    }
+
+    @Test
+    public void dueDateNotificationTest() throws Exception {
+        dueDateNotificationService.sendNotificationForDueDateTenants("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
+    }
+
+    @Test
+    public void leaseUpdateTest() throws Exception {
+        leaseUpdatingService.execute("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
     }
 
 }

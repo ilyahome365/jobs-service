@@ -28,8 +28,8 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
 
     @Override
     public LateFeeConfiguration getLateFeeConfiguration() throws JsonProcessingException {
-        JobConfiguration jobConfiguration = jobsConfigurationRepository.getOne(JOBS_ID.LATE_FEE.key);
-        return objectMapper.readValue(jobConfiguration.getConfigurationJson(), LateFeeConfiguration.class);
+        Optional<JobConfiguration> jobConfiguration = jobsConfigurationRepository.findByLocationAndName("F90E128A-CD00-4DF7-B0D0-0F40F80D623A","late-fee");
+        return objectMapper.readValue(jobConfiguration.get().getConfigurationJson(), LateFeeConfiguration.class);
     }
 
     @Override

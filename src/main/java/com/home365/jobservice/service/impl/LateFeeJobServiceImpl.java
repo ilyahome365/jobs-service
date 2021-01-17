@@ -15,6 +15,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -47,6 +49,13 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
                 lateFeeConfiguration.getStatus()
         );
 
+        candidateTransactionsWithNoLateFee.forEach(transactions -> {
+            log.info("{}, {}, {}, {}, {}, {} ", transactions.getAmount() / 100, transactions.getDueDate(), transactions.getTransactionId(), transactions.getStatus(),
+                    transactions.getCategoryName(), transactions.getChargeAccountId());
+        });
+
+//        candidateTransactionsWithNoLateFee = candidateTransactionsWithNoLateFee.stream().filter(e-> e.getChargeAccountId().equalsIgnoreCase("7E10E367-7F5A-4E16-8047-6290389B6EA9")).collect(Collectors.toList());
+
         List<Transactions> lateFeeTransactions = createLateFeeTransactions(
                 lateFeeConfiguration,
                 candidateTransactionsWithNoLateFee
@@ -76,6 +85,7 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
             }
 
             Transactions feeTransaction = new Transactions();
+            feeTransaction.setTransactionId(UUID.randomUUID().toString());
             feeTransaction.setBillType("lateFee");
             feeTransaction.setAccountingTypeId(lateFeeAdditionalInformationProjection.getAccountingTypeId());
             feeTransaction.setCategoryId(lateFeeAdditionalInformationProjection.getCategoryId());

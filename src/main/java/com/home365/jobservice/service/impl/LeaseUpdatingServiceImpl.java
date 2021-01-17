@@ -48,12 +48,12 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
     }
 
     @Override
-    protected String execute(String locationId) throws Exception {
+    public String execute(String locationId) throws Exception {
          LocalDate currentCalendar = LocalDate.now();
         LocalDate nextMonth = LocalDate.now().plusMonths(1);
 
         List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.getAllActivePlansToUpdate().stream().
-                filter(propertyTenantExtension -> propertyTenantExtension.getLeaseType() != null)
+                filter(propertyTenantExtension -> propertyTenantExtension.getLeaseType() != null && propertyTenantExtension.getEndDate() != null)
                 .peek(propertyTenantExtension -> {
                             propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate().toLocalDate()));
                             log.info(String.format("PropertyTenantExtension with id [%s], Lease Type [%s], Days Left [%d]",
