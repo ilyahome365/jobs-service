@@ -66,6 +66,8 @@ public class ApplicationServiceImpl implements ApplicationService {
         return lateFeeJobService.executeJob(locationId);
     }
 
+
+
     @Override
     public JobExecutionResults startLeasePropertyNotification(String locationId) {
         return leaseRecurringNotificationService.executeJob(locationId);
@@ -77,14 +79,20 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public JobExecutionResults startLeaseUpdating( String locationId) {
+    public JobExecutionResults startLeaseUpdating(String locationId) {
         return leaseUpdatingService.executeJob(locationId);
     }
 
     @Override
-    public JobExecutionResults startChangeBillStatusJob( String locationId) {
+    public JobExecutionResults startChangeBillStatusJob(String locationId) {
         return changeBillStatusService.executeJob(locationId);
 
+    }
+
+    @Override
+    public JobExecutionResults createTransactionsForRecurringCharges( String locationId) {
+        //return recurringService.createTransactionsForRecurringCharges(locationId);
+        return recurringService.executeJob(locationId);
     }
 
     private String createNextCycleDate() {
@@ -97,11 +105,5 @@ public class ApplicationServiceImpl implements ApplicationService {
         else
             year = String.valueOf(now.getYear());
         return year + "-" + month + "-" + dayOfNextCycle;
-
-
-    @Override
-    public JobExecutionResults createTransactionsForRecurringCharges( String locationId) {
-        //return recurringService.createTransactionsForRecurringCharges(locationId);
-        return recurringService.executeJob(locationId);
     }
 }
