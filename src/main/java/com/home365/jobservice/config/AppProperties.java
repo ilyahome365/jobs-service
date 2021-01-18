@@ -2,7 +2,6 @@ package com.home365.jobservice.config;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,4 +18,5 @@ public class AppProperties {
     private String mailSupport;
     private String jobExecutorMailToName;
     private List<String> jobExecutorMailToEmail;
+    private String jobExecuteTemplateName;
 }
