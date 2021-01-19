@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-public interface RecurringService {
+public interface RecurringService extends FindByIdAudit {
     List<Recurring> findByActive(boolean isActive);
 
     Optional<Recurring> findById(String recurringId);

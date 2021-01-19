@@ -3,10 +3,7 @@ package com.home365.jobservice.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home365.jobservice.config.AppProperties;
-import com.home365.jobservice.entities.IPropertyLeaseInformation;
-import com.home365.jobservice.entities.LocationRules;
-import com.home365.jobservice.entities.Recurring;
-import com.home365.jobservice.entities.Transactions;
+import com.home365.jobservice.entities.*;
 import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.repository.RecurringRepository;
@@ -21,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -39,6 +38,11 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
     private final TransactionsService transactionsService;
     private final LocationRulesService locationRulesService;
     private final TypeCategoryRepository typeCategoryRepository;
+
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
 
     public RecurringServiceImpl(AppProperties appProperties, MailService mailService, RecurringRepository recurringRepository, TransactionsService transactionsService,
                                 LocationRulesService locationRulesService, TypeCategoryRepository typeCategoryRepository) {
@@ -238,5 +242,11 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
     @Override
     public String execute(String locationId) {
         return createTransactionsForRecurringCharges(locationId);
+    }
+
+    @Override
+    public IAuditableEntity findByIdAudit(IAuditableEntity newEntity) {
+        entityManager.detach(newEntity);
+        return this.findById(newEntity.idOfEntity()).orElse(null);
     }
 }

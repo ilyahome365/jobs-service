@@ -7,7 +7,7 @@ import com.home365.jobservice.entities.Transactions;
 import java.util.List;
 import java.util.Optional;
 
-public interface TransactionsService {
+public interface TransactionsService extends FindByIdAudit{
     List<Transactions> saveAllTransactions(List<Transactions> transactions);
 
     List<TransactionsWithProjectedBalance> getTransactionsWithProjectedBalance(String cycleDate, String locationId);

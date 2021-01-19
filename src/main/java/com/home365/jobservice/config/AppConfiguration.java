@@ -7,9 +7,11 @@ import com.home365.jobservice.model.jobs.LocationJobsInfo;
 import com.home365.jobservice.service.ApplicationService;
 import com.home365.jobservice.service.JobsConfigurationService;
 import com.home365.jobservice.service.impl.JobsConfigurationServiceImpl;
+import com.home365.jobservice.service.impl.LeaseUpdatingServiceImpl;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -17,6 +19,7 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
@@ -26,18 +29,23 @@ import java.util.stream.Collectors;
 @Configuration
 public class AppConfiguration implements SchedulingConfigurer {
 
-    private final ApplicationService applicationService;
+    private final LeaseUpdatingServiceImpl leaseUpdatingService;
     private final JobsConfigurationService jobsConfigurationService;
 
     // <location, <jobName,jobObject>>
     private final Map<String, Map<String, JobScheduledWrapper>> jobLocationToJob;
     private ScheduledTaskRegistrar scheduledTaskRegistrar;
 
-    public AppConfiguration(ApplicationService applicationService,
-                            JobsConfigurationService jobsConfigurationService) {
-        this.applicationService = applicationService;
+    private final ApplicationContext context;
+
+
+
+    public AppConfiguration(LeaseUpdatingServiceImpl leaseUpdatingService,
+                            JobsConfigurationService jobsConfigurationService, ApplicationContext context) {
+        this.leaseUpdatingService = leaseUpdatingService;
         this.jobsConfigurationService = jobsConfigurationService;
         this.jobLocationToJob = new HashMap<>();
+        this.context = context;
     }
 
     @Override
@@ -67,7 +75,7 @@ public class AppConfiguration implements SchedulingConfigurer {
 //
         addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
                 "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-                () -> applicationService.startLeaseUpdating("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+                () -> leaseUpdatingService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
         );
 
 //        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
@@ -85,7 +93,7 @@ public class AppConfiguration implements SchedulingConfigurer {
 //        );
         addJob(JobsConfigurationServiceImpl.JOBS_ID.CHANGE_BILL_STATUS.getName(),
                 "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-                () -> applicationService.startChangeBillStatusJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+                () -> leaseUpdatingService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
         );
 
 
