@@ -1,12 +1,13 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
-import com.home365.jobservice.entities.PropertyAccountExtension;
+import com.home365.jobservice.entities.AccountExtensionBase;
 import com.home365.jobservice.entities.PropertyTenantExtension;
 import com.home365.jobservice.entities.enums.LeaseType;
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.TenantStatusChangeRequest;
+import com.home365.jobservice.repository.AccountExtensionRepo;
 import com.home365.jobservice.repository.PropertyAccountRepository;
 import com.home365.jobservice.rest.TenantServiceExternal;
 import com.home365.jobservice.service.IPropertyTenantExtensionService;
@@ -14,11 +15,11 @@ import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.utils.DateAndTimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -27,10 +28,11 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
     public static final String LEASE_UPDATING_JOB = "Lease Updating Job";
     private final IPropertyTenantExtensionService propertyTenantExtensionService;
-
+    private final int TENANT_BUSINESS_TYPE = 10;
     private final TenantServiceExternal tenantServiceExternal;
 
     private PropertyAccountRepository propertyAccountRepository;
+    private AccountExtensionRepo accountExtensionRepo;
 
     public LeaseUpdatingServiceImpl(AppProperties appProperties,
                                     MailService mailService,
@@ -49,7 +51,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
     @Override
     public String execute(String locationId) throws Exception {
-         LocalDate currentCalendar = LocalDate.now();
+        LocalDate currentCalendar = LocalDate.now();
         LocalDate nextMonth = LocalDate.now().plusMonths(1);
 
         List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.getAllActivePlansToUpdate().stream().
@@ -86,7 +88,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
     }
 
     private void changePropertyTenantLease(PropertyTenantExtension propertyTenantExtension, LeaseType leaseType, LocalDateTime endDate) {
-         LocalDate currentCalendar = LocalDate.now();
+        LocalDate currentCalendar = LocalDate.now();
         propertyTenantExtension.setLeaseType(leaseType);
         propertyTenantExtension.setEndDate(endDate);
         propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate().toLocalDate()));
@@ -102,8 +104,9 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         TenantStatusChangeRequest tenantStatusChangeRequest = new TenantStatusChangeRequest();
         tenantStatusChangeRequest.setContactId(propertyTenantExtension.getContactId());
         tenantStatusChangeRequest.setCreateToPhaseOut(true);
-        Optional<PropertyAccountExtension> propertyAccount = propertyAccountRepository.findById(propertyTenantExtension.getPropertAccountId());
-        propertyAccount.ifPresent(propertyAccountExtension -> tenantStatusChangeRequest.setAccountId(propertyAccountExtension.getAccountId()));
+        List<AccountExtensionBase> accounts = accountExtensionRepo.findAccountsByContactIdAndBusinessType(propertyTenantExtension.getContactId(), 10);
+        if (!CollectionUtils.isEmpty(accounts))
+            tenantStatusChangeRequest.setAccountId(accounts.get(0).getAccountId());
         try {
             tenantServiceExternal.changeTenantStatus(tenantStatusChangeRequest);
         } catch (GeneralException e) {

@@ -4,17 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home365.jobservice.service.CashPaymentService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -22,9 +16,11 @@ import java.util.Optional;
 public class WebhooksController {
 
     private final ObjectMapper mapper = new ObjectMapper();
+    private final CashPaymentService cashPaymentService;
 
-    @Autowired
-    CashPaymentService cashPaymentService;
+    public WebhooksController(CashPaymentService cashPaymentService) {
+        this.cashPaymentService = cashPaymentService;
+    }
 
     @PostMapping("/cash-payment-webhook")
     public ResponseEntity<String> cashPaymentWebhook(@RequestBody Object request) {
