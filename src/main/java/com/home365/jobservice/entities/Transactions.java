@@ -1,6 +1,7 @@
 package com.home365.jobservice.entities;
 
 
+import com.home365.jobservice.entities.enums.EntityType;
 import com.home365.jobservice.entities.enums.OwnerDrawStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Transactions implements Serializable {
+public class Transactions implements Serializable ,IAuditableEntity{
 
     @Id
     private String transactionId;
@@ -62,6 +63,26 @@ public class Transactions implements Serializable {
     @Column(name = "Version")
     private Long version;
 
+    @Override
+    public EntityType auditEntityType() {
+        return EntityType.Transaction;
+    }
 
+    @Override
+    public String auditEntityIdentifier() {
+        if(this.getTransactionNumber() != null){
+            return this.getTransactionNumber().toString();
+        }
+        return this.getTransactionId();
+    }
 
+    @Override
+    public String idOfEntity() {
+        return this.getTransactionId();
+    }
+
+    @Override
+    public String auditMessage() {
+        return this.getMemo();
+    }
 }

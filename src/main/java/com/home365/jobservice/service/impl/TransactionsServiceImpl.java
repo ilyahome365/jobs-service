@@ -1,5 +1,6 @@
 package com.home365.jobservice.service.impl;
 
+import com.home365.jobservice.entities.IAuditableEntity;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
@@ -9,6 +10,8 @@ import com.home365.jobservice.service.TransactionsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,6 +87,12 @@ public class TransactionsServiceImpl implements TransactionsService {
     public void saveAllTransactionsWithProjectedBalance(List<TransactionsWithProjectedBalance> transactionsWithProjectedBalances) {
         log.info("Save all transactions : {} ", transactionsWithProjectedBalances);
         transactionsWithProjectedBalanceRepo.saveAll(transactionsWithProjectedBalances);
+    }
+
+    @Override
+    public IAuditableEntity findByIdAudit(IAuditableEntity newEntity) {
+       // entityManager.detach(newEntity);
+        return this.findById(newEntity.idOfEntity()).orElse(null);
     }
 
     @Override

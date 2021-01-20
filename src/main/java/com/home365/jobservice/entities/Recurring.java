@@ -1,9 +1,11 @@
 package com.home365.jobservice.entities;
 
+import com.home365.jobservice.entities.enums.EntityType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Immutable;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -17,7 +19,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 //@Immutable
-public class Recurring {
+public class Recurring implements IAuditableEntity {
     @Id
     private String id;
     private String pmAccountId;
@@ -45,4 +47,27 @@ public class Recurring {
     private String leaseId;
     private int numOfInstallments;
     private int remainInstallments;
+
+    @Override
+    public EntityType auditEntityType() {
+        return EntityType.Recurring;
+    }
+
+    @Override
+    public String auditEntityIdentifier() {
+        if(!StringUtils.isEmpty(this.getId())){
+            return this.getId();
+        }
+        return this.getReferenceNumber();
+    }
+
+    @Override
+    public String auditMessage() {
+        return this.getMemo();
+    }
+
+    @Override
+    public String idOfEntity() {
+        return this.getId();
+    }
 }
