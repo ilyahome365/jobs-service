@@ -10,6 +10,7 @@ import com.home365.jobservice.service.impl.LateFeeJobServiceImpl;
 import com.home365.jobservice.service.impl.LeaseUpdatingServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.jvnet.animal_sniffer.IgnoreJRERequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;

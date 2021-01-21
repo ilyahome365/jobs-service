@@ -36,12 +36,13 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
     public LeaseUpdatingServiceImpl(AppProperties appProperties,
                                     MailService mailService,
-                                    IPropertyTenantExtensionService propertyTenantExtensionService, TenantServiceExternal tenantServiceExternal, PropertyAccountRepository propertyAccountRepository) {
+                                    IPropertyTenantExtensionService propertyTenantExtensionService, TenantServiceExternal tenantServiceExternal, PropertyAccountRepository propertyAccountRepository, AccountExtensionRepo accountExtensionRepo) {
         super(appProperties, mailService);
         this.propertyTenantExtensionService = propertyTenantExtensionService;
         this.tenantServiceExternal = tenantServiceExternal;
 
         this.propertyAccountRepository = propertyAccountRepository;
+        this.accountExtensionRepo = accountExtensionRepo;
     }
 
     @Override
@@ -104,6 +105,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         TenantStatusChangeRequest tenantStatusChangeRequest = new TenantStatusChangeRequest();
         tenantStatusChangeRequest.setContactId(propertyTenantExtension.getContactId());
         tenantStatusChangeRequest.setCreateToPhaseOut(true);
+        tenantStatusChangeRequest.setBusinessType(10);
         List<AccountExtensionBase> accounts = accountExtensionRepo.findAccountsByContactIdAndBusinessType(propertyTenantExtension.getContactId(), 10);
         if (!CollectionUtils.isEmpty(accounts))
             tenantStatusChangeRequest.setAccountId(accounts.get(0).getAccountId());
