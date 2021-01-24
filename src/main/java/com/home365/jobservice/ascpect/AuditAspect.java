@@ -78,7 +78,7 @@ public class AuditAspect {
 
 
     private String getUserId() {
-        String userId = "-1";
+        String userId = "HOME365_BOT";
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         if (requestAttributes instanceof ServletRequestAttributes) {
             HttpServletRequest request = ((ServletRequestAttributes)requestAttributes).getRequest();
