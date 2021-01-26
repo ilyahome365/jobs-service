@@ -75,6 +75,8 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
         List<Recurring> installmentsRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> recurring.getNumOfInstallments() > 0).collect(Collectors.toList());
         activeRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> recurring.getNumOfInstallments() == 0).collect(Collectors.toList());
 
+        int activeRecurringChargeListSize = activeRecurringChargeList.size();
+
         StringBuffer responseStr = new StringBuffer();
         responseStr.append("Number of recurring charges: "+ activeRecurringChargeList.size()+ "\n");
         responseStr.append("Number of installments charges: "+ installmentsRecurringChargeList.size()+ "\n");
@@ -113,7 +115,7 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
 
         Date finalNow = now;
         activeRecurringChargeList.forEach(recurringCharge -> {
-
+            int counter = 0;
             calendar.setTime(finalNow);
             List<IPropertyLeaseInformation> leaseList = recurringRepository.getLeaseDatesByLeaseId(recurringCharge.getLeaseId());
             if (CollectionUtils.isEmpty(leaseList) || leaseList.size() != 1) {
@@ -121,14 +123,14 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
                 return;
             }
 
-            Date leaseEndDate = leaseList.get(0).getEndDate();
+            Date leaseStartDate = leaseList.get(0).getStartDate();
             Date moveOutDate = leaseList.get(0).getMoveOutDate();
 
             List<Transactions> existingRecurringTransactions = transactionsService.findByRecurringTemplateId(recurringCharge.getId());
             if (CollectionUtils.isEmpty(existingRecurringTransactions) && !"Imported from Buildium".equals(recurringCharge.getMemo())) {
                 log.error("Cannot create transactions for recurring charges of propertyId {} since no first charge have been found", recurringCharge.getPropertyId());
                 return;
-            } else if (dayInMonthToCreateRecurring == calendar.get(Calendar.DAY_OF_MONTH) && moveOutDate == null) {
+            } else if (dayInMonthToCreateRecurring == calendar.get(Calendar.DAY_OF_MONTH) && moveOutDate == null && leaseStartDate.before(nextDueDate)) {
                 if (existingRecurringTransactions.size() == 1) {
                     Transactions firstTransaction = existingRecurringTransactions.get(0);
                     Date firstDueDate = firstTransaction.getDueDate();
@@ -158,6 +160,8 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
                     transactionsService.saveAllTransactions(transactionsList);
                 }
             }
+            counter++;
+            log.info("Remain: {}", activeRecurringChargeListSize - counter);
         });
 
         handleInstallmentsCharges(installmentsRecurringChargeList, nextDueDate);
@@ -228,7 +232,7 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
                 .status("readyForPayment")
                 .transactionId(UUID.randomUUID().toString())
                 .transactionType("Charge")
-                .statementType(recurringCharge.getStatementType().toLowerCase())
+                .statementType(StringUtils.isEmpty(recurringCharge.getStatementType()) ? null : recurringCharge.getStatementType().toLowerCase())
                 .build();
 
         return transaction;

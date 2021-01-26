@@ -29,7 +29,7 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     @Override
     public List<Transactions> saveAllTransactions(List<Transactions> transactions) {
-        log.info("enter to save All Transactions {} ", transactions);
+        //log.info("enter to save All Transactions {} ", transactions);
         return transactionsRepository.saveAll(transactions);
     }
 
