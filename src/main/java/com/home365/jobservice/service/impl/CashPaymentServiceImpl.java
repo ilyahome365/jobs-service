@@ -54,7 +54,7 @@ public class CashPaymentServiceImpl implements CashPaymentService {
                                 transactionObject.getAmount(),
                                 new Timestamp(new Date().getTime()),
                                 PaymentStatus.success,
-                                null,
+                                mtid,
                                 null,
                                 null,
                                 transactionObject.getReceiveAccountId(),

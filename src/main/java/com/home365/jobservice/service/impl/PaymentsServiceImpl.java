@@ -39,7 +39,7 @@ public class PaymentsServiceImpl implements PaymentsService, FindByIdAudit {
     public Payments createAndSavePayments(double amount,
                                           Timestamp currentTimeAndDate,
                                           PaymentStatus status,
-                                          String paymentId,
+                                          String paymentReference,
                                           String transferId,
                                           String failedReason,
                                           String accountId,
@@ -53,7 +53,7 @@ public class PaymentsServiceImpl implements PaymentsService, FindByIdAudit {
                 .accountId(accountId)
                 .pmAccountId(pmAccountId)
                 .date(currentTimeAndDate)
-                .paymentReference(paymentId)
+                .paymentReference(paymentReference)
                 .transferReference(transferId)
                 .status(status)
                 .paymentMethod(paymentMethod.name())

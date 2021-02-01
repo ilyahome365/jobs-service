@@ -11,7 +11,7 @@ public interface PaymentsService {
     Payments createAndSavePayments(double amount,
                                    Timestamp currentTimeAndDate,
                                    PaymentStatus status,
-                                   String paymentId,
+                                   String paymentReference,
                                    String transferId,
                                    String failedReason,
                                    String accountId,
