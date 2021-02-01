@@ -61,7 +61,6 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     @Override
     public Transactions save(Transactions transaction) {
-        transactionsRepository.flush();
         return transactionsRepository.save(transaction);
     }
 
