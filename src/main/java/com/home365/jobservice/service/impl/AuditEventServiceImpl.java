@@ -36,7 +36,7 @@ public class AuditEventServiceImpl implements AuditEventService {
                 FindByIdAudit service = getService(auditableEntity.auditEntityType());
                 IAuditableEntity auditableEntity1 = service.findByIdAudit(auditableEntity);
                 if(auditableEntity1 == null){
-                   audit(userId,auditableEntity,"Didnt found before , saving current");
+                   audit(userId,auditableEntity,"Didnt found before");
                 }else{
                     String comment = getDiffs(auditableEntity, auditableEntity1);
                     audit(userId, auditableEntity1,comment);
@@ -53,14 +53,14 @@ public class AuditEventServiceImpl implements AuditEventService {
 
     private String getDiffs(IAuditableEntity auditableEntity, IAuditableEntity auditableEntity1) {
         DiffNode diffNode = ObjectDifferBuilder.buildDefault().compare(auditableEntity1, auditableEntity);
-        StringBuilder  diffs = new StringBuilder().append("before save diffs: ");
+        StringBuilder  diffs = new StringBuilder();
         if (diffNode.hasChanges()) {
             diffNode.visit((node, visit) -> {
                 if (!node.hasChildren()) { // Only print if the property has no child
                     final Object oldValue = node.canonicalGet(auditableEntity1);
                     final Object newValue = node.canonicalGet(auditableEntity);
                     diffs.append(" ").append( node.getPropertyName()).append(" changed from ")
-                            .append(oldValue).append(" to ").append( newValue).append(" ");
+                            .append(oldValue).append(" to ").append( newValue).append(" , ");
                 }
             });
         } else {
@@ -94,7 +94,6 @@ public class AuditEventServiceImpl implements AuditEventService {
         if(entityType.equals(EntityType.Recurring)){
             return this.recurringService;
         }
-
         return null;
     }
 }
