@@ -22,6 +22,10 @@ public class TransactionsServiceImpl implements TransactionsService {
     private final TransactionsRepository transactionsRepository;
     private final TransactionsWithProjectedBalanceRepo transactionsWithProjectedBalanceRepo;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
+
     public TransactionsServiceImpl(TransactionsRepository transactionsRepository, TransactionsWithProjectedBalanceRepo transactionsWithProjectedBalanceRepo) {
         this.transactionsRepository = transactionsRepository;
         this.transactionsWithProjectedBalanceRepo = transactionsWithProjectedBalanceRepo;
@@ -91,7 +95,7 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     @Override
     public IAuditableEntity findByIdAudit(IAuditableEntity newEntity) {
-       // entityManager.detach(newEntity);
+        entityManager.detach(newEntity);
         return this.findById(newEntity.idOfEntity()).orElse(null);
     }
 

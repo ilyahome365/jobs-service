@@ -59,7 +59,7 @@ public class AuditAspect {
             List<Object> list = (List<Object>) args[0];
             for (Object obj : list) {
                 if (obj instanceof IAuditableEntity) {
-                    auditEventService.audit(userId, (IAuditableEntity) obj, true);
+                    auditEventService.audit(userId, (IAuditableEntity) obj);
                 }
             }
         }
@@ -72,7 +72,7 @@ public class AuditAspect {
         Object[] args = joinPoint.getArgs();
         log.debug("Before auditing from method : {} ",joinPoint.getSignature().getName());
         if(args[0] instanceof IAuditableEntity){
-            auditEventService.audit(userId,(IAuditableEntity)args[0],true );
+            auditEventService.audit(userId,(IAuditableEntity)args[0]);
         }
     }
 
