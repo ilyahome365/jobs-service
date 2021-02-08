@@ -82,30 +82,21 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
         lvPmAccountId = "F90E128A-CD00-4DF7-B0D0-0F40F80D623A";
 
         Optional<LocationRules> locationRules = locationRulesService.findLocationRulesById(lvPmAccountId);
-
-        Map<String, String> rules = new HashMap<>();
+        Rules rules = null;
 
         try {
-            rules = mapper.readValue(locationRules.get().getRules(), HashMap.class);
+            rules = mapper.readValue(locationRules.get().getRules(), Rules.class);
         } catch (JsonProcessingException e) {
+            log.error(e.getMessage());
             e.printStackTrace();
+            rules = new Rules();
         }
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
         final Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
-        int dayInMonthToCreateRecurring = Integer.parseInt(rules.get("day_in_month_to_create_recurring"));
-        String logicalDateStr = rules.get("logical_date");
-
-        try {
-            if (!StringUtils.isEmpty(logicalDateStr)) {
-                now = sdf.parse(logicalDateStr);
-            }
-        } catch (ParseException e) {
-            log.error("Cannot set logical date");
-        }
-
+        int dayInMonthToCreateRecurring = rules.getDayInmMonthToCreateRecurring();
         calendar.setTime(now);
         calendar.add(Calendar.MONTH, 1);
         calendar.set(Calendar.DAY_OF_MONTH, 1);

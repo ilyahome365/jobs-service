@@ -1,22 +1,24 @@
 package com.home365.jobservice.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home365.jobservice.config.AppProperties;
+import com.home365.jobservice.entities.LateFee;
+import com.home365.jobservice.entities.LocationRules;
+import com.home365.jobservice.entities.Rules;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.LateFeeConfiguration;
 import com.home365.jobservice.service.JobsConfigurationService;
+import com.home365.jobservice.service.LocationRulesService;
 import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.service.TransactionsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -25,14 +27,17 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
 
     private final JobsConfigurationService jobsConfigurationService;
     private final TransactionsService transactionsService;
-
+    private final LocationRulesService locationRulesService;
+    private final ObjectMapper objectMapper;
     public LateFeeJobServiceImpl(AppProperties appProperties,
                                  MailService mailService,
                                  JobsConfigurationService jobsConfigurationService,
-                                 TransactionsService transactionsService) {
+                                 TransactionsService transactionsService, LocationRulesService locationRulesService, ObjectMapper objectMapper) {
         super(appProperties, mailService);
         this.jobsConfigurationService = jobsConfigurationService;
         this.transactionsService = transactionsService;
+        this.locationRulesService = locationRulesService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -42,6 +47,16 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
 
     @Override
     public String execute(String locationId) throws Exception {
+        LocationRules locationRules = this.locationRulesService.findLocationRulesById(locationId).get();
+        Rules rules = null;
+        try {
+            rules = objectMapper.readValue(locationRules.getRules(), Rules.class);
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage());
+            e.printStackTrace();
+            rules = new Rules();
+        }
+        locationRules.setRule(rules);
         LateFeeConfiguration lateFeeConfiguration = jobsConfigurationService.getLateFeeConfiguration();
 
         List<Transactions> candidateTransactionsWithNoLateFee = transactionsService.findAllByBillTypeAndStatus(
@@ -54,11 +69,11 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
                     transactions.getCategoryName(), transactions.getChargeAccountId());
         });
 
-//        candidateTransactionsWithNoLateFee = candidateTransactionsWithNoLateFee.stream().filter(e-> e.getChargeAccountId().equalsIgnoreCase("7E10E367-7F5A-4E16-8047-6290389B6EA9")).collect(Collectors.toList());
 
         List<Transactions> lateFeeTransactions = createLateFeeTransactions(
                 lateFeeConfiguration,
-                candidateTransactionsWithNoLateFee
+                candidateTransactionsWithNoLateFee,
+                locationRules
         );
         showSummary(lateFeeTransactions);
         log.info("Late Fee Job Finished");
@@ -66,45 +81,68 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
     }
 
     private List<Transactions> createLateFeeTransactions(LateFeeConfiguration lateFeeConfiguration,
-                                                         List<Transactions> candidateTransactionsWithNoLateFee) {
+                                                         List<Transactions> candidateTransactionsWithNoLateFee, LocationRules locationRules) {
 
         ILateFeeAdditionalInformationProjection lateFeeAdditionalInformationProjection = transactionsService.getLateFeeAdditionalInformation();
 
+        Rules rule = locationRules.getRule();
+        LateFee lateFees = rule.getLateFees();
         List<Transactions> feeTransactions = new ArrayList<>();
         candidateTransactionsWithNoLateFee.forEach(transactions -> {
-            String transactionId = transactions.getTransactionId();
-
-            double amount = lateFeeConfiguration.getFeeAmount();
-            double maxFeeAmount = lateFeeConfiguration.getMaxFeeAmount();
-
-            long feeAmount = 0;
-            if (transactions.getAmount() * amount >= maxFeeAmount) {
-                feeAmount = (long) maxFeeAmount;
-            } else {
-                feeAmount = (long) (transactions.getAmount() * amount);
+            long ownerAmount = getAmount(lateFees.getOwnerPercentage(), lateFeeConfiguration, transactions);
+            if(ownerAmount > 0) {
+                log.info("Owner amount : {} for transaction : {} and owner id : {}",ownerAmount,transactions.getTransactionId(),transactions.getReceiveAccountId());
+                Transactions feeTransaction = createTransaction(lateFeeConfiguration, lateFeeAdditionalInformationProjection, transactions, ownerAmount, transactions.getReceiveAccountId());
+                feeTransactions.add(feeTransaction);
             }
-
-            Transactions feeTransaction = new Transactions();
-            feeTransaction.setTransactionId(UUID.randomUUID().toString());
-            feeTransaction.setBillType("lateFee");
-            feeTransaction.setAccountingTypeId(lateFeeAdditionalInformationProjection.getAccountingTypeId());
-            feeTransaction.setCategoryId(lateFeeAdditionalInformationProjection.getCategoryId());
-            feeTransaction.setCategoryName(lateFeeAdditionalInformationProjection.getCategoryName());
-            feeTransaction.setAccountingName(lateFeeAdditionalInformationProjection.getAccountingName());
-            feeTransaction.setTransactionType("Charge");
-            feeTransaction.setChargeAccountId(transactions.getChargeAccountId());
-            feeTransaction.setReceiveAccountId("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
-            feeTransaction.setPmAccountId(transactions.getPmAccountId());
-            feeTransaction.setPropertyId(transactions.getPropertyId());
-            feeTransaction.setAmount(feeAmount);
-            feeTransaction.setStatus("readyForPayment");
-            feeTransaction.setChargedBy("Home365");
-            feeTransaction.setReferenceTransactionId(transactionId);
-            feeTransaction.setDueDate(new Timestamp(new Date().getTime()));
-            feeTransactions.add(feeTransaction);
+            long feeAccountManagerPercentage = getAmount(lateFees.getAccountManagerPercentage(), lateFeeConfiguration, transactions);
+            if(feeAccountManagerPercentage > 0 ){
+                log.info("Pm fee amount : {}  for transaction : {} and owner id : {} ",feeAccountManagerPercentage,transactions.getTransactionId(),lateFees.getPmAccount());
+                Transactions feeTransaction = createTransaction(lateFeeConfiguration, lateFeeAdditionalInformationProjection, transactions, feeAccountManagerPercentage, lateFees.getPmAccount());
+                feeTransactions.add(feeTransaction);
+            }
         });
 
         return transactionsService.saveAllTransactions(feeTransactions);
+    }
+
+
+    private long getAmount(Float percentage,LateFeeConfiguration lateFeeConfiguration,Transactions transactions){
+        double amount = lateFeeConfiguration.getFeeAmount();
+        double maxFeeAmount = lateFeeConfiguration.getMaxFeeAmount();
+        long feeAmount = 0;
+        if (transactions.getAmount() * amount >= maxFeeAmount) {
+            feeAmount = (long) maxFeeAmount;
+        } else {
+            feeAmount = (long) (transactions.getAmount() * amount);
+        }
+        feeAmount = (long) (feeAmount * (percentage/ 100.0f));
+        return feeAmount;
+    }
+
+    private Transactions createTransaction(LateFeeConfiguration lateFeeConfiguration, ILateFeeAdditionalInformationProjection lateFeeAdditionalInformationProjection, Transactions transactions,Long feeAmount,
+    String receiveAccountId) {
+        String transactionId = transactions.getTransactionId();
+
+        Transactions feeTransaction = new Transactions();
+        feeTransaction.setTransactionId(UUID.randomUUID().toString());
+        feeTransaction.setBillType("lateFee");
+        feeTransaction.setAccountingTypeId(lateFeeAdditionalInformationProjection.getAccountingTypeId());
+        feeTransaction.setCategoryId(lateFeeAdditionalInformationProjection.getCategoryId());
+        feeTransaction.setCategoryName(lateFeeAdditionalInformationProjection.getCategoryName());
+        feeTransaction.setAccountingName(lateFeeAdditionalInformationProjection.getAccountingName());
+        feeTransaction.setTransactionType("Charge");
+        feeTransaction.setChargeAccountId(transactions.getChargeAccountId());
+        feeTransaction.setReceiveAccountId(receiveAccountId);
+        feeTransaction.setPmAccountId(transactions.getPmAccountId());
+        feeTransaction.setPropertyId(transactions.getPropertyId());
+        feeTransaction.setAmount(feeAmount);
+        feeTransaction.setAmountBeforeDiscount(feeAmount);
+        feeTransaction.setStatus("readyForPayment");
+        feeTransaction.setChargedBy("Home365");
+        feeTransaction.setReferenceTransactionId(transactionId);
+        feeTransaction.setDueDate(new Timestamp(new Date().getTime()));
+        return feeTransaction;
     }
 
     private void showSummary(List<Transactions> lateFeeTransactions) {

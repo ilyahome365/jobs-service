@@ -16,6 +16,7 @@ public class LocationRulesServiceImpl implements LocationRulesService {
         this.locationRulesRepository = locationRulesRepository;
     }
 
+
     @Override
     public Optional<LocationRules> findLocationRulesById(String id) {
         return locationRulesRepository.findById(id);
