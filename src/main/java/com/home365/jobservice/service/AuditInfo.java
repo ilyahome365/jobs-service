@@ -8,5 +8,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AuditIgnore {
+public @interface AuditInfo {
+    boolean ignore() default  false;
+    String  viewName() default  "";
 }

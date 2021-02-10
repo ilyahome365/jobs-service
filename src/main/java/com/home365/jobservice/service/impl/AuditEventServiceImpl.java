@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.lang.reflect.Field;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -79,10 +81,13 @@ public class AuditEventServiceImpl implements AuditEventService {
                     diffs.setLength(0);
                     Object oldValue = node.canonicalGet(oldEntity);
                     Object newValue = node.canonicalGet(newEntity);
-                    boolean ignoreField = Optional.ofNullable(node.getFieldAnnotations())
-                            .orElse(Collections.emptySet())
-                            .stream()
-                            .anyMatch(anno -> anno.annotationType().equals(AuditIgnore.class));
+                    AuditInfo auditInfo = getAuditInfo(node);
+                    boolean ignoreField = false;
+                    String fieldName = node.getPropertyName();
+                    if(auditInfo != null){
+                        ignoreField = auditInfo.ignore();
+                        fieldName = auditInfo.viewName().equalsIgnoreCase("") ? node.getPropertyName() : auditInfo.viewName();
+                    }
                     if (node.getPropertyName().equalsIgnoreCase("amount") || node.getPropertyName().equalsIgnoreCase("amountBeforeDiscount")) {
                         oldValue = handleAmount(oldValue);
                         newValue = handleAmount(newValue);
@@ -91,8 +96,8 @@ public class AuditEventServiceImpl implements AuditEventService {
                     if (ignoreField) {
                         diffs.append("@ ");
                     }
-                    diffs.append(node.getPropertyName()).append(" changed from ")
-                            .append(oldValue).append(" to ").append(newValue).append(" ");
+                    diffs.append(fieldName).append(" changed from ");
+                    diffs.append(getValue(oldValue) ).append(" to ").append(getValue(newValue)).append(" ");
                     comments.add(diffs.toString());
                 }
             });
@@ -100,6 +105,29 @@ public class AuditEventServiceImpl implements AuditEventService {
             diffs.append(NO_DIFFERENCES);
             comments.add(diffs.toString());
         }
+    }
+
+    private AuditInfo getAuditInfo(DiffNode node) {
+        return Optional.ofNullable(node.getFieldAnnotations())
+                .orElse(Collections.emptySet())
+                .stream()
+                .filter(anno -> anno.annotationType().equals(AuditInfo.class))
+                .map(annotation -> (AuditInfo)annotation)
+                .findFirst().orElse(null);
+    }
+
+
+    private Object getValue(Object value){
+        if(value == null){
+            return  "empty";
+        }
+        if(value instanceof LocalDateTime){
+            return  ((LocalDateTime) value).toLocalDate();
+        }
+        if(value instanceof Timestamp){
+            return  ((Timestamp)value).toLocalDateTime().toLocalDate();
+        }
+        return value;
     }
 
     private String getNewAmount(IAuditableEntity newEntity) {

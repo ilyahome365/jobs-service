@@ -3,6 +3,7 @@ package com.home365.jobservice.entities;
 
 import com.home365.jobservice.entities.enums.EntityType;
 import com.home365.jobservice.entities.enums.OwnerDrawStatus;
+import com.home365.jobservice.service.AuditInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,11 +24,17 @@ import java.util.UUID;
 public class Transactions implements Serializable ,IAuditableEntity{
 
     @Id
+    @AuditInfo(ignore = true)
     private String transactionId;
+    @AuditInfo(ignore = true)
     private String pmAccountId;
+    @AuditInfo(ignore = true)
     private String receiveAccountId;
+    @AuditInfo(ignore = true)
     private String chargeAccountId;
+    @AuditInfo(ignore = true)
     private String propertyId;
+    @AuditInfo(ignore = true)
     private String paymentId;
     private Long amount;
     private long amountBeforeDiscount;
@@ -40,13 +47,19 @@ public class Transactions implements Serializable ,IAuditableEntity{
     @Column(updatable = false, insertable = false)
     private Timestamp date;
     private Timestamp dueDate;
+    @AuditInfo(viewName = "Reference number")
     private String referenceNumber;
     private String memo;
+    @AuditInfo(ignore = true)
     private String accountingTypeId;
+    @AuditInfo(ignore = true)
     private String categoryId;
+    @AuditInfo(ignore = true)
     private String referenceTransactionId;
+    @AuditInfo(ignore = true)
     private String incidentAccountId;
     private String accountingName;
+    @AuditInfo(viewName = "Category")
     private String categoryName;
     private String statementType;
     private String checkMemo;
@@ -58,6 +71,7 @@ public class Transactions implements Serializable ,IAuditableEntity{
     private String chargedBy;
     private String payBy;
     private String transactionType;
+    @AuditInfo(ignore = true)
     private String recurringTemplateId;
 
     @Column(name = "Version")

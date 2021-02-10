@@ -1,6 +1,7 @@
 package com.home365.jobservice.entities;
 
 import com.home365.jobservice.entities.enums.EntityType;
+import com.home365.jobservice.service.AuditInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,9 +23,13 @@ import java.sql.Timestamp;
 public class Recurring implements IAuditableEntity {
     @Id
     private String id;
+    @AuditInfo(ignore = true)
     private String pmAccountId;
+    @AuditInfo(ignore = true)
     private String receiveAccountId;
+    @AuditInfo(ignore = true)
     private String chargeAccountId;
+    @AuditInfo(ignore = true)
     private String propertyId;
     private double amount;
     private String billType;
@@ -32,7 +37,9 @@ public class Recurring implements IAuditableEntity {
     private Date dueDate;
     private String referenceNumber;
     private String memo;
+    @AuditInfo(ignore = true)
     private String accountingTypeId;
+    @AuditInfo(ignore = true)
     private String categoryId;
     private String statementType;
     private String checkMemo;
@@ -44,6 +51,7 @@ public class Recurring implements IAuditableEntity {
     private String type;
     private String chargedBy;
     private Boolean active;
+    @AuditInfo(ignore = true)
     private String leaseId;
     private int numOfInstallments;
     private int remainInstallments;
