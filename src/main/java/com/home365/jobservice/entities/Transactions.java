@@ -37,6 +37,7 @@ public class Transactions implements Serializable ,IAuditableEntity{
     @AuditInfo(ignore = true)
     private String paymentId;
     private Long amount;
+    @AuditInfo(ignore = true)
     private long amountBeforeDiscount;
     private String status;
     private String billType;

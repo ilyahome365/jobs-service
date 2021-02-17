@@ -17,6 +17,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -132,12 +133,12 @@ public class AuditEventServiceImpl implements AuditEventService {
 
     private String getNewAmount(IAuditableEntity newEntity) {
         try {
+            DecimalFormat format = new DecimalFormat("0.##");
             Field amount = newEntity.getClass().getDeclaredField("amount");
             amount.setAccessible(true);
             Object am = amount.get(newEntity);
             if (am instanceof Long) {
-                long sum = (Long) am / 100;
-                return Long.toString(sum);
+                return  format.format ((Long) am / 100d);
             }
             return am.toString();
         } catch (NoSuchFieldException | IllegalAccessException e) {
@@ -148,16 +149,16 @@ public class AuditEventServiceImpl implements AuditEventService {
 
 
     private Object handleAmount(Object amount) {
+        DecimalFormat format = new DecimalFormat("0.##");
         if (!ObjectUtils.isEmpty(amount)) {
             if (amount instanceof Long) {
-                return (Long) amount / 100;
+                return format.format((Long) amount / 100D) + "$";
             } else {
                 if (amount instanceof String) {
                     try {
-                        long newAm = Long.parseLong(String.valueOf(amount)) / 100;
-                        return Long.toString(newAm);
+                        return format.format(Long.parseLong(String.valueOf(amount)) / 100D) +  "$";
                     } catch (Exception exception) {
-                        log.error("Error casting amount : {}", exception.getMessage());
+                        log.warn("Error casting amount : {}", exception.getMessage());
                         return amount;
                     }
                 }
@@ -165,6 +166,7 @@ public class AuditEventServiceImpl implements AuditEventService {
         }
         return amount;
     }
+
 
     private void persist(String userId, IAuditableEntity auditableEntity, CommentHolder commentHolder) {
         AuditEvent auditEvent = mapToAuditEvent(userId, auditableEntity, commentHolder.toString());
