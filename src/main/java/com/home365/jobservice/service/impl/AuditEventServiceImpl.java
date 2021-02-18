@@ -18,6 +18,7 @@ import org.springframework.util.ObjectUtils;
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -89,6 +90,15 @@ public class AuditEventServiceImpl implements AuditEventService {
                         ignoreField = auditInfo.ignore();
                         fieldName = auditInfo.viewName().equalsIgnoreCase("") ? node.getPropertyName() : auditInfo.viewName();
                     }
+                    if(ObjectUtils.isEmpty(newValue) && ObjectUtils.isEmpty(oldEntity)){
+                        ignoreField = true;
+                    }
+                    if(isDate(oldValue)){
+                        boolean isDateChanged =  isDateChanged(newValue,oldValue);
+                        if(!isDateChanged){
+                            ignoreField = true;
+                        }
+                    }
                     if (node.getPropertyName().equalsIgnoreCase("amount") || node.getPropertyName().equalsIgnoreCase("amountBeforeDiscount")) {
                         oldValue = handleAmount(oldValue);
                         newValue = handleAmount(newValue);
@@ -106,6 +116,26 @@ public class AuditEventServiceImpl implements AuditEventService {
             diffs.append(NO_DIFFERENCES);
             comments.add(diffs.toString());
         }
+    }
+
+
+    private boolean isDate(Object dateNew){
+        return dateNew instanceof LocalDate || dateNew instanceof Timestamp || dateNew instanceof LocalDateTime;
+    }
+
+    private boolean isDateChanged(Object newValue, Object oldValue) {
+        if(newValue != null && oldValue != null){
+            if(newValue  instanceof Timestamp && oldValue instanceof Timestamp){
+                return  !((Timestamp)newValue).toLocalDateTime().toLocalDate().atStartOfDay().equals(((Timestamp) oldValue).toLocalDateTime().toLocalDate().atStartOfDay());
+            }
+            if(newValue instanceof LocalDate && oldValue instanceof LocalDate){
+                return  !((LocalDate)newValue).atStartOfDay().equals(((LocalDate)oldValue).atStartOfDay());
+            }
+            if(newValue instanceof LocalDateTime && oldValue instanceof LocalDateTime){
+                return  !((LocalDateTime)newValue).toLocalDate().atStartOfDay().equals(((LocalDateTime)oldValue).toLocalDate().atStartOfDay());
+            }
+        }
+        return true;
     }
 
     private AuditInfo getAuditInfo(DiffNode node) {
