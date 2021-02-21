@@ -102,4 +102,9 @@ public class TransactionsServiceImpl implements TransactionsService {
     public Optional<Transactions> findById(String accountId) {
         return transactionsRepository.findById(accountId);
     }
+
+    @Override
+    public void saveAll(List<Transactions> transactions) {
+        transactionsRepository.saveAll(transactions);
+    }
 }

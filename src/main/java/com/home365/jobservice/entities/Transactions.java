@@ -3,6 +3,7 @@ package com.home365.jobservice.entities;
 
 import com.home365.jobservice.entities.enums.EntityType;
 import com.home365.jobservice.entities.enums.OwnerDrawStatus;
+import com.home365.jobservice.model.enums.CreditType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -59,6 +60,9 @@ public class Transactions implements Serializable ,IAuditableEntity{
     private String payBy;
     private String transactionType;
     private String recurringTemplateId;
+    @Column(name = "CreditTransactionType")
+    @Enumerated(value = EnumType.STRING)
+    private CreditType creditTransactionType;
 
 //    @Column(name = "Version")
 //    private Long version;
@@ -84,5 +88,9 @@ public class Transactions implements Serializable ,IAuditableEntity{
     @Override
     public String auditMessage() {
         return this.getMemo();
+    }
+
+    public Integer getTransactionNumberAsInteger() {
+        return Integer.parseInt(this.transactionNumber);
     }
 }

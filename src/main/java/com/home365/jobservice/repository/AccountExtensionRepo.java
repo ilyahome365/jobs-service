@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AccountExtensionRepo extends JpaRepository<AccountExtensionBase, String> {
@@ -20,5 +21,9 @@ public interface AccountExtensionRepo extends JpaRepository<AccountExtensionBase
                     " and c.statuscode=1 and AB.New_status in(1,4,6)",
             nativeQuery = true)
     List<AccountExtensionBase> findAccountsByContactIdAndBusinessType(@Param("contactId") String contactId, @Param("businessType") int businessType);
+
+    Optional<AccountExtensionBase> findDistinctByAccountTypeAndNewManagerId(@Param("accountType") String transferTo, @Param("newManagerId") String newManagerId);
+
+    Optional<AccountExtensionBase> findStripeAccountByAccountId(@Param("accountId") String accountId);
 
 }

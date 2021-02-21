@@ -7,6 +7,7 @@ import com.home365.jobservice.model.mail.MailDetails;
 import com.home365.jobservice.model.mail.MailResult;
 import com.home365.jobservice.service.DueDateNotificationService;
 import com.home365.jobservice.service.MailService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
+@Slf4j
 public class DueDateNotificationServiceImpl implements DueDateNotificationService {
     private final JdbcTemplate jdbcTemplate;
     private final AppProperties appProperties;
@@ -80,6 +82,7 @@ public class DueDateNotificationServiceImpl implements DueDateNotificationServic
         mailDetails.setRecipients(recipients);
 
         MailResult mailResult = mailService.sendMail(mailDetails);
+
     }
 
     private Map<String, String> getContentTemplate(String fullName, Timestamp maxDueDate) {

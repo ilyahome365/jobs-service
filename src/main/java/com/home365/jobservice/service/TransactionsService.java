@@ -30,4 +30,6 @@ public interface TransactionsService extends FindByIdAudit{
     void saveTransactionsWithBalance(TransactionsWithProjectedBalance transactionsWithProjectedBalance);
 
     Optional<Transactions> findTransaction(String transactionId);
+
+    void saveAll(List<Transactions> mgmtFeeTransactions);
 }
