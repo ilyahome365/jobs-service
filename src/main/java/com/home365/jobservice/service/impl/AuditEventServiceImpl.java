@@ -16,6 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.lang.reflect.Field;
+import java.sql.Timestamp;
+import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -79,10 +83,22 @@ public class AuditEventServiceImpl implements AuditEventService {
                     diffs.setLength(0);
                     Object oldValue = node.canonicalGet(oldEntity);
                     Object newValue = node.canonicalGet(newEntity);
-                    boolean ignoreField = Optional.ofNullable(node.getFieldAnnotations())
-                            .orElse(Collections.emptySet())
-                            .stream()
-                            .anyMatch(anno -> anno.annotationType().equals(AuditIgnore.class));
+                    AuditInfo auditInfo = getAuditInfo(node);
+                    boolean ignoreField = false;
+                    String fieldName = node.getPropertyName();
+                    if(auditInfo != null){
+                        ignoreField = auditInfo.ignore();
+                        fieldName = auditInfo.viewName().equalsIgnoreCase("") ? node.getPropertyName() : auditInfo.viewName();
+                    }
+                    if(ObjectUtils.isEmpty(newValue) && ObjectUtils.isEmpty(oldEntity)){
+                        ignoreField = true;
+                    }
+                    if(isDate(oldValue)){
+                        boolean isDateChanged =  isDateChanged(newValue,oldValue);
+                        if(!isDateChanged){
+                            ignoreField = true;
+                        }
+                    }
                     if (node.getPropertyName().equalsIgnoreCase("amount") || node.getPropertyName().equalsIgnoreCase("amountBeforeDiscount")) {
                         oldValue = handleAmount(oldValue);
                         newValue = handleAmount(newValue);
@@ -91,8 +107,8 @@ public class AuditEventServiceImpl implements AuditEventService {
                     if (ignoreField) {
                         diffs.append("@ ");
                     }
-                    diffs.append(node.getPropertyName()).append(" changed from ")
-                            .append(oldValue).append(" to ").append(newValue).append(" ");
+                    diffs.append(fieldName).append(" changed from ");
+                    diffs.append(getValue(oldValue) ).append(" to ").append(getValue(newValue)).append(" ");
                     comments.add(diffs.toString());
                 }
             });
@@ -102,14 +118,57 @@ public class AuditEventServiceImpl implements AuditEventService {
         }
     }
 
+
+    private boolean isDate(Object dateNew){
+        return dateNew instanceof LocalDate || dateNew instanceof Timestamp || dateNew instanceof LocalDateTime;
+    }
+
+    private boolean isDateChanged(Object newValue, Object oldValue) {
+        if(newValue != null && oldValue != null){
+            if(newValue  instanceof Timestamp && oldValue instanceof Timestamp){
+                return  !((Timestamp)newValue).toLocalDateTime().toLocalDate().atStartOfDay().equals(((Timestamp) oldValue).toLocalDateTime().toLocalDate().atStartOfDay());
+            }
+            if(newValue instanceof LocalDate && oldValue instanceof LocalDate){
+                return  !((LocalDate)newValue).atStartOfDay().equals(((LocalDate)oldValue).atStartOfDay());
+            }
+            if(newValue instanceof LocalDateTime && oldValue instanceof LocalDateTime){
+                return  !((LocalDateTime)newValue).toLocalDate().atStartOfDay().equals(((LocalDateTime)oldValue).toLocalDate().atStartOfDay());
+            }
+        }
+        return true;
+    }
+
+    private AuditInfo getAuditInfo(DiffNode node) {
+        return Optional.ofNullable(node.getFieldAnnotations())
+                .orElse(Collections.emptySet())
+                .stream()
+                .filter(anno -> anno.annotationType().equals(AuditInfo.class))
+                .map(annotation -> (AuditInfo)annotation)
+                .findFirst().orElse(null);
+    }
+
+
+    private Object getValue(Object value){
+        if(value == null){
+            return  "empty";
+        }
+        if(value instanceof LocalDateTime){
+            return  ((LocalDateTime) value).toLocalDate();
+        }
+        if(value instanceof Timestamp){
+            return  ((Timestamp)value).toLocalDateTime().toLocalDate();
+        }
+        return value;
+    }
+
     private String getNewAmount(IAuditableEntity newEntity) {
         try {
+            DecimalFormat format = new DecimalFormat("0.##");
             Field amount = newEntity.getClass().getDeclaredField("amount");
             amount.setAccessible(true);
             Object am = amount.get(newEntity);
             if (am instanceof Long) {
-                long sum = (Long) am / 100;
-                return Long.toString(sum);
+                return  format.format ((Long) am / 100d);
             }
             return am.toString();
         } catch (NoSuchFieldException | IllegalAccessException e) {
@@ -120,16 +179,16 @@ public class AuditEventServiceImpl implements AuditEventService {
 
 
     private Object handleAmount(Object amount) {
+        DecimalFormat format = new DecimalFormat("0.##");
         if (!ObjectUtils.isEmpty(amount)) {
             if (amount instanceof Long) {
-                return (Long) amount / 100;
+                return format.format((Long) amount / 100D) + "$";
             } else {
                 if (amount instanceof String) {
                     try {
-                        long newAm = Long.parseLong(String.valueOf(amount)) / 100;
-                        return Long.toString(newAm);
+                        return format.format(Long.parseLong(String.valueOf(amount)) / 100D) +  "$";
                     } catch (Exception exception) {
-                        log.error("Error casting amount : {}", exception.getMessage());
+                        log.warn("Error casting amount : {}", exception.getMessage());
                         return amount;
                     }
                 }
@@ -137,6 +196,7 @@ public class AuditEventServiceImpl implements AuditEventService {
         }
         return amount;
     }
+
 
     private void persist(String userId, IAuditableEntity auditableEntity, CommentHolder commentHolder) {
         AuditEvent auditEvent = mapToAuditEvent(userId, auditableEntity, commentHolder.toString());
