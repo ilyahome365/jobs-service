@@ -2,18 +2,20 @@ package com.home365.jobservice.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home365.jobservice.entities.CashPaymentTracking;
+import com.home365.jobservice.entities.Payments;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.enums.CashPaymentStatus;
+import com.home365.jobservice.entities.enums.PaymentMethod;
+import com.home365.jobservice.entities.enums.PaymentStatus;
 import com.home365.jobservice.repository.CashPaymentTrackingRepository;
 import com.home365.jobservice.service.CashPaymentService;
+import com.home365.jobservice.service.PaymentsService;
 import com.home365.jobservice.service.TransactionsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.sql.Timestamp;
+import java.util.*;
 
 @Service
 public class CashPaymentServiceImpl implements CashPaymentService {
@@ -25,6 +27,9 @@ public class CashPaymentServiceImpl implements CashPaymentService {
 
     @Autowired
     TransactionsService transactionService;
+
+    @Autowired
+    PaymentsService paymentsService;
 
     public void handleCashPaymentWebhookResponse(Object request) {
         Map<String, Object> requestMap = (Map<String, Object>) request;
@@ -44,7 +49,21 @@ public class CashPaymentServiceImpl implements CashPaymentService {
 
                     if (transactionsOptional.isPresent()) {
                         Transactions transactionObject = transactionsOptional.get();
+
+                        Payments paymentObj = paymentsService.createAndSavePayments(
+                                transactionObject.getAmount(),
+                                new Timestamp(new Date().getTime()),
+                                PaymentStatus.success,
+                                mtid,
+                                null,
+                                null,
+                                transactionObject.getReceiveAccountId(),
+                                transactionObject.getPmAccountId(),
+                                PaymentMethod.cash
+                        );
+
                         transactionObject.setStatus("paid");
+                        transactionObject.setPaymentId(paymentObj.getPaymentId());
                         transactionService.save(transactionObject);
                     }
                 });

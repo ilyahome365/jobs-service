@@ -60,8 +60,8 @@ public class Transactions implements Serializable ,IAuditableEntity{
     private String transactionType;
     private String recurringTemplateId;
 
-    @Column(name = "Version")
-    private Long version;
+//    @Column(name = "Version")
+//    private Long version;
 
     @Override
     public EntityType auditEntityType() {

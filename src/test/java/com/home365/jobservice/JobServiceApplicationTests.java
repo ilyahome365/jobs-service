@@ -5,6 +5,7 @@ import com.home365.jobservice.service.TransactionsService;
 import com.home365.jobservice.service.impl.DueDateNotificationServiceImpl;
 import com.home365.jobservice.service.impl.LateFeeJobServiceImpl;
 import com.home365.jobservice.service.impl.LeaseUpdatingServiceImpl;
+import com.home365.jobservice.service.impl.RecurringServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +25,11 @@ class JobServiceApplicationTests {
     DueDateNotificationServiceImpl dueDateNotificationService;
     @Autowired
     LeaseUpdatingServiceImpl leaseUpdatingService;
-
     @Autowired
     private TransactionsService transactionsService;
+    @Autowired
+    RecurringServiceImpl recurringService;
+
     @Test
     void contextLoads() {
 /*        Transactions transactions = new Transactions();
@@ -65,7 +68,7 @@ class JobServiceApplicationTests {
     @Test
     public void lateFeeTest() throws Exception {
         lateFeeJobService.execute("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
-    }
+    }*/
 
     @Test
     public void dueDateNotificationTest() throws Exception {
@@ -75,6 +78,10 @@ class JobServiceApplicationTests {
     @Test
     public void leaseUpdateTest() throws Exception {
         leaseUpdatingService.execute("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
-    }*/
+    }
 
+    @Test
+    public void recurringChargesTest() throws Exception {
+        recurringService.createTransactionsForRecurringCharges("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
+    }
 }

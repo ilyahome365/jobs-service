@@ -94,8 +94,8 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
 
             Optional<Transactions> transaction = transactionsService.findTransaction(transactionsWithProjectedBalance.getTransactionId());
             if (transaction.isPresent()) {
-                if (transaction.get().getVersion() == null)
-                    transaction.get().setVersion(0L);
+//                if (transaction.get().getVersion() == null)
+//                    transaction.get().setVersion(0L);
                 transaction.get().setStatus(transactionsWithProjectedBalance.getStatus());
                 transactions.add(transaction.get());
             }
@@ -163,7 +163,7 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
                 } else {
                     log.info("Change transaction {} to pendingContribution", transaction.getTransactionId());
                     transaction.setStatus(TransactionType.pendingContribution.name());
-                    pendingStatusJobData.setPendingContribution(pendingStatusJobData.getPendingContribution() + 1);
+//                    pendingStatusJobData.setPendingContribution(pendingStatusJobData.getPendingContribution() + 1);
                 }
             } catch (Exception e) {
                 log.error("Failed to change transaction {}  for account {}  ", transaction.getTransactionId(), transaction.getChargeAccountId());
