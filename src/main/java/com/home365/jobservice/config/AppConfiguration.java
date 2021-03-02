@@ -11,19 +11,19 @@ import com.home365.jobservice.service.impl.LeaseUpdatingServiceImpl;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
+import static com.home365.jobservice.config.ThreadPool.configurePool;
+
 @Slf4j
 @Data
-@Configuration
+@Service
 public class AppConfiguration implements SchedulingConfigurer {
 
     private final LeaseUpdatingServiceImpl leaseUpdatingService;
@@ -98,14 +98,7 @@ public class AppConfiguration implements SchedulingConfigurer {
 
     }
 
-    @Bean
-    public ThreadPoolTaskScheduler configurePool() {
-        ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(3);
-        threadPoolTaskScheduler.setThreadNamePrefix("my-scheduled-task-pool-");
-        threadPoolTaskScheduler.initialize();
-        return threadPoolTaskScheduler;
-    }
+
 
     public List<LocationJobsInfo> getAllJobs() {
         List<LocationJobsInfo> locationJobsInfos = new ArrayList<>();
