@@ -1,6 +1,7 @@
 package com.home365.jobservice.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -16,8 +17,7 @@ public class Rules implements Serializable {
     @JsonProperty(value = "day_in_month_to_create_recurring")
     private Integer dayInmMonthToCreateRecurring;
     @JsonProperty(value = "logical_date")
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate logicalDate;
+    private String logicalDate;
     @JsonProperty(value = "cash_payment_max_value")
     private Double cashPaymentMaxValue;
     @JsonProperty(value = "cash_payment_available")
@@ -26,5 +26,4 @@ public class Rules implements Serializable {
     private Integer maxNumOfInstallments;
     private Integer reversePaymentFine;
     private LateFee lateFees;
-
 }

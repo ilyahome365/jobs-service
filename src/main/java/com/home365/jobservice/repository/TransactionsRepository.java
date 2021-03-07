@@ -17,7 +17,7 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
     @Query(
             value = "SELECT * " +
                     "FROM Transactions " +
-                    "WHERE TransactionType = 'Charge' AND DueDate between '20210201 00:00:00' AND '20210201 23:59:59' " +
+                    "WHERE TransactionType = 'Charge' AND DueDate between '20210301 00:00:00' AND '20210301 23:59:59' " +
                     "      AND categoryName IN (:categoryNames)" +
                     "      AND Status IN (:status) " +
                     "AND TransactionId NOT IN ( " +

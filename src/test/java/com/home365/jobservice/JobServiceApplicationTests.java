@@ -14,7 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @Slf4j
-@ActiveProfiles("test")
+@ActiveProfiles("prod")
 class JobServiceApplicationTests {
     private final String JOB_PENDING_DUE ="jobPendingJobTest";
     @Autowired
@@ -63,12 +63,12 @@ class JobServiceApplicationTests {
                 + pendingStatusJobData.getReadyForPayment() + " , pendingContribution : " + pendingStatusJobData.getPendingContribution() + ", with cycle date : " + cycleDate;
         jobLog.setComments(jobComment);
         jobLogService.saveJobLog(jobLog);
-    }
+    }*/
 
     @Test
     public void lateFeeTest() throws Exception {
         lateFeeJobService.execute("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
-    }*/
+    }
 
     @Test
     public void dueDateNotificationTest() throws Exception {

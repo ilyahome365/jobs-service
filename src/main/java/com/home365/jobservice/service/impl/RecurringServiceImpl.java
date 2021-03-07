@@ -1,6 +1,7 @@
 package com.home365.jobservice.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.*;
@@ -21,11 +22,12 @@ import org.springframework.util.StringUtils;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.sql.Timestamp;
-import java.text.ParseException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -78,8 +80,8 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
         int activeRecurringChargeListSize = activeRecurringChargeList.size();
 
         StringBuffer responseStr = new StringBuffer();
-        responseStr.append("Number of recurring charges: "+ activeRecurringChargeList.size()+ "\n");
-        responseStr.append("Number of installments charges: "+ installmentsRecurringChargeList.size()+ "\n");
+        responseStr.append("Number of recurring charges: " + activeRecurringChargeList.size() + "\n");
+        responseStr.append("Number of installments charges: " + installmentsRecurringChargeList.size() + "\n");
 
         lvPmAccountId = "F90E128A-CD00-4DF7-B0D0-0F40F80D623A";
 
@@ -87,6 +89,7 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
         Rules rules = null;
 
         try {
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             rules = mapper.readValue(locationRules.get().getRules(), Rules.class);
         } catch (JsonProcessingException e) {
             log.error(e.getMessage());
@@ -105,8 +108,9 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
         Date nextDueDate = calendar.getTime();
 
         Date finalNow = now;
+        AtomicInteger counter = new AtomicInteger();
         activeRecurringChargeList.forEach(recurringCharge -> {
-            int counter = 0;
+
             calendar.setTime(finalNow);
             List<IPropertyLeaseInformation> leaseList = recurringRepository.getLeaseDatesByLeaseId(recurringCharge.getLeaseId());
             if (CollectionUtils.isEmpty(leaseList) || leaseList.size() != 1) {
@@ -118,10 +122,11 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
             Date moveOutDate = leaseList.get(0).getMoveOutDate();
 
             List<Transactions> existingRecurringTransactions = transactionsService.findByRecurringTemplateId(recurringCharge.getId());
-            if (CollectionUtils.isEmpty(existingRecurringTransactions) && !"Imported from Buildium".equals(recurringCharge.getMemo())) {
-                log.error("Cannot create transactions for recurring charges of propertyId {} since no first charge have been found", recurringCharge.getPropertyId());
-                return;
-            } else if (dayInMonthToCreateRecurring == calendar.get(Calendar.DAY_OF_MONTH) && moveOutDate == null && leaseStartDate.before(nextDueDate)) {
+//            if (CollectionUtils.isEmpty(existingRecurringTransactions) && !"Imported from Buildium".equals(recurringCharge.getMemo())) {
+//                log.error("Cannot create transactions for recurring charges of propertyId {} since no first charge have been found", recurringCharge.getPropertyId());
+//                return;
+//            } else
+            if (dayInMonthToCreateRecurring == calendar.get(Calendar.DAY_OF_MONTH) && (moveOutDate == null || moveOutDate.after(nextDueDate)) && (leaseStartDate == null || leaseStartDate.before(nextDueDate))) {
                 if (existingRecurringTransactions.size() == 1) {
                     Transactions firstTransaction = existingRecurringTransactions.get(0);
                     Date firstDueDate = firstTransaction.getDueDate();
@@ -134,12 +139,12 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
                         int firstDueDateMonthInc = calendar.get(Calendar.MONTH);
                         calendar.setTime(nextDueDate);
                         if (firstDueDateMonthInc == calendar.get(Calendar.MONTH)) {
+                            log.warn("No need to create a transaction for recurring {} since first transaction (due date :{}, amount: {}) handle the charge", recurringCharge.getId(), firstTransaction.getDueDate(), firstTransaction.getAmount());
                             return;
                         }
                     }
                 }
                 existingRecurringTransactions = existingRecurringTransactions.stream().filter(transactions -> {
-
                     LocalDate localDueDate = LocalDate.parse(sdf.format(transactions.getDueDate()));
                     LocalDate localNextDueDate = LocalDate.parse(sdf.format(nextDueDate.getTime()));
                     return localDueDate.equals(localNextDueDate);
@@ -149,10 +154,14 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
                     List<Transactions> transactionsList = new ArrayList<>();
                     transactionsList.add(transactions);
                     transactionsService.saveAllTransactions(transactionsList);
+                } else {
+                    log.warn("No need to create a transaction for recurring {} since already has a transaction for month {}", recurringCharge.getId(), nextDueDate);
                 }
+            } else {
+                log.warn("No need to create a transaction for recurring {} due to move out date or lease end date", recurringCharge.getId());
             }
-            counter++;
-            log.info("Remain: {}", activeRecurringChargeListSize - counter);
+            counter.getAndIncrement();
+            log.info("Remain: {}", activeRecurringChargeListSize - counter.get());
         });
 
         handleInstallmentsCharges(installmentsRecurringChargeList, nextDueDate);
@@ -202,6 +211,12 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
     }
 
     private Transactions createTransaction(Recurring recurringCharge, Date dueDate) {
+
+        DateFormat descriptionSDF = new SimpleDateFormat("MMM yyyy");
+        String odDueDateDescriptionStr = descriptionSDF.format(dueDate);
+
+        String category = typeCategoryRepository.getCategoryNameByID(recurringCharge.getCategoryId());
+
         Transactions transaction = Transactions.builder()
                 .amount((long) recurringCharge.getAmount())
                 .pmAccountId(recurringCharge.getPmAccountId())
@@ -210,8 +225,8 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
                 .amountBeforeDiscount(recurringCharge.getAmountBeforeDiscount() == null ? (long) recurringCharge.getAmount() : (long) recurringCharge.getAmountBeforeDiscount().doubleValue())
                 .billType(recurringCharge.getBillType())
                 .categoryId(recurringCharge.getCategoryId())
-                .categoryName(typeCategoryRepository.getCategoryNameByID(recurringCharge.getCategoryId()))
-                .memo(recurringCharge.getMemo())
+                .categoryName(category)
+                .memo(category + " for " + odDueDateDescriptionStr)
                 .dueDate(new Timestamp(dueDate.getTime()))
                 .chargedBy(recurringCharge.getChargedBy())
                 .recurringTemplateId(recurringCharge.getId())
