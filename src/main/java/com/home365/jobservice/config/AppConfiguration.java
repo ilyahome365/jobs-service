@@ -4,32 +4,30 @@ import com.home365.jobservice.entities.JobConfiguration;
 import com.home365.jobservice.model.jobs.JobInfo;
 import com.home365.jobservice.model.jobs.JobScheduledWrapper;
 import com.home365.jobservice.model.jobs.LocationJobsInfo;
-import com.home365.jobservice.service.ApplicationService;
 import com.home365.jobservice.service.JobsConfigurationService;
+import com.home365.jobservice.service.impl.ChangeBillStatusServiceImpl;
 import com.home365.jobservice.service.impl.JobsConfigurationServiceImpl;
 import com.home365.jobservice.service.impl.LeaseUpdatingServiceImpl;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
+import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
+import static com.home365.jobservice.config.ThreadPool.configurePool;
+
 @Slf4j
 @Data
-@Configuration
+@Service
 public class AppConfiguration implements SchedulingConfigurer {
 
     private final LeaseUpdatingServiceImpl leaseUpdatingService;
+    private final ChangeBillStatusServiceImpl changeBillStatusService;
     private final JobsConfigurationService jobsConfigurationService;
 
     // <location, <jobName,jobObject>>
@@ -41,8 +39,9 @@ public class AppConfiguration implements SchedulingConfigurer {
 
 
     public AppConfiguration(LeaseUpdatingServiceImpl leaseUpdatingService,
-                            JobsConfigurationService jobsConfigurationService, ApplicationContext context) {
+                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, ApplicationContext context) {
         this.leaseUpdatingService = leaseUpdatingService;
+        this.changeBillStatusService = changeBillStatusService;
         this.jobsConfigurationService = jobsConfigurationService;
         this.jobLocationToJob = new HashMap<>();
         this.context = context;
@@ -93,20 +92,13 @@ public class AppConfiguration implements SchedulingConfigurer {
 //        );
         addJob(JobsConfigurationServiceImpl.JOBS_ID.CHANGE_BILL_STATUS.getName(),
                 "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-                () -> leaseUpdatingService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+                () -> changeBillStatusService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
         );
 
 
     }
 
-    @Bean
-    public ThreadPoolTaskScheduler configurePool() {
-        ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(3);
-        threadPoolTaskScheduler.setThreadNamePrefix("my-scheduled-task-pool-");
-        threadPoolTaskScheduler.initialize();
-        return threadPoolTaskScheduler;
-    }
+
 
     public List<LocationJobsInfo> getAllJobs() {
         List<LocationJobsInfo> locationJobsInfos = new ArrayList<>();
