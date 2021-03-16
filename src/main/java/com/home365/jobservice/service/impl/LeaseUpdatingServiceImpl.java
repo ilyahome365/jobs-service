@@ -55,7 +55,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         LocalDate currentCalendar = LocalDate.now();
         LocalDate nextMonth = LocalDate.now().plusMonths(1);
 
-        List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.getAllActivePlansToUpdate().stream().
+        List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.getAllActivePlansToUpdate(locationId).stream().
                 filter(propertyTenantExtension -> propertyTenantExtension.getLeaseType() != null && propertyTenantExtension.getEndDate() != null)
                 .peek(propertyTenantExtension -> {
                             propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate().toLocalDate()));
