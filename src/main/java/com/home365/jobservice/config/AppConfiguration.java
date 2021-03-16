@@ -76,6 +76,10 @@ public class AppConfiguration implements SchedulingConfigurer {
                 "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
                 () -> leaseUpdatingService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
         );
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
+                "23F2EF62-8905-4D6D-9A07-165E89BD6FAA",
+                () -> leaseUpdatingService.executeJob("23F2EF62-8905-4D6D-9A07-165E89BD6FAA")
+        );
 
 //        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
 //                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
