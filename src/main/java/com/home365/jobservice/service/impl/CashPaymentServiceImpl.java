@@ -208,7 +208,6 @@ public class CashPaymentServiceImpl implements CashPaymentService {
         addToAccountsRefundAndCharges(chargeReceivedAccountWithAmount, refundChargeAccountWithAmount, accounts);
         payTransactionAndCreatePaymentForRefund(apiKey, amountFeeInCents, description, accounts, receiveAccountWithAmount, refundedTransactions, pmAccount);
 
-
     }
 
     private Map<String, Integer> createMapWithAmount(Map<String, List<Transactions>> transactionsByReceive) {

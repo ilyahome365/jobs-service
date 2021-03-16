@@ -3,6 +3,7 @@ package com.home365.jobservice.controller;
 import com.home365.jobservice.config.AppConfiguration;
 import com.home365.jobservice.model.jobs.JobOpsRequest;
 import com.home365.jobservice.model.jobs.LocationJobsInfo;
+import org.quartz.Scheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/scheduling")
 public class SchedulingController {
+
 
     @Autowired
     private AppConfiguration appConfiguration;
@@ -63,4 +65,8 @@ public class SchedulingController {
         appConfiguration.restartJob(jobOpsRequest.getLocation(), jobOpsRequest.getName());
         return ResponseEntity.ok().build();
     }
+
+
+
+
 }

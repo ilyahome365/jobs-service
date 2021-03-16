@@ -3,6 +3,7 @@ package com.home365.jobservice.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.home365.jobservice.rest.BalanceServiceFeign;
 import com.home365.jobservice.rest.GlobalErrorDecoder;
 import com.home365.jobservice.rest.KeycloakFeignService;
 import com.home365.jobservice.rest.TenantFeignService;
@@ -27,6 +28,9 @@ public class FeignConfiguration {
     @Value("${keyCloack.url}")
     private String keycloakUrl;
 
+    @Value("${service.balance.url}")
+    private String balanceService;
+
     Gson gson = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd")
             .create();
@@ -43,6 +47,19 @@ public class FeignConfiguration {
                 .logLevel(Logger.Level.FULL)
                 .errorDecoder(new GlobalErrorDecoder())
                 .target(TenantFeignService.class, tenantService);
+    }
+
+    @Bean
+    public BalanceServiceFeign getBalanceFeignService() {
+        return Feign
+                .builder()
+                .client(new OkHttpClient())
+                .encoder(new GsonEncoder(gson))
+                .decoder(new GsonDecoder(gson))
+                .logger(new Slf4jLogger(BalanceServiceFeign.class))
+                .logLevel(Logger.Level.FULL)
+                .errorDecoder(new GlobalErrorDecoder())
+                .target(BalanceServiceFeign.class, balanceService);
     }
 
 

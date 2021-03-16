@@ -4,6 +4,7 @@ import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.Transactions;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,4 +33,6 @@ public interface TransactionsService extends FindByIdAudit{
     Optional<Transactions> findTransaction(String transactionId);
 
     void saveAll(List<Transactions> mgmtFeeTransactions);
+
+
 }

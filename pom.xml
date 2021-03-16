@@ -122,6 +122,7 @@
             <artifactId>stripe-java</artifactId>
             <version>20.33.0</version>
         </dependency>
+
     </dependencies>
 
     <build>
