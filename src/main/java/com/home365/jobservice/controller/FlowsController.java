@@ -21,5 +21,6 @@ public class FlowsController {
     public ResponseEntity<Void> movePropertyToReadyForDeactivation(@RequestParam String propertyId) {
         log.info("move property to ready for deactivation : {} ", propertyId);
         propertyPhasingOutFlow.startPropertyPhasingOut(propertyId);
+        return ResponseEntity.ok().build();
     }
 }

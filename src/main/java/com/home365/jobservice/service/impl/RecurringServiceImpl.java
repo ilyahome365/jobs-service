@@ -21,6 +21,7 @@ import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -95,6 +96,8 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
             log.error(e.getMessage());
             e.printStackTrace();
             rules = new Rules();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");

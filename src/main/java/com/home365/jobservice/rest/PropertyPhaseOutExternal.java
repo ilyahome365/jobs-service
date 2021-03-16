@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface PropertyPhaseOutExternal {
     List<Integer> cancelBillsByPropertyIdAndPhaseOutDate(PropertyPhasingOutWrapper propertyPhasingOutWrapper) throws GeneralException;
+    List<String> cancelAllRecurringByChargeAccount(String accountId) throws GeneralException;
 }

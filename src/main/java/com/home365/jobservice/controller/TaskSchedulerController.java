@@ -31,14 +31,14 @@ public class TaskSchedulerController {
     @PostMapping("/property-deactivation")
     public ResponseEntity<TaskSchedulerResponse> propertySchedulerForPhasingOut(@RequestBody PropertyPhasingOutWrapper propertyPhasingOutWrapper) {
         try {
-
-            if (propertyPhasingOutWrapper.getTriggerDateAndTime().isBefore(LocalDate.now())) {
+            LocalDate date = LocalDate.parse(propertyPhasingOutWrapper.getTriggerDateAndTime());
+            if (date.isBefore(LocalDate.now())) {
                 TaskSchedulerResponse scheduleEmailResponse = new TaskSchedulerResponse(false,
                         "dateTime must be after current time");
                 return ResponseEntity.badRequest().body(scheduleEmailResponse);
             }
             JobDetail jobDetail = buildJobDetail(propertyPhasingOutWrapper);
-            Trigger trigger = buildJobTrigger(jobDetail, propertyPhasingOutWrapper.getTriggerDateAndTime());
+            Trigger trigger = buildJobTrigger(jobDetail, date);
             Trigger existingTrigger = scheduler.getTrigger(new TriggerKey(propertyPhasingOutWrapper.getPropertyId(), "propertyPhasingOut-triggers"));
             if (existingTrigger != null) {
                 scheduler.rescheduleJob(existingTrigger.getKey(), trigger);

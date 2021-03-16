@@ -36,7 +36,7 @@ public class PropertyExtension {
 
     @Column(name = "ReasonForLeaving")
     private String reasonForLeaving;
-
+//
     @Column(name = "Memo")
     private String memo;
 

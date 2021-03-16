@@ -31,7 +31,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
     private final int TENANT_BUSINESS_TYPE = 10;
     private final TenantServiceExternal tenantServiceExternal;
 
-    private PropertyAccountRepository propertyAccountRepository;
+
     private AccountExtensionRepo accountExtensionRepo;
 
     public LeaseUpdatingServiceImpl(AppProperties appProperties,
@@ -41,7 +41,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         this.propertyTenantExtensionService = propertyTenantExtensionService;
         this.tenantServiceExternal = tenantServiceExternal;
 
-        this.propertyAccountRepository = propertyAccountRepository;
+
         this.accountExtensionRepo = accountExtensionRepo;
     }
 

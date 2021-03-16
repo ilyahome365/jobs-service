@@ -2,12 +2,15 @@ package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.model.TenantStatusChangeRequest;
+import com.home365.jobservice.model.wrapper.TenantWrapper;
 import com.home365.jobservice.rest.KeyCloakService;
 import com.home365.jobservice.rest.KeycloakResponse;
 import com.home365.jobservice.rest.TenantFeignService;
 import com.home365.jobservice.rest.TenantServiceExternal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -26,5 +29,12 @@ public class TenantServiceExternalImpl implements TenantServiceExternal {
         KeycloakResponse token = keyCloakService.getKey();
         tenantFeignService.changeTenantStatus(token.getAccess_token(),tenantStatusChangeRequest);
 
+    }
+
+    @Override
+    public List<TenantWrapper> getTenantsByPropertyId(String propertyId) throws GeneralException {
+        KeycloakResponse token = keyCloakService.getKey();
+
+        return tenantFeignService.getTenantByProperty(token.getAccess_token(),propertyId);
     }
 }
