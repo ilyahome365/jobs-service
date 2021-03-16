@@ -26,7 +26,7 @@ public class PropertyTenantExtensionServiceImpl implements IPropertyTenantExtens
     }
 
     @Override
-    public List<PropertyTenantExtension> getAllActivePlansToUpdate() {
-        return propertyTenantExtensionRepository.getAllActivePlansToUpdate();
+    public List<PropertyTenantExtension> getAllActivePlansToUpdate(String locationId) {
+        return propertyTenantExtensionRepository.getAllActivePlansToUpdate(locationId);
     }
 }

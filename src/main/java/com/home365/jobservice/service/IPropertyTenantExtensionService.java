@@ -9,5 +9,5 @@ public interface IPropertyTenantExtensionService {
 
     void save(List<PropertyTenantExtension> allLeaseToExtend);
 
-    List<PropertyTenantExtension> getAllActivePlansToUpdate();
+    List<PropertyTenantExtension> getAllActivePlansToUpdate(String locationId);
 }
