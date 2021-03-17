@@ -3,6 +3,7 @@ package com.home365.jobservice.rest.impl;
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.model.PropertyPhasingOutWrapper;
 import com.home365.jobservice.model.wrapper.CancelChargeWrapper;
+import com.home365.jobservice.model.wrapper.OwnerBillsWrapper;
 import com.home365.jobservice.rest.BalanceServiceFeign;
 import com.home365.jobservice.rest.KeyCloakService;
 import com.home365.jobservice.rest.KeycloakResponse;
@@ -35,5 +36,11 @@ public class PropertyPhaseOutExternalImpl implements PropertyPhaseOutExternal {
         CancelChargeWrapper cancelChargeWrapper = new CancelChargeWrapper();
         cancelChargeWrapper.setAccountId(accountId);
         return balanceServiceFeign.cancelAllRecurringByAccount(token.getAccess_token(), cancelChargeWrapper);
+    }
+
+    @Override
+    public void createOwnerBillForTenantDebts(OwnerBillsWrapper ownerBillsWrapper) throws GeneralException {
+        KeycloakResponse token = keyCloakService.getKey();
+        balanceServiceFeign.createOwnerBillForTenantDebts(token.getAccess_token(), ownerBillsWrapper);
     }
 }

@@ -6,6 +6,7 @@ import com.home365.jobservice.entities.enums.PropertyStatus;
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.model.PropertyPhasingOutWrapper;
 import com.home365.jobservice.model.enums.TenantStatus;
+import com.home365.jobservice.model.wrapper.OwnerBillsWrapper;
 import com.home365.jobservice.model.wrapper.TenantWrapper;
 import com.home365.jobservice.rest.PropertyPhaseOutExternal;
 import com.home365.jobservice.rest.TenantServiceExternal;
@@ -43,24 +44,35 @@ public class PropertyPhasingOutFlow {
                 generalException.setMessage("No property for " + propertyId);
                 throw generalException;
             }
-            if(!property.get().getPropertyStatus().equalsIgnoreCase(PropertyStatus.phasingOut.name())){
+            if (!property.get().getPropertyStatus().equalsIgnoreCase(PropertyStatus.phasingOut.name())) {
                 GeneralException generalException = new GeneralException();
                 generalException.setMessage("property is not on property phase out");
             }
-
+            List<TenantWrapper> tenants = tenantServiceExternal.getTenantsByPropertyId(propertyPhasingOutWrapper.getPropertyId());
             propertyPhasingOutWrapper.setPropertyId(propertyId);
             propertyPhasingOutWrapper.setTriggerDateAndTime(property.get().getPhasingOutDate().toString());
             cancelFutureBills(propertyPhasingOutWrapper);
             cancelFutureCharges(propertyPhasingOutWrapper);
-            cancelRecurringForProperty(propertyPhasingOutWrapper);
+            cancelRecurringForProperty(propertyPhasingOutWrapper, tenants);
+            createOwnerBillFromTenantCharges(propertyPhasingOutWrapper, tenants);
         } catch (GeneralException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void cancelRecurringForProperty(PropertyPhasingOutWrapper propertyPhasingOutWrapper) throws GeneralException {
+    private void createOwnerBillFromTenantCharges(PropertyPhasingOutWrapper propertyPhasingOutWrapper, List<TenantWrapper> tenants) throws GeneralException {
+        OwnerBillsWrapper ownerBillsWrapper = new OwnerBillsWrapper();
+        Optional<TenantWrapper> tenant = tenants.stream().filter(tenantWrapper -> tenantWrapper.getTenantStatus().equals(TenantStatus.Active)).findFirst();
+        if (tenant.isPresent()) {
+            ownerBillsWrapper.setChargeAccount(tenant.get().getAccountId());
+            ownerBillsWrapper.setPropertyId(propertyPhasingOutWrapper.getPropertyId());
+            propertyPhaseOutExternal.createOwnerBillForTenantDebts(ownerBillsWrapper);
+        }
+    }
+
+    private void cancelRecurringForProperty(PropertyPhasingOutWrapper propertyPhasingOutWrapper, List<TenantWrapper> tenants) throws GeneralException {
         log.info("start cancel recurring charges for : {} ", propertyPhasingOutWrapper);
-        List<TenantWrapper> tenants = tenantServiceExternal.getTenantsByPropertyId(propertyPhasingOutWrapper.getPropertyId());
+
         List<String> canceledRecurring = new ArrayList<>();
         if (!CollectionUtils.isEmpty(tenants)) {
             List<TenantWrapper> activeTenants = tenants.stream().filter(tenantWrapper -> !tenantWrapper.getTenantStatus().equals(TenantStatus.Inactive)).collect(Collectors.toList());

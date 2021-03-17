@@ -16,7 +16,7 @@ public interface TenantFeignService {
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     void changeTenantStatus(@Param("token") String token, TenantStatusChangeRequest tenantStatusChangeRequest) throws GeneralException;
 
-    @RequestLine("GET /tenant/get-tenant-by-property")
+    @RequestLine("GET /tenant/get-tenant-by-property?propertyId={propertyId}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     List<TenantWrapper> getTenantByProperty(@Param("token") String token, @Param("propertyId") String propertyId) throws GeneralException;
 }
