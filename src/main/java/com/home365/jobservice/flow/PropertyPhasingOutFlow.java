@@ -72,10 +72,10 @@ public class PropertyPhasingOutFlow {
 
     }
 
-    private void createMaterialTransferFee(String propertyId) {
+    private String createMaterialTransferFee(String propertyId) throws GeneralException {
         OwnerBillsWrapper ownerBillsWrapper = new OwnerBillsWrapper();
         ownerBillsWrapper.setPropertyId(propertyId);
-
+        return propertyPhaseOutExternal.createMaterialTransferFee(ownerBillsWrapper);
     }
 
     private String createTearminationFeeBill(String propertyId) throws GeneralException {
