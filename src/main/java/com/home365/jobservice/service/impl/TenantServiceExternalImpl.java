@@ -25,9 +25,9 @@ public class TenantServiceExternalImpl implements TenantServiceExternal {
 
     @Override
     public void changeTenantStatus(TenantStatusChangeRequest tenantStatusChangeRequest) throws GeneralException {
-        log.info("Change Tenant Status :  {} ",tenantStatusChangeRequest);
+        log.info("Change Tenant Status :  {} ", tenantStatusChangeRequest);
         KeycloakResponse token = keyCloakService.getKey();
-        tenantFeignService.changeTenantStatus(token.getAccess_token(),tenantStatusChangeRequest);
+        tenantFeignService.changeTenantStatus(token.getAccess_token(), tenantStatusChangeRequest);
 
     }
 
@@ -35,6 +35,13 @@ public class TenantServiceExternalImpl implements TenantServiceExternal {
     public List<TenantWrapper> getTenantsByPropertyId(String propertyId) throws GeneralException {
         KeycloakResponse token = keyCloakService.getKey();
 
-        return tenantFeignService.getTenantByProperty(token.getAccess_token(),propertyId);
+        return tenantFeignService.getTenantByProperty(token.getAccess_token(), propertyId);
+    }
+
+    @Override
+    public void movePropertyToReadyForDeactivation(String propertyId) throws GeneralException {
+        log.info("Start property ready for deactivation");
+        KeycloakResponse token = keyCloakService.getKey();
+        tenantFeignService.movePropertyToReadyForDeactivation(token.getAccess_token(), propertyId);
     }
 }

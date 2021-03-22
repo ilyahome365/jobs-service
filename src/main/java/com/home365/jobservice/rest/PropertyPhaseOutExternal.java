@@ -10,4 +10,6 @@ public interface PropertyPhaseOutExternal {
     List<Integer> cancelBillsByPropertyIdAndPhaseOutDate(PropertyPhasingOutWrapper propertyPhasingOutWrapper) throws GeneralException;
     List<String> cancelAllRecurringByChargeAccount(String accountId) throws GeneralException;
     void createOwnerBillForTenantDebts(OwnerBillsWrapper ownerBillsWrapper) throws GeneralException;
+    String createTerminationFeeBill(OwnerBillsWrapper ownerBillsWrapper) throws GeneralException;
+    String createMaterialTransferFee(OwnerBillsWrapper  ownerBillsWrapper) throws GeneralException;
 }

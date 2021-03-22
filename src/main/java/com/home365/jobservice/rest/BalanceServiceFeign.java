@@ -27,5 +27,16 @@ public interface BalanceServiceFeign {
     void createOwnerBillForTenantDebts(@Param("token") String token,
                                              OwnerBillsWrapper ownerBillsWrapper) throws GeneralException;
 
+    @RequestLine("POST /bills/create-Termination-Fee")
+    @Headers({"Authorization: Bearer {token}","Content-Type: application/json"})
+    String createTerminationFeeByProperty(@Param("token") String token,
+                                             OwnerBillsWrapper ownerBillsWrapper) throws GeneralException;
+
+    @RequestLine("POST /bills/create-material-transfer-fee")
+    @Headers({"Authorization: Bearer {token}","Content-Type: application/json"})
+    String createMaterialTransferFee(@Param("token") String token,
+                                             OwnerBillsWrapper ownerBillsWrapper) throws GeneralException;
+
+
 
 }

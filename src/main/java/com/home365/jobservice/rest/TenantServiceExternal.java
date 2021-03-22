@@ -9,4 +9,5 @@ import java.util.List;
 public interface TenantServiceExternal {
     void changeTenantStatus(TenantStatusChangeRequest tenantStatusChangeRequest) throws GeneralException;
     List<TenantWrapper> getTenantsByPropertyId(String propertyId) throws GeneralException;
+    void movePropertyToReadyForDeactivation(String propertyId) throws GeneralException;
 }

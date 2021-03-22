@@ -43,4 +43,16 @@ public class PropertyPhaseOutExternalImpl implements PropertyPhaseOutExternal {
         KeycloakResponse token = keyCloakService.getKey();
         balanceServiceFeign.createOwnerBillForTenantDebts(token.getAccess_token(), ownerBillsWrapper);
     }
+
+    @Override
+    public String createTerminationFeeBill(OwnerBillsWrapper ownerBillsWrapper) throws GeneralException {
+        KeycloakResponse token = keyCloakService.getKey();
+        return balanceServiceFeign.createTerminationFeeByProperty(token.getAccess_token(), ownerBillsWrapper);
+    }
+
+    @Override
+    public String createMaterialTransferFee(OwnerBillsWrapper ownerBillsWrapper) throws GeneralException {
+        KeycloakResponse token = keyCloakService.getKey();
+        return balanceServiceFeign.createMaterialTransferFee(token.getAccess_token(), ownerBillsWrapper);
+    }
 }

@@ -1,5 +1,6 @@
 package com.home365.jobservice.controller;
 
+import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.flow.PropertyPhasingOutFlow;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class FlowsController {
 
 
     @GetMapping("/move-property-toReadyForDeactivation")
-    public ResponseEntity<Void> movePropertyToReadyForDeactivation(@RequestParam String propertyId) {
+    public ResponseEntity<Void> movePropertyToReadyForDeactivation(@RequestParam String propertyId) throws GeneralException {
         log.info("move property to ready for deactivation : {} ", propertyId);
         propertyPhasingOutFlow.startPropertyPhasingOut(propertyId);
         return ResponseEntity.ok().build();

@@ -19,4 +19,10 @@ public interface TenantFeignService {
     @RequestLine("GET /tenant/get-tenant-by-property?propertyId={propertyId}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     List<TenantWrapper> getTenantByProperty(@Param("token") String token, @Param("propertyId") String propertyId) throws GeneralException;
+
+    @RequestLine("GET /property/move-property-to-ready-for-deactivation?propertyId={propertyId}")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    void movePropertyToReadyForDeactivation(@Param("token") String token, @Param("propertyId") String propertyId) throws GeneralException;
+
+
 }
