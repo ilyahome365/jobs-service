@@ -4,6 +4,7 @@ import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.model.PropertyPhasingOutWrapper;
 import com.home365.jobservice.model.wrapper.CancelChargeWrapper;
 import com.home365.jobservice.model.wrapper.OwnerBillsWrapper;
+import com.home365.jobservice.model.wrapper.OwnerProjectedBalanceWrapper;
 import com.home365.jobservice.rest.BalanceServiceFeign;
 import com.home365.jobservice.rest.KeyCloakService;
 import com.home365.jobservice.rest.KeycloakResponse;
@@ -54,5 +55,18 @@ public class PropertyPhaseOutExternalImpl implements PropertyPhaseOutExternal {
     public String createMaterialTransferFee(OwnerBillsWrapper ownerBillsWrapper) throws GeneralException {
         KeycloakResponse token = keyCloakService.getKey();
         return balanceServiceFeign.createMaterialTransferFee(token.getAccess_token(), ownerBillsWrapper);
+    }
+
+    @Override
+    public void moveSecurityDepositToOwnerAccount(String propertyId) throws GeneralException {
+        log.info("Start move security deposit to owner account");
+        KeycloakResponse token = keyCloakService.getKey();
+        balanceServiceFeign.moveSecurityDepositToOwnerAccount(token.getAccess_token(), propertyId);
+    }
+
+    @Override
+    public OwnerProjectedBalanceWrapper getOwnerProjectedBalance() throws GeneralException {
+        KeycloakResponse token = keyCloakService.getKey();
+        return balanceServiceFeign.getOwnerProjectedBalance(token.getAccess_token());
     }
 }

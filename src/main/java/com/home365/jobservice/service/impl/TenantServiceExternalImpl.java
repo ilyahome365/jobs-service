@@ -2,6 +2,7 @@ package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.model.TenantStatusChangeRequest;
+import com.home365.jobservice.model.wrapper.OwnerWrapper;
 import com.home365.jobservice.model.wrapper.TenantWrapper;
 import com.home365.jobservice.rest.KeyCloakService;
 import com.home365.jobservice.rest.KeycloakResponse;
@@ -43,5 +44,11 @@ public class TenantServiceExternalImpl implements TenantServiceExternal {
         log.info("Start property ready for deactivation");
         KeycloakResponse token = keyCloakService.getKey();
         tenantFeignService.movePropertyToReadyForDeactivation(token.getAccess_token(), propertyId);
+    }
+
+    @Override
+    public OwnerWrapper getOwnerFromProperty(String propertyId) throws GeneralException {
+        KeycloakResponse token = keyCloakService.getKey();
+        return tenantFeignService.getOwnerAccountFromProperty(token.getAccess_token(), propertyId);
     }
 }

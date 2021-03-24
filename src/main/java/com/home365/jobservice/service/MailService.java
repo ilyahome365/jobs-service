@@ -9,11 +9,5 @@ import java.util.List;
 
 public interface MailService {
     MailResult sendMail(MailDetails mailDetails);
-
-
-
-
-
-
     MailResult sendMailFromJobExecuteResults(JobExecutionResults jobExecutionResults, String from, List<String> recipientList, String TemplateName);
 }
