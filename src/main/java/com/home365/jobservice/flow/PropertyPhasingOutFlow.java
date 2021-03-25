@@ -3,6 +3,7 @@ package com.home365.jobservice.flow;
 
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.PropertyExtension;
+import com.home365.jobservice.entities.enums.PropertyStatus;
 import com.home365.jobservice.entities.enums.ReasonForLeavingProperty;
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.model.PropertyPhasingOutWrapper;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class PropertyPhasingOutFlow {
+public class PropertyPhasingOutFlow implements PropertyPhasingOut {
 
     private final PropertyPhaseOutExternal propertyPhaseOutExternal;
     private final PropertyService propertyService;
@@ -47,8 +48,9 @@ public class PropertyPhasingOutFlow {
         this.propertyAccountService = propertyAccountService;
     }
 
+    @Override
     public void startPropertyPhasingOut(String propertyId) throws GeneralException {
-        log.info("Start property phasing out");
+        log.info("Start property phasing out for property : {} ", propertyId);
 
         PropertyPhasingOutWrapper propertyPhasingOutWrapper = new PropertyPhasingOutWrapper();
         Optional<PropertyExtension> property = propertyService.findPropertyById(propertyId);
@@ -57,11 +59,11 @@ public class PropertyPhasingOutFlow {
             generalException.setMessage("No property for " + propertyId);
             throw generalException;
         }
-//            if (property.get().getPropertyStatus() == null || !property.get().getPropertyStatus().equalsIgnoreCase(PropertyStatus.phasingOut.name())) {
-//                GeneralException generalException = new GeneralException();
-//                generalException.setMessage("property is not on property phase out");
-//                throw generalException;
-//            }
+        if (property.get().getPropertyStatus() == null || !property.get().getPropertyStatus().equalsIgnoreCase(PropertyStatus.phasingOut.name())) {
+            GeneralException generalException = new GeneralException();
+            generalException.setMessage("property is not on property phase out");
+            throw generalException;
+        }
         List<TenantWrapper> tenants = tenantServiceExternal.getTenantsByPropertyId(propertyId);
         propertyPhasingOutWrapper.setPropertyId(propertyId);
         propertyPhasingOutWrapper.setTriggerDateAndTime(property.get().getPhasingOutDate().toString());

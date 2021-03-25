@@ -8,6 +8,7 @@ import com.home365.jobservice.service.JobsConfigurationService;
 import com.home365.jobservice.service.impl.ChangeBillStatusServiceImpl;
 import com.home365.jobservice.service.impl.JobsConfigurationServiceImpl;
 import com.home365.jobservice.service.impl.LeaseUpdatingServiceImpl;
+import com.home365.jobservice.service.impl.PhaseOutPropertyServiceImpl;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -29,6 +30,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     private final LeaseUpdatingServiceImpl leaseUpdatingService;
     private final ChangeBillStatusServiceImpl changeBillStatusService;
     private final JobsConfigurationService jobsConfigurationService;
+    private final PhaseOutPropertyServiceImpl phaseOutPropertyService;
 
     // <location, <jobName,jobObject>>
     private final Map<String, Map<String, JobScheduledWrapper>> jobLocationToJob;
@@ -37,12 +39,13 @@ public class AppConfiguration implements SchedulingConfigurer {
     private final ApplicationContext context;
 
 
-
     public AppConfiguration(LeaseUpdatingServiceImpl leaseUpdatingService,
-                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, ApplicationContext context) {
+                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, PhaseOutPropertyServiceImpl phaseOutPropertyService, ApplicationContext context) {
         this.leaseUpdatingService = leaseUpdatingService;
         this.changeBillStatusService = changeBillStatusService;
         this.jobsConfigurationService = jobsConfigurationService;
+        this.phaseOutPropertyService = phaseOutPropertyService;
+
         this.jobLocationToJob = new HashMap<>();
         this.context = context;
     }
@@ -90,10 +93,10 @@ public class AppConfiguration implements SchedulingConfigurer {
 //                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
 //                applicationService::startLeasePropertyNotification
 //        );
-//        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
-//                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-//              ()->applicationService.startLeaseUpdating("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
-//        );
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
+                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
+                () -> phaseOutPropertyService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+        );
         addJob(JobsConfigurationServiceImpl.JOBS_ID.CHANGE_BILL_STATUS.getName(),
                 "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
                 () -> changeBillStatusService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
@@ -101,7 +104,6 @@ public class AppConfiguration implements SchedulingConfigurer {
 
 
     }
-
 
 
     public List<LocationJobsInfo> getAllJobs() {
@@ -124,18 +126,18 @@ public class AppConfiguration implements SchedulingConfigurer {
 
     public synchronized void addJob(String jobName, String location, Runnable task) {
 
-            Optional<JobConfiguration> jobConfigurationOptional = jobsConfigurationService.getJobByLocationAndName(location, jobName);
-            if (jobConfigurationOptional.isEmpty()) {
-                log.error(String.format("Unable to find Job configuration with location [%s] name [%s] -> please verify JobConfiguration is added to DB", location, jobName));
-                return;
-            }
-            JobConfiguration jobConfiguration = jobConfigurationOptional.get();
+        Optional<JobConfiguration> jobConfigurationOptional = jobsConfigurationService.getJobByLocationAndName(location, jobName);
+        if (jobConfigurationOptional.isEmpty()) {
+            log.error(String.format("Unable to find Job configuration with location [%s] name [%s] -> please verify JobConfiguration is added to DB", location, jobName));
+            return;
+        }
+        JobConfiguration jobConfiguration = jobConfigurationOptional.get();
 
-            Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.computeIfAbsent(location, k -> new HashMap<>());
+        Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.computeIfAbsent(location, k -> new HashMap<>());
 
-            JobScheduledWrapper scheduledFutureWrapper = new JobScheduledWrapper(jobName, location, jobConfiguration.getCron(), task);
-            startJob(scheduledFutureWrapper);
-            locationJobs.put(scheduledFutureWrapper.getName(), scheduledFutureWrapper);
+        JobScheduledWrapper scheduledFutureWrapper = new JobScheduledWrapper(jobName, location, jobConfiguration.getCron(), task);
+        startJob(scheduledFutureWrapper);
+        locationJobs.put(scheduledFutureWrapper.getName(), scheduledFutureWrapper);
 
     }
 

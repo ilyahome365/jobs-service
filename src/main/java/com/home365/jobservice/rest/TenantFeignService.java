@@ -1,6 +1,7 @@
 package com.home365.jobservice.rest;
 
 
+import com.home365.jobservice.entities.PropertyExtension;
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.model.TenantStatusChangeRequest;
 import com.home365.jobservice.model.wrapper.OwnerWrapper;
@@ -29,6 +30,9 @@ public interface TenantFeignService {
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     OwnerWrapper getOwnerAccountFromProperty(@Param("token") String token, @Param("propertyId") String propertyId) throws GeneralException;
 
+    @RequestLine("GET /property/get-properties-by-account-and-business-type?accountId={accountId}&businessType={businessType}")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    List<PropertyExtension> getPropertiesByAccountAndBusinessType(@Param("token") String token, @Param("accountId") String accountId, @Param("businessType") String businessType);
 
 
 }

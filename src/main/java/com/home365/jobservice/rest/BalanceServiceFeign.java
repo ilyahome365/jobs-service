@@ -1,5 +1,6 @@
 package com.home365.jobservice.rest;
 
+import com.home365.jobservice.entities.PropertyExtension;
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.model.PropertyPhasingOutWrapper;
 import com.home365.jobservice.model.wrapper.CancelChargeWrapper;
