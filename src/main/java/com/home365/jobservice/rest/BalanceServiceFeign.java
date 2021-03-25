@@ -1,7 +1,7 @@
 package com.home365.jobservice.rest;
 
-import com.home365.jobservice.entities.PropertyExtension;
 import com.home365.jobservice.exception.GeneralException;
+import com.home365.jobservice.model.AccountBalance;
 import com.home365.jobservice.model.PropertyPhasingOutWrapper;
 import com.home365.jobservice.model.wrapper.CancelChargeWrapper;
 import com.home365.jobservice.model.wrapper.OwnerBillsWrapper;
@@ -46,7 +46,11 @@ public interface BalanceServiceFeign {
 
     @RequestLine("GET /get-owner-projected-balance")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    OwnerProjectedBalanceWrapper getOwnerProjectedBalance(@Param("token") String token) throws GeneralException;
+    OwnerProjectedBalanceWrapper getAllOwnersProjectedBalance(@Param("token") String token) throws GeneralException;
+
+    @RequestLine("GET /account/{accountId}/balance?isProjectedBalance={isProjectedBalance}")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    AccountBalance getOwnerProjectedBalance(@Param("token") String token, @Param("accountId") String accountId , @Param("isProjectedBalance") Boolean projectedBalance) throws GeneralException;
 
 
 }

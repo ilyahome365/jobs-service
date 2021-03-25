@@ -6,13 +6,13 @@ import com.home365.jobservice.entities.PropertyExtension;
 import com.home365.jobservice.entities.enums.PropertyStatus;
 import com.home365.jobservice.entities.enums.ReasonForLeavingProperty;
 import com.home365.jobservice.exception.GeneralException;
+import com.home365.jobservice.model.AccountBalance;
 import com.home365.jobservice.model.PropertyPhasingOutWrapper;
 import com.home365.jobservice.model.RecipientMail;
 import com.home365.jobservice.model.enums.TenantStatus;
 import com.home365.jobservice.model.mail.MailDetails;
 import com.home365.jobservice.model.mail.MailResult;
 import com.home365.jobservice.model.wrapper.OwnerBillsWrapper;
-import com.home365.jobservice.model.wrapper.OwnerProjectedBalanceWrapper;
 import com.home365.jobservice.model.wrapper.OwnerWrapper;
 import com.home365.jobservice.model.wrapper.TenantWrapper;
 import com.home365.jobservice.rest.PropertyPhaseOutExternal;
@@ -82,8 +82,8 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
 
         propertyPhaseOutExternal.moveSecurityDepositToOwnerAccount(propertyId);
         OwnerWrapper ownerFromProperty = tenantServiceExternal.getOwnerFromProperty(propertyId);
-        OwnerProjectedBalanceWrapper ownerProjectedBalance = propertyPhaseOutExternal.getOwnerProjectedBalance();
-        Double projectedBalance = ownerProjectedBalance.getOwnerToProjectedBalance().get(ownerFromProperty.getAccountId());
+        AccountBalance ownerProjectedBalance = propertyPhaseOutExternal.getOwnerProjectedBalance(ownerFromProperty.getAccountId());
+        Double projectedBalance = ownerProjectedBalance.getBalance();
         if (!projectedBalance.isNaN()) {
             if (projectedBalance > 0) {
                 createAndSendMail(ownerFromProperty, "Property phasing out", property.get());

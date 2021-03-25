@@ -1,6 +1,7 @@
 package com.home365.jobservice.rest;
 
 import com.home365.jobservice.exception.GeneralException;
+import com.home365.jobservice.model.AccountBalance;
 import com.home365.jobservice.model.PropertyPhasingOutWrapper;
 import com.home365.jobservice.model.wrapper.OwnerBillsWrapper;
 import com.home365.jobservice.model.wrapper.OwnerProjectedBalanceWrapper;
@@ -14,5 +15,6 @@ public interface PropertyPhaseOutExternal {
     String createTerminationFeeBill(OwnerBillsWrapper ownerBillsWrapper) throws GeneralException;
     String createMaterialTransferFee(OwnerBillsWrapper  ownerBillsWrapper) throws GeneralException;
     void moveSecurityDepositToOwnerAccount(String propertyId) throws GeneralException;
-    OwnerProjectedBalanceWrapper getOwnerProjectedBalance() throws GeneralException;
+    OwnerProjectedBalanceWrapper getAllOwnersProjectedBalance() throws GeneralException;
+    AccountBalance getOwnerProjectedBalance(String accountId) throws GeneralException;
 }

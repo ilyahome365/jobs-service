@@ -1,6 +1,7 @@
 package com.home365.jobservice.rest.impl;
 
 import com.home365.jobservice.exception.GeneralException;
+import com.home365.jobservice.model.AccountBalance;
 import com.home365.jobservice.model.PropertyPhasingOutWrapper;
 import com.home365.jobservice.model.wrapper.CancelChargeWrapper;
 import com.home365.jobservice.model.wrapper.OwnerBillsWrapper;
@@ -65,8 +66,15 @@ public class PropertyPhaseOutExternalImpl implements PropertyPhaseOutExternal {
     }
 
     @Override
-    public OwnerProjectedBalanceWrapper getOwnerProjectedBalance() throws GeneralException {
+    public OwnerProjectedBalanceWrapper getAllOwnersProjectedBalance() throws GeneralException {
         KeycloakResponse token = keyCloakService.getKey();
-        return balanceServiceFeign.getOwnerProjectedBalance(token.getAccess_token());
+        return balanceServiceFeign.getAllOwnersProjectedBalance(token.getAccess_token());
+    }
+
+    @Override
+    public AccountBalance getOwnerProjectedBalance(String accountId) throws GeneralException {
+        KeycloakResponse token = keyCloakService.getKey();
+
+        return balanceServiceFeign.getOwnerProjectedBalance(token.getAccess_token(), accountId, true);
     }
 }
