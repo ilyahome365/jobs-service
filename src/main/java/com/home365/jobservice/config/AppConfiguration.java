@@ -41,9 +41,8 @@ public class AppConfiguration implements SchedulingConfigurer {
     private final ApplicationContext context;
 
 
-    public AppConfiguration(LeaseUpdatingServiceImpl leaseUpdatingService,
-                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, DueDateNotificationServiceImpl dueDateNotificationService, ApplicationContext context) {
-                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, PhaseOutPropertyServiceImpl phaseOutPropertyService, ApplicationContext context) {
+    public AppConfiguration(LeaseUpdatingServiceImpl leaseUpdatingService, DueDateNotificationServiceImpl dueDateNotificationService, ApplicationContext context,
+                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, PhaseOutPropertyServiceImpl phaseOutPropertyService) {
         this.leaseUpdatingService = leaseUpdatingService;
         this.changeBillStatusService = changeBillStatusService;
         this.jobsConfigurationService = jobsConfigurationService;
