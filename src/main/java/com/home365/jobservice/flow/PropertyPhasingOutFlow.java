@@ -102,7 +102,11 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
                 .name(ownerFromProperty.getName())
                 .email(ownerFromProperty.getEmail())
                 .build();
-        mailDetails.setRecipients(List.of(recipientMail));
+        RecipientMail localRecipient = RecipientMail.builder()
+                .name("HOME365 Support")
+                .email(appProperties.getMailSupport())
+                .build();
+        mailDetails.setRecipients(List.of(recipientMail, localRecipient));
         mailDetails.setContentTemplate(getContentTemplate(property, ownerFromProperty));
         MailResult mailResult = mailService.sendMail(mailDetails);
         log.info("mail log result : {} ", mailResult);
