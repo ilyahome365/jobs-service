@@ -1,88 +1,96 @@
 package com.home365.jobservice.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.home365.jobservice.config.AppProperties;
+import com.home365.jobservice.entities.projection.IDueDateEntry;
+import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.RecipientMail;
 import com.home365.jobservice.model.mail.MailDetails;
 import com.home365.jobservice.model.mail.MailResult;
+import com.home365.jobservice.repository.TransactionsRepository;
 import com.home365.jobservice.service.DueDateNotificationService;
 import com.home365.jobservice.service.MailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @Slf4j
-public class DueDateNotificationServiceImpl implements DueDateNotificationService {
+public class DueDateNotificationServiceImpl extends JobExecutorImpl implements DueDateNotificationService {
     private final JdbcTemplate jdbcTemplate;
-    private final AppProperties appProperties;
-    private final MailService mailService;
+    private final TransactionsRepository transactionsRepo;
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Value("${tenant.login.url}")
     String tenantLoginUrl;
 
-    public DueDateNotificationServiceImpl(JdbcTemplate jdbcTemplate, AppProperties appProperties, MailService mailService) {
+    public DueDateNotificationServiceImpl(JdbcTemplate jdbcTemplate, AppProperties appProperties, MailService mailService, TransactionsRepository transactionsRepo) {
+        super(appProperties, mailService);
         this.jdbcTemplate = jdbcTemplate;
-        this.appProperties = appProperties;
-        this.mailService = mailService;
-
+        this.transactionsRepo = transactionsRepo;
     }
 
     @Override
     public JobExecutionResults sendNotificationForDueDateTenants(String locationId) {
-        String query = "select ChargeAccountId, max(DueDate) MaxDueDate, caeb.new_contactid, c.FirstName, c.LastName, c.EMailAddress1  from Transactions tr\n" +
-                "inner join New_contactaccountExtensionBase caeb on caeb.new_accountid = tr.ChargeAccountId\n" +
-                "inner join Contact c on c.ContactId = caeb.new_contactid\n" +
-                "where ChargeAccountId in (\n" +
-                "select a.AccountId\n" +
-                "from Contact c\n" +
-                "         inner join New_contactaccountExtensionBase ca on ca.new_contactid = c.ContactId\n" +
-                "         inner join dbo.New_contactaccountBase cab on cab.New_contactaccountId=ca.New_contactaccountId\n" +
-                "         inner join dbo.AccountExtensionBase a on a.AccountId=ca.New_AccountId\n" +
-                "where cab.statuscode=1 and a.New_status in(1,4,6)\n" +
-                "    and a.New_BusinessType = 10\n" +
-                ") and status in ('readyForPayment') group by ChargeAccountId, caeb.new_contactid, c.FirstName, c.LastName, c.EMailAddress1";
+        double currentDay = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+        if (currentDay == 1 || currentDay == 6 || currentDay == 10 || currentDay == 15 || currentDay == 20 || currentDay == 25) {
+            List<IDueDateEntry> tenantChargesList = transactionsRepo.getDueDateNotificationsByPmAccountId(locationId);
 
-        List<Map<String, Object>> tenantChargesList = jdbcTemplate.queryForList(query);
+            tenantChargesList.forEach(entry -> sendDueDateNotification(entry.getMaxDueDate(), entry.getFirstName() + " " + entry.getLastName(), entry.getEMailAddress1(), entry.getTenantJson()));
 
-        tenantChargesList.forEach(entry -> sendDueDateNotification((Timestamp) entry.get("MaxDueDate"), entry.get("FirstName") + " " + entry.get("LastName"), (String) entry.get("EMailAddress1")));
-
-        return JobExecutionResults.builder().build();
+            return JobExecutionResults.builder()
+                    .message(String.format("Sent %s notification mails for location %s", tenantChargesList.size(), locationId))
+                    .build();
+        } else {
+            return JobExecutionResults.builder()
+                    .message(String.format("No need to send due date notifications for location {}", locationId))
+                    .build();
+        }
     }
 
-    private void sendDueDateNotification(Timestamp maxDueDate, String fullName, String eMailAddress) {
+    private void sendDueDateNotification(Timestamp maxDueDate, String fullName, String eMailAddress, String tenantJson) {
+        if (StringUtils.isEmpty(eMailAddress)) {
+            AtomicReference<String> eMailAddressAtomic = new AtomicReference();
+            try {
+                mapper.readTree(tenantJson).get("tenantDetails").forEach(e -> {
+                    BooleanNode isContactPerson = (BooleanNode) e.get("contactPerson");
+                    if(isContactPerson.asBoolean()) {
+                        eMailAddressAtomic.set(e.get("email").asText());
+                    }
+                });
+            } catch (JsonProcessingException e) {
+                log.error("Cannot parse json {}", tenantJson);
+            }
+            eMailAddress = eMailAddressAtomic.get();
+        } if(!StringUtils.isEmpty(eMailAddress)) {
+            MailDetails mailDetails = new MailDetails();
+            mailDetails.setFrom(appProperties.getMailSupport());
+            mailDetails.setSubject("Payment Reminder");
+            mailDetails.setTemplateName("duedate-payment-notification");
+            mailDetails.setContentTemplate(getContentTemplate(fullName, maxDueDate));
+            String finalEMailAddress = eMailAddress;
+            List<RecipientMail> recipients = new ArrayList<>() {{
+                add(new RecipientMail(fullName, finalEMailAddress));
+                add(new RecipientMail("Shauly Yonay", "shauly@home365.co"));
+            }};
+            mailDetails.setRecipients(recipients);
 
-        Calendar calendar = Calendar.getInstance();
-        double lastDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-        double currentDay = calendar.get(Calendar.DAY_OF_MONTH);
-        double daysLeft = lastDay - currentDay;
-
-        if(daysLeft == 5) {
-
-        } else if(currentDay == 1 || currentDay == 6) {
-
-        } else if (currentDay != 3 && currentDay % 3 == 0 && currentDay < lastDay - 6) {
-
+            MailResult mailResult = mailService.sendMail(mailDetails);
+            log.info("Mail Result for {}: ", fullName, mailResult.getError());
+        } else {
+            log.warn("Cannot send mail to {} due to missing email address", fullName);
         }
-
-        MailDetails mailDetails = new MailDetails();
-        mailDetails.setFrom(appProperties.getMailSupport());
-        mailDetails.setSubject("Payment Reminder");
-        mailDetails.setTemplateName("duedate-payment-notification");
-        mailDetails.setContentTemplate(getContentTemplate(fullName, maxDueDate));
-        List<RecipientMail> recipients = new ArrayList<>() {{
-            add(new RecipientMail(fullName, eMailAddress));
-            add(new RecipientMail("Shauly Yonay", "shauly@home365.co"));
-        }};
-        mailDetails.setRecipients(recipients);
-
-        MailResult mailResult = mailService.sendMail(mailDetails);
-
     }
 
     private Map<String, String> getContentTemplate(String fullName, Timestamp maxDueDate) {
@@ -92,5 +100,15 @@ public class DueDateNotificationServiceImpl implements DueDateNotificationServic
         contentTemplate.put("PAYMENT_DUE", sdf.format(maxDueDate));
         contentTemplate.put("LINK_URL", tenantLoginUrl);
         return contentTemplate;
+    }
+
+    @Override
+    protected String getJobName() {
+        return "due-date-notification";
+    }
+
+    @Override
+    protected String execute(String locationId) {
+        return sendNotificationForDueDateTenants(locationId).getMessage();
     }
 }

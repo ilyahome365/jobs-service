@@ -86,8 +86,13 @@ class JobServiceApplicationTests {
     }
 
     @Test
-    public void recurringChargesTest() throws Exception {
+    public void recurringChargesTestLV() throws Exception {
         recurringService.createTransactionsForRecurringCharges("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
+    }
+
+    @Test
+    public void recurringChargesTestAT() throws Exception {
+        recurringService.createTransactionsForRecurringCharges("F90E128A-CD00-4DF7-B0D0-0F40F80D624A");
     }
 
     @Test

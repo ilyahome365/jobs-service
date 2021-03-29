@@ -68,9 +68,8 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
         LEASE_PROPERTY_NOTIFICATION("lease-property-notification", 2L),
         LEASE_UPDATING("lease-updating", 3L),
         CHANGE_BILL_STATUS("bills-status-change", 4L),
-        PHASE_OUT_PROPERTY("phase-out-property",6l)
-        ;
-
+        DUE_DATE_NOTIFICATION("due-date-notification", 5L),
+        PHASE_OUT_PROPERTY("phase-out-property",6l);
 
         private final String name;
         private final Long key;

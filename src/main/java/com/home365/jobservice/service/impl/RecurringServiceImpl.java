@@ -57,8 +57,8 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
     }
 
     @Override
-    public List<Recurring> findByActive(boolean isActive) {
-        return recurringRepository.findByActive(true);
+    public List<Recurring> findByActive(boolean isActive, String pmAccountId) {
+        return recurringRepository.findByActiveAndPmAccountId(true, pmAccountId);
     }
 
     @Override
@@ -72,8 +72,20 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
     }
 
     @Override
-    public String createTransactionsForRecurringCharges(String lvPmAccountId) {
-        List<Recurring> activeRecurringChargeList = findByActive(true);
+    public String createTransactionsForRecurringCharges(String id) {
+        Optional<LocationRules> locationRules = locationRulesService.findLocationRulesById(id);
+        Rules rules = null;
+
+        try {
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            rules = mapper.readValue(locationRules.get().getRules(), Rules.class);
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage());
+            e.printStackTrace();
+            rules = new Rules();
+        }
+
+        List<Recurring> activeRecurringChargeList = findByActive(true, locationRules.get().getPmAccountId());
 
         List<Recurring> installmentsRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> recurring.getNumOfInstallments() > 0).collect(Collectors.toList());
         activeRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> recurring.getNumOfInstallments() == 0).collect(Collectors.toList());
@@ -84,21 +96,7 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
         responseStr.append("Number of recurring charges: " + activeRecurringChargeList.size() + "\n");
         responseStr.append("Number of installments charges: " + installmentsRecurringChargeList.size() + "\n");
 
-        lvPmAccountId = "F90E128A-CD00-4DF7-B0D0-0F40F80D623A";
 
-        Optional<LocationRules> locationRules = locationRulesService.findLocationRulesById(lvPmAccountId);
-        Rules rules = null;
-
-        try {
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            rules = mapper.readValue(locationRules.get().getRules(), Rules.class);
-        } catch (JsonProcessingException e) {
-            log.error(e.getMessage());
-            e.printStackTrace();
-            rules = new Rules();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 

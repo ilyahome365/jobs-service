@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RecurringService extends FindByIdAudit {
-    List<Recurring> findByActive(boolean isActive);
+    List<Recurring> findByActive(boolean isActive, String pmAccountId);
 
     Optional<Recurring> findById(String recurringId);
 

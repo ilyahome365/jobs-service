@@ -2,6 +2,7 @@ package com.home365.jobservice.repository;
 
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
+import com.home365.jobservice.entities.projection.IDueDateEntry;
 import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -50,4 +51,17 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
     @Query(value = "select * from Transactions where propertyId = :propertyId and " +
             "CategoryName = 'Tenant Rent' and status not in ('paid', 'cancel') ", nativeQuery = true)
     List<Transactions> findTenantRentTransactionsByPropertyId(@Param("propertyId") String propertyId);
+
+    @Query(value = "select ChargeAccountId, max(DueDate) MaxDueDate, caeb.new_contactid ContactId, c.FirstName, c.LastName, c.EMailAddress1, tn.tenantJson  from Transactions tr\n" +
+            "                inner join New_contactaccountExtensionBase caeb on caeb.new_accountid = tr.ChargeAccountId\n" +
+            "                inner join Contact c on c.ContactId = caeb.new_contactid\n" +
+            "                inner join Tenant tn on tn.propertyId = tr.PropertyId\n" +
+            "                where ChargeAccountId in (select a.AccountId from Contact c\n" +
+            "                         inner join New_contactaccountExtensionBase ca on ca.new_contactid = c.ContactId\n" +
+            "                         inner join dbo.New_contactaccountBase cab on cab.New_contactaccountId=ca.New_contactaccountId\n" +
+            "                         inner join dbo.AccountExtensionBase a on a.AccountId=ca.New_AccountId\n" +
+            "                where cab.statuscode=1 and a.New_status in(1,4,6) and a.New_BusinessType = 10)\n" +
+            "                and status in ('readyForPayment') and tr.PmAccountId = :pmAccountId\n" +
+            "                group by ChargeAccountId, caeb.new_contactid, c.FirstName, c.LastName, c.EMailAddress1, tn.tenantJson", nativeQuery = true)
+    List<IDueDateEntry> getDueDateNotificationsByPmAccountId(@Param("pmAccountId") String pmAccountId);
 }

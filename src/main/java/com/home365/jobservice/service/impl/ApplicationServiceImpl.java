@@ -36,7 +36,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService;
     private final ChangeBillStatusServiceImpl changeBillStatusService;
     private final RecurringServiceImpl recurringService;
-    private final DueDateNotificationService dueDateNotificationService;
+    private final DueDateNotificationServiceImpl dueDateNotificationService;
     private final LeaseUpdatingServiceImpl leaseUpdatingService;
 
     public ApplicationServiceImpl(AppProperties appProperties,
@@ -46,7 +46,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   ChangeBillStatusServiceImpl changeBillStatusService, RecurringServiceImpl recurringService,
                                   LateFeeJobServiceImpl lateFeeJobService,
                                   LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
-                                  DueDateNotificationService dueDateNotificationService,
+                                  DueDateNotificationServiceImpl dueDateNotificationService,
                                   LeaseUpdatingServiceImpl leaseUpdatingService) {
         this.appProperties = appProperties;
 
@@ -75,7 +75,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public JobExecutionResults dueDateTenantNotification(String locationId) {
-        return dueDateNotificationService.sendNotificationForDueDateTenants(locationId);
+        return dueDateNotificationService.executeJob(locationId);
     }
 
     @Override
