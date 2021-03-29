@@ -85,8 +85,10 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         AccountBalance ownerProjectedBalance = propertyPhaseOutExternal.getOwnerProjectedBalance(ownerFromProperty.getAccountId());
         Double projectedBalance = ownerProjectedBalance.getBalance();
         if (!projectedBalance.isNaN()) {
-            if (projectedBalance > 0) {
+            if (projectedBalance >= 0) {
                 createAndSendMail(ownerFromProperty, "Property phasing out", property.get());
+            }else if(projectedBalance<0){
+
             }
         }
         tenantServiceExternal.movePropertyToReadyForDeactivation(propertyId);
