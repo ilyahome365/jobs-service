@@ -95,7 +95,7 @@ public class AppConfiguration implements SchedulingConfigurer {
 //                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
 //                applicationService::startLeasePropertyNotification
 //        );
-        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.PHASE_OUT_PROPERTY.getName(),
                 "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
                 () -> phaseOutPropertyService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
         );
