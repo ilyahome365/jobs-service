@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface RecurringRepository extends JpaRepository<Recurring, String> {
 
-    List<Recurring> findByActive(boolean isActive);
+    List<Recurring> findByActiveAndPmAccountId(boolean isActive, String pmAccountId);
 
     @Query(value = "" +
             "SELECT * " +

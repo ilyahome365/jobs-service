@@ -14,7 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @Slf4j
-@ActiveProfiles("prod")
+@ActiveProfiles("dev")
 class JobServiceApplicationTests {
     private final String JOB_PENDING_DUE ="jobPendingJobTest";
     @Autowired
@@ -71,8 +71,13 @@ class JobServiceApplicationTests {
     }
 
     @Test
-    public void dueDateNotificationTest() throws Exception {
+    public void dueDateNotificationTestLV() throws Exception {
         dueDateNotificationService.sendNotificationForDueDateTenants("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
+    }
+
+    @Test
+    public void dueDateNotificationTestAT() throws Exception {
+        dueDateNotificationService.sendNotificationForDueDateTenants("23F2EF62-8905-4D6D-9A07-165E89BD6FAA");
     }
 
     @Test
@@ -81,7 +86,12 @@ class JobServiceApplicationTests {
     }
 
     @Test
-    public void recurringChargesTest() throws Exception {
+    public void recurringChargesTestLV() throws Exception {
         recurringService.createTransactionsForRecurringCharges("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
+    }
+
+    @Test
+    public void recurringChargesTestAT() throws Exception {
+        recurringService.createTransactionsForRecurringCharges("F90E128A-CD00-4DF7-B0D0-0F40F80D624A");
     }
 }

@@ -56,8 +56,8 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
     }
 
     @Override
-    public List<Recurring> findByActive(boolean isActive) {
-        return recurringRepository.findByActive(true);
+    public List<Recurring> findByActive(boolean isActive, String pmAccountId) {
+        return recurringRepository.findByActiveAndPmAccountId(true, pmAccountId);
     }
 
     @Override
@@ -71,21 +71,8 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
     }
 
     @Override
-    public String createTransactionsForRecurringCharges(String lvPmAccountId) {
-        List<Recurring> activeRecurringChargeList = findByActive(true);
-
-        List<Recurring> installmentsRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> recurring.getNumOfInstallments() > 0).collect(Collectors.toList());
-        activeRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> recurring.getNumOfInstallments() == 0).collect(Collectors.toList());
-
-        int activeRecurringChargeListSize = activeRecurringChargeList.size();
-
-        StringBuffer responseStr = new StringBuffer();
-        responseStr.append("Number of recurring charges: " + activeRecurringChargeList.size() + "\n");
-        responseStr.append("Number of installments charges: " + installmentsRecurringChargeList.size() + "\n");
-
-        lvPmAccountId = "F90E128A-CD00-4DF7-B0D0-0F40F80D623A";
-
-        Optional<LocationRules> locationRules = locationRulesService.findLocationRulesById(lvPmAccountId);
+    public String createTransactionsForRecurringCharges(String id) {
+        Optional<LocationRules> locationRules = locationRulesService.findLocationRulesById(id);
         Rules rules = null;
 
         try {
@@ -96,6 +83,19 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
             e.printStackTrace();
             rules = new Rules();
         }
+
+        List<Recurring> activeRecurringChargeList = findByActive(true, locationRules.get().getPmAccountId());
+
+        List<Recurring> installmentsRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> recurring.getNumOfInstallments() > 0).collect(Collectors.toList());
+        activeRecurringChargeList = activeRecurringChargeList.stream().filter(recurring -> recurring.getNumOfInstallments() == 0).collect(Collectors.toList());
+
+        int activeRecurringChargeListSize = activeRecurringChargeList.size();
+
+        StringBuffer responseStr = new StringBuffer();
+        responseStr.append("Number of recurring charges: " + activeRecurringChargeList.size() + "\n");
+        responseStr.append("Number of installments charges: " + installmentsRecurringChargeList.size() + "\n");
+
+
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 

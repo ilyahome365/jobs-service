@@ -67,7 +67,8 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
         LATE_FEE("late-fee", 1L),
         LEASE_PROPERTY_NOTIFICATION("lease-property-notification", 2L),
         LEASE_UPDATING("lease-updating", 3L),
-        CHANGE_BILL_STATUS("bills-status-change", 4L);
+        CHANGE_BILL_STATUS("bills-status-change", 4L),
+        DUE_DATE_NOTIFICATION("due-date-notification", 5L);
 
 
         private final String name;

@@ -6,6 +6,7 @@ import com.home365.jobservice.model.jobs.JobScheduledWrapper;
 import com.home365.jobservice.model.jobs.LocationJobsInfo;
 import com.home365.jobservice.service.JobsConfigurationService;
 import com.home365.jobservice.service.impl.ChangeBillStatusServiceImpl;
+import com.home365.jobservice.service.impl.DueDateNotificationServiceImpl;
 import com.home365.jobservice.service.impl.JobsConfigurationServiceImpl;
 import com.home365.jobservice.service.impl.LeaseUpdatingServiceImpl;
 import lombok.Data;
@@ -29,6 +30,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     private final LeaseUpdatingServiceImpl leaseUpdatingService;
     private final ChangeBillStatusServiceImpl changeBillStatusService;
     private final JobsConfigurationService jobsConfigurationService;
+    private final DueDateNotificationServiceImpl dueDateNotificationService;
 
     // <location, <jobName,jobObject>>
     private final Map<String, Map<String, JobScheduledWrapper>> jobLocationToJob;
@@ -37,12 +39,12 @@ public class AppConfiguration implements SchedulingConfigurer {
     private final ApplicationContext context;
 
 
-
     public AppConfiguration(LeaseUpdatingServiceImpl leaseUpdatingService,
-                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, ApplicationContext context) {
+                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, DueDateNotificationServiceImpl dueDateNotificationService, ApplicationContext context) {
         this.leaseUpdatingService = leaseUpdatingService;
         this.changeBillStatusService = changeBillStatusService;
         this.jobsConfigurationService = jobsConfigurationService;
+        this.dueDateNotificationService = dueDateNotificationService;
         this.jobLocationToJob = new HashMap<>();
         this.context = context;
     }
@@ -99,9 +101,13 @@ public class AppConfiguration implements SchedulingConfigurer {
                 () -> changeBillStatusService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
         );
 
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.DUE_DATE_NOTIFICATION.getName(),
+                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
+                () -> dueDateNotificationService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+        );
+
 
     }
-
 
 
     public List<LocationJobsInfo> getAllJobs() {
@@ -124,18 +130,18 @@ public class AppConfiguration implements SchedulingConfigurer {
 
     public synchronized void addJob(String jobName, String location, Runnable task) {
 
-            Optional<JobConfiguration> jobConfigurationOptional = jobsConfigurationService.getJobByLocationAndName(location, jobName);
-            if (jobConfigurationOptional.isEmpty()) {
-                log.error(String.format("Unable to find Job configuration with location [%s] name [%s] -> please verify JobConfiguration is added to DB", location, jobName));
-                return;
-            }
-            JobConfiguration jobConfiguration = jobConfigurationOptional.get();
+        Optional<JobConfiguration> jobConfigurationOptional = jobsConfigurationService.getJobByLocationAndName(location, jobName);
+        if (jobConfigurationOptional.isEmpty()) {
+            log.error(String.format("Unable to find Job configuration with location [%s] name [%s] -> please verify JobConfiguration is added to DB", location, jobName));
+            return;
+        }
+        JobConfiguration jobConfiguration = jobConfigurationOptional.get();
 
-            Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.computeIfAbsent(location, k -> new HashMap<>());
+        Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.computeIfAbsent(location, k -> new HashMap<>());
 
-            JobScheduledWrapper scheduledFutureWrapper = new JobScheduledWrapper(jobName, location, jobConfiguration.getCron(), task);
-            startJob(scheduledFutureWrapper);
-            locationJobs.put(scheduledFutureWrapper.getName(), scheduledFutureWrapper);
+        JobScheduledWrapper scheduledFutureWrapper = new JobScheduledWrapper(jobName, location, jobConfiguration.getCron(), task);
+        startJob(scheduledFutureWrapper);
+        locationJobs.put(scheduledFutureWrapper.getName(), scheduledFutureWrapper);
 
     }
 

@@ -15,6 +15,8 @@ public class LocationRules {
     String locationName;
     @Column
     String rules;
+    @Column(name = "pm_account_id")
+    String pmAccountId;
     @Transient
     private Rules rule;
 }
