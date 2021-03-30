@@ -99,7 +99,7 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         MailDetails mailDetails = new MailDetails();
         mailDetails.setFrom(appProperties.getMailSupport());
         mailDetails.setSubject(subject);
-        mailDetails.setTemplateName("property-phase-out-owner-positive-balance");
+        mailDetails.setTemplateName("property-phasing-out-owners");
         RecipientMail recipientMail = RecipientMail.builder()
                 .name(ownerFromProperty.getName())
                 .email(ownerFromProperty.getEmail())
