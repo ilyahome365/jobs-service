@@ -19,6 +19,7 @@ public interface ApplicationService {
     JobExecutionResults startLeaseUpdating(String locationId);
 
     JobExecutionResults startChangeBillStatusJob(String locationId);
+    JobExecutionResults startPhaseOutProperty(String locationId);
 
 
 }
