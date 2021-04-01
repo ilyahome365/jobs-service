@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -40,13 +42,18 @@ public class PhaseOutPropertyServiceImpl extends JobExecutorImpl {
     protected String execute(String locationId) throws Exception {
         List<String> propertiesPhaseOut = new ArrayList<>();
         String access_token = keyCloakService.getKey().getAccess_token();
-        List<PropertyExtension> propertiesByAccountAndBusinessType = tenantFeignService.getPropertiesByAccountAndBusinessType(access_token, locationId, BusinessType.PM.name());
+        List<PropertyExtension> propertiesByAccountAndBusinessType = tenantFeignService.getPropertiesByAccountAndBusinessType(access_token, locationId, BusinessType.PM.name()).stream()
+                .filter(Objects::nonNull)
+                .filter(propertyExtension -> propertyExtension.getPhasingOutDate() != null
+                        && (propertyExtension.getPhasingOutDate().isBefore(LocalDate.now())
+                        || propertyExtension.getPhasingOutDate().equals(LocalDate.now()))).collect(Collectors.toList());
+        log.info("Start phase out properties  : {} " , propertiesByAccountAndBusinessType.stream().map(PropertyExtension::getPropertyId).collect(Collectors.joining(",")));
         for (PropertyExtension propertyExtension : propertiesByAccountAndBusinessType) {
-            if (propertyExtension.getPhasingOutDate() != null && (propertyExtension.getPhasingOutDate().isBefore(LocalDate.now()) || propertyExtension.getPhasingOutDate().equals(LocalDate.now()))) {
+
                 propertyPhasingOutFlow.startPropertyPhasingOut(propertyExtension.getPropertyId());
                 propertiesPhaseOut.add(propertyExtension.getPropertyId());
 
-            }
+
         }
         return String.format("%s  run and and properties %s get phase out  ", PHASE_OUT_PROPERTY_JOB, String.join(",", propertiesPhaseOut));
     }
