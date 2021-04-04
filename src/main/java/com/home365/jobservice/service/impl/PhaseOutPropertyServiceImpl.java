@@ -45,7 +45,8 @@ public class PhaseOutPropertyServiceImpl extends JobExecutorImpl {
         List<String> propertiesPhaseOut = new ArrayList<>();
 
         String access_token = keyCloakService.getKey().getAccess_token();
-        List<PropertyExtension> propertiesByAccountAndBusinessType = tenantFeignService.getPropertiesByAccountAndBusinessType(access_token, locationId, BusinessType.PM.name()).stream()
+        List<PropertyExtension> propertiesByAccountAndBusinessType = tenantFeignService.getPropertiesByAccountAndBusinessType(access_token, locationId, BusinessType.PM.name())
+                .stream()
                 .filter(Objects::nonNull)
                 .filter(propertyExtension -> propertyExtension.getPhasingOutDate() != null &&
                         propertyExtension.getPropertyStatus().equalsIgnoreCase(PropertyStatus.phasingOut.name())
