@@ -33,6 +33,8 @@ public class CashPaymentTracking {
     LocalDateTime created;
     @Column
     LocalDateTime updated;
+    @Column(name = "is_sdd_payment")
+    Boolean sddPayment;
 
     @PrePersist
     protected void onCreate() {

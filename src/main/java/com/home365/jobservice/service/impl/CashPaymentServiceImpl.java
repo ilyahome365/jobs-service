@@ -5,6 +5,7 @@ import com.home365.jobservice.entities.*;
 import com.home365.jobservice.entities.enums.CashPaymentStatus;
 import com.home365.jobservice.entities.enums.PaymentMethod;
 import com.home365.jobservice.entities.enums.PaymentStatus;
+import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.model.*;
 import com.home365.jobservice.model.enums.BusinessType;
 import com.home365.jobservice.model.enums.CreditType;
@@ -13,6 +14,9 @@ import com.home365.jobservice.model.enums.TransferTo;
 import com.home365.jobservice.repository.AccountExtensionRepo;
 import com.home365.jobservice.repository.AccountRepository;
 import com.home365.jobservice.repository.CashPaymentTrackingRepository;
+import com.home365.jobservice.rest.BalanceServiceFeign;
+import com.home365.jobservice.rest.KeyCloakService;
+import com.home365.jobservice.rest.KeycloakResponse;
 import com.home365.jobservice.service.CashPaymentService;
 import com.home365.jobservice.service.PaymentStripeService;
 import com.home365.jobservice.service.PaymentsService;
@@ -52,6 +56,12 @@ public class CashPaymentServiceImpl implements CashPaymentService {
     @Autowired
     PaymentStripeService paymentStripeService;
 
+    @Autowired
+    KeyCloakService keyCloakService;
+
+    @Autowired
+    BalanceServiceFeign balanceServiceFeign;
+
     public void handleCashPaymentWebhookResponse(Object request) {
         Map<String, Object> requestMap = (Map<String, Object>) request;
         String eventType = (String) requestMap.get("eventType");
@@ -62,34 +72,44 @@ public class CashPaymentServiceImpl implements CashPaymentService {
         if (cashPaymentTrackingOpt.isPresent()) {
             CashPaymentTracking cashPaymentTracking = cashPaymentTrackingOpt.get();
             if (!CashPaymentStatus.PAYMENT_EXPIRED.name().equalsIgnoreCase(eventType)) {
-                List<String> transactions = Arrays.asList(cashPaymentTracking.getRelatedTransactions().split(",", -1));
-                transactions.forEach(transaction -> {
-                    Optional<Transactions> transactionsOptional = null;
+                if(cashPaymentTracking.getSddPayment() == null || cashPaymentTracking.getSddPayment() != true) {
+                    List<String> transactions = Arrays.asList(cashPaymentTracking.getRelatedTransactions().split(",", -1));
+                    transactions.forEach(transaction -> {
+                        Optional<Transactions> transactionsOptional = null;
 
-                    transactionsOptional = transactionService.findById(transaction);
+                        transactionsOptional = transactionService.findById(transaction);
 
-                    if (transactionsOptional.isPresent()) {
-                        Transactions transactionObject = transactionsOptional.get();
+                        if (transactionsOptional.isPresent()) {
+                            Transactions transactionObject = transactionsOptional.get();
 
-                        Payments paymentObj = paymentsService.createAndSavePayments(
-                                transactionObject.getAmount(),
-                                new Timestamp(new Date().getTime()),
-                                PaymentStatus.success,
-                                mtid,
-                                null,
-                                null,
-                                transactionObject.getReceiveAccountId(),
-                                transactionObject.getPmAccountId(),
-                                PaymentMethod.cash
-                        );
+                            Payments paymentObj = paymentsService.createAndSavePayments(
+                                    transactionObject.getAmount(),
+                                    new Timestamp(new Date().getTime()),
+                                    PaymentStatus.success,
+                                    mtid,
+                                    null,
+                                    null,
+                                    transactionObject.getReceiveAccountId(),
+                                    transactionObject.getPmAccountId(),
+                                    PaymentMethod.cash
+                            );
 
-                        transactionObject.setStatus("paid");
-                        transactionObject.setPaymentId(paymentObj.getPaymentId());
-                        transactionService.save(transactionObject);
+                            transactionObject.setStatus("paid");
+                            transactionObject.setPaymentId(paymentObj.getPaymentId());
+                            transactionService.save(transactionObject);
+                        }
+                    });
+
+                    handleCreditTransactions(cashPaymentTracking.getRelatedTransactions());
+                } else {
+                    KeycloakResponse token = null;
+                    try {
+                        token = keyCloakService.getKey();
+                        balanceServiceFeign.dispositionTenantPayment(token.getAccess_token(), null, cashPaymentTracking.getTenantId());
+                    } catch (GeneralException e) {
+                        log.error(e.getMessage());
                     }
-                });
-
-                handleCreditTransactions(cashPaymentTracking.getRelatedTransactions());
+                }
             }
             cashPaymentTracking.setStatus(CashPaymentStatus.valueOf(eventType));
             cashPaymentTrackingRepository.save(cashPaymentTracking);
