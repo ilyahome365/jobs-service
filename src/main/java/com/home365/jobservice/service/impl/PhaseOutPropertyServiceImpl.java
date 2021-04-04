@@ -52,7 +52,7 @@ public class PhaseOutPropertyServiceImpl extends JobExecutorImpl {
                         && (propertyExtension.getPhasingOutDate().isBefore(LocalDate.now())
                         || propertyExtension.getPhasingOutDate().equals(LocalDate.now()))).collect(Collectors.toList());
         for (PropertyExtension propertyExtension : propertiesByAccountAndBusinessType) {
-            if (propertyExtension.getPhasingOutDate() != null && (propertyExtension.getPhasingOutDate().isBefore(LocalDate.now()) || propertyExtension.getPhasingOutDate().equals(LocalDate.now()))) {
+
                 try {
                     propertyPhasingOutFlow.startPropertyPhasingOut(propertyExtension.getPropertyId());
                     propertiesPhaseOut.add(propertyExtension.getPropertyId());
@@ -61,7 +61,6 @@ public class PhaseOutPropertyServiceImpl extends JobExecutorImpl {
                 }
 
 
-            }
         }
         return String.format("%s  run and and properties %s get phase out  ", PHASE_OUT_PROPERTY_JOB, String.join(",", propertiesPhaseOut));
     }

@@ -4,7 +4,10 @@ import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.service.impl.ApplicationServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
@@ -53,4 +56,9 @@ public class JobsController {
         return ResponseEntity.ok(jobsService.startLeaseUpdating(locationId));
     }
 
+    @GetMapping("/phase-out-property")
+    public ResponseEntity<JobExecutionResults> propertyPhaseOut(@RequestParam String locationId) {
+        log.info("Start property phase out for locationId : {} ", locationId);
+        return ResponseEntity.ok(jobsService.startPhaseOutProperty(locationId));
+    }
 }

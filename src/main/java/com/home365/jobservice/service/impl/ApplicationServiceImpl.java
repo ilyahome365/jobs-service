@@ -1,25 +1,15 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
-import com.home365.jobservice.entities.JobLog;
-import com.home365.jobservice.entities.Transactions;
-import com.home365.jobservice.entities.TransactionsLog;
-import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
-import com.home365.jobservice.entities.enums.TransactionType;
 import com.home365.jobservice.model.JobExecutionResults;
-import com.home365.jobservice.model.PendingStatusJobData;
-import com.home365.jobservice.model.TransactionsFailedToChange;
-import com.home365.jobservice.service.*;
-import com.home365.jobservice.utils.Converters;
+import com.home365.jobservice.service.ApplicationService;
+import com.home365.jobservice.service.JobLogService;
+import com.home365.jobservice.service.TransactionsLogService;
+import com.home365.jobservice.service.TransactionsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -38,6 +28,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final RecurringServiceImpl recurringService;
     private final DueDateNotificationServiceImpl dueDateNotificationService;
     private final LeaseUpdatingServiceImpl leaseUpdatingService;
+    private final PhaseOutPropertyServiceImpl phaseOutPropertyService;
 
     public ApplicationServiceImpl(AppProperties appProperties,
                                   TransactionsService transactionsService,
@@ -47,7 +38,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   LateFeeJobServiceImpl lateFeeJobService,
                                   LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
                                   DueDateNotificationServiceImpl dueDateNotificationService,
-                                  LeaseUpdatingServiceImpl leaseUpdatingService) {
+                                  LeaseUpdatingServiceImpl leaseUpdatingService, PhaseOutPropertyServiceImpl phaseOutPropertyService) {
         this.appProperties = appProperties;
 
         this.jobLogService = jobLogService;
@@ -58,6 +49,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.leaseRecurringNotificationService = leaseRecurringNotificationService;
         this.dueDateNotificationService = dueDateNotificationService;
         this.leaseUpdatingService = leaseUpdatingService;
+        this.phaseOutPropertyService = phaseOutPropertyService;
     }
 
 
@@ -65,7 +57,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     public JobExecutionResults startLateFeeJob(String locationId) {
         return lateFeeJobService.executeJob(locationId);
     }
-
 
 
     @Override
@@ -90,7 +81,13 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public JobExecutionResults createTransactionsForRecurringCharges( String locationId) {
+    public JobExecutionResults startPhaseOutProperty(String locationId) {
+
+        return phaseOutPropertyService.executeJob(locationId);
+    }
+
+    @Override
+    public JobExecutionResults createTransactionsForRecurringCharges(String locationId) {
         //return recurringService.createTransactionsForRecurringCharges(locationId);
         return recurringService.executeJob(locationId);
     }
