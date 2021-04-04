@@ -2,6 +2,7 @@ package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.PropertyExtension;
+import com.home365.jobservice.entities.enums.PropertyStatus;
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.flow.PropertyPhasingOutFlow;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -38,18 +41,25 @@ public class PhaseOutPropertyServiceImpl extends JobExecutorImpl {
     }
 
     @Override
-    protected String execute(String locationId) throws Exception{
+    protected String execute(String locationId) throws Exception {
         List<String> propertiesPhaseOut = new ArrayList<>();
         String access_token = keyCloakService.getKey().getAccess_token();
-        List<PropertyExtension> propertiesByAccountAndBusinessType = tenantFeignService.getPropertiesByAccountAndBusinessType(access_token, locationId, BusinessType.PM.name());
+        List<PropertyExtension> propertiesByAccountAndBusinessType = tenantFeignService
+                .getPropertiesByAccountAndBusinessType(access_token, locationId, BusinessType.PM.name()).stream()
+                .filter(Objects::nonNull)
+                .filter(propertyExtension -> propertyExtension.getPhasingOutDate() != null &&
+                        propertyExtension.getPropertyStatus().equalsIgnoreCase(PropertyStatus.phasingOut.name())
+                        && (propertyExtension.getPhasingOutDate().isBefore(LocalDate.now())
+                        || propertyExtension.getPhasingOutDate().equals(LocalDate.now()))).collect(Collectors.toList());
         for (PropertyExtension propertyExtension : propertiesByAccountAndBusinessType) {
             if (propertyExtension.getPhasingOutDate() != null && (propertyExtension.getPhasingOutDate().isBefore(LocalDate.now()) || propertyExtension.getPhasingOutDate().equals(LocalDate.now()))) {
                 try {
                     propertyPhasingOutFlow.startPropertyPhasingOut(propertyExtension.getPropertyId());
+                    propertiesPhaseOut.add(propertyExtension.getPropertyId());
                 } catch (GeneralException e) {
-                   log.error(e.getMessage());
+                    log.error(e.getMessage());
                 }
-                propertiesPhaseOut.add(propertyExtension.getPropertyId());
+
 
             }
         }
