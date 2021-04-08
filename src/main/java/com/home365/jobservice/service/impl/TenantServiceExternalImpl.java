@@ -41,7 +41,7 @@ public class TenantServiceExternalImpl implements TenantServiceExternal {
 
     @Override
     public void movePropertyToReadyForDeactivation(String propertyId) throws GeneralException {
-        log.info("Start property ready for deactivation");
+        log.info("Start property ready for deactivation property : {} ", propertyId);
         KeycloakResponse token = keyCloakService.getKey();
         tenantFeignService.movePropertyToReadyForDeactivation(token.getAccess_token(), propertyId);
     }
