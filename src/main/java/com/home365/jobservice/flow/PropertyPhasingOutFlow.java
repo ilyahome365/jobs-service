@@ -55,50 +55,52 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         PropertyPhasingOutWrapper propertyPhasingOutWrapper = new PropertyPhasingOutWrapper();
         Optional<PropertyExtension> property = propertyService.findPropertyById(propertyId);
 
-            if (property.isEmpty()) {
-                GeneralException generalException = new GeneralException();
-                generalException.setMessage("No property for " + propertyId);
-                throw generalException;
-            }
-            if (property.get().getPropertyStatus() == null || !property.get().getPropertyStatus().equalsIgnoreCase(PropertyStatus.phasingOut.name())) {
-                GeneralException generalException = new GeneralException();
-                generalException.setMessage("property is not on property phase out");
-                throw generalException;
-            }
-            List<TenantWrapper> tenants = tenantServiceExternal.getTenantsByPropertyId(propertyId);
-            propertyPhasingOutWrapper.setPropertyId(propertyId);
-            propertyPhasingOutWrapper.setTriggerDateAndTime(property.get().getPhasingOutDate().toString());
-            cancelFutureBills(propertyPhasingOutWrapper);
-            cancelFutureCharges(propertyPhasingOutWrapper);
-            cancelRecurringForProperty(propertyPhasingOutWrapper, tenants);
-            createOwnerBillFromTenantCharges(propertyPhasingOutWrapper, tenants);
-            if (!property.get().getReasonForLeaving().equalsIgnoreCase(ReasonForLeavingProperty.SoldByHome365_PropertyNotStaysInHome365.name()) &&
-                    !property.get().getReasonForLeaving().equalsIgnoreCase(ReasonForLeavingProperty.SoldByHome365_PropertyStaysInHome365.name())) {
-                String createdBill = createTearminationFeeBill(propertyId);
-                log.info("Created BIll Id : {} ", createdBill);
-            }
+        if (property.isEmpty()) {
+            GeneralException generalException = new GeneralException();
+            generalException.setMessage("No property for " + propertyId);
+            throw generalException;
+        }
+        if (property.get().getPropertyStatus() == null || !property.get().getPropertyStatus().equalsIgnoreCase(PropertyStatus.phasingOut.name())) {
+            GeneralException generalException = new GeneralException();
+            generalException.setMessage("property is not on property phase out");
+            throw generalException;
+        }
+        List<TenantWrapper> tenants = tenantServiceExternal.getTenantsByPropertyId(propertyId);
+        propertyPhasingOutWrapper.setPropertyId(propertyId);
+        propertyPhasingOutWrapper.setTriggerDateAndTime(property.get().getPhasingOutDate().toString());
+        cancelFutureBills(propertyPhasingOutWrapper);
+        cancelFutureCharges(propertyPhasingOutWrapper);
+        cancelRecurringForProperty(propertyPhasingOutWrapper, tenants);
+        createOwnerBillFromTenantCharges(propertyPhasingOutWrapper, tenants);
+        if (!property.get().getReasonForLeaving().equalsIgnoreCase(ReasonForLeavingProperty.SoldByHome365_PropertyNotStaysInHome365.name()) &&
+                !property.get().getReasonForLeaving().equalsIgnoreCase(ReasonForLeavingProperty.SoldByHome365_PropertyStaysInHome365.name())) {
+            String createdBill = createTearminationFeeBill(propertyId);
+            log.info("Created BIll Id : {} ", createdBill);
+        }
 
-            String materialTransferFee = createMaterialTransferFee(propertyId);
-            log.info("Material transfer fee bill id : {} ", materialTransferFee);
+        String materialTransferFee = createMaterialTransferFee(propertyId);
+        log.info("Material transfer fee bill id : {} ", materialTransferFee);
 
-            propertyPhaseOutExternal.moveSecurityDepositToOwnerAccount(propertyId);
-            OwnerWrapper ownerFromProperty = tenantServiceExternal.getOwnerFromProperty(propertyId);
-            AccountBalance ownerProjectedBalance = propertyPhaseOutExternal.getOwnerProjectedBalance(ownerFromProperty.getAccountId());
-            Double projectedBalance = ownerProjectedBalance.getBalance();
-            if (!projectedBalance.isNaN()) {
-                if (projectedBalance >= 0) {
-                    createAndSendMail(ownerFromProperty, "Property phasing out", property.get());
-                } else if (projectedBalance < 0) {
+        propertyPhaseOutExternal.moveSecurityDepositToOwnerAccount(propertyId);
+        OwnerWrapper ownerFromProperty = tenantServiceExternal.getOwnerFromProperty(propertyId);
+        AccountBalance ownerProjectedBalance = propertyPhaseOutExternal.getOwnerProjectedBalance(ownerFromProperty.getAccountId());
+        Double projectedBalance = ownerProjectedBalance.getBalance();
+        log.info("Projected balance for account : {}  is {} ", ownerFromProperty.getAccountId(), projectedBalance);
+        if (!projectedBalance.isNaN()) {
+            if (projectedBalance >= 0) {
+                createAndSendMail(ownerFromProperty, "Property phasing out", property.get());
+            } else if (projectedBalance < 0) {
 
-                }
             }
+        }
 
-            tenantServiceExternal.movePropertyToReadyForDeactivation(propertyId);
+        tenantServiceExternal.movePropertyToReadyForDeactivation(propertyId);
 
 
     }
 
     private void createAndSendMail(OwnerWrapper ownerFromProperty, String subject, PropertyExtension property) {
+        log.info("send mail to : {}  with subject {} ", ownerFromProperty.getEmail(), subject);
         MailDetails mailDetails = new MailDetails();
         mailDetails.setFrom(appProperties.getMailSupport());
         mailDetails.setSubject(subject);

@@ -53,6 +53,8 @@ public class PhaseOutPropertyServiceImpl extends JobExecutorImpl {
                         propertyExtension.getPropertyStatus().equalsIgnoreCase(PropertyStatus.phasingOut.name())
                         && (propertyExtension.getPhasingOutDate().isBefore(LocalDate.now())
                         || propertyExtension.getPhasingOutDate().equals(LocalDate.now()))).collect(Collectors.toList());
+
+        log.info("");
         for (PropertyExtension propertyExtension : propertiesByAccountAndBusinessType) {
 
                 try {
