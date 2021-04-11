@@ -18,7 +18,7 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
     @Query(
             value = "SELECT * " +
                     "FROM Transactions " +
-                    "WHERE TransactionType = 'Charge' AND DueDate between '20210301 00:00:00' AND '20210301 23:59:59' " +
+                    "WHERE TransactionType = 'Charge' AND DueDate between '20210401 00:00:00' AND '20210401 23:59:59' AND pmAccountId = :pmAccountId and Amount > 0 " +
                     "      AND categoryName IN (:categoryNames)" +
                     "      AND Status IN (:status) " +
                     "AND TransactionId NOT IN ( " +
@@ -27,10 +27,7 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
                     "   WHERE BillType = 'lateFee' AND ReferenceTransactionId is not null" +
                     ")",
             nativeQuery = true)
-    List<Transactions> findAllByBillTypeAndStatus(
-            @Param("categoryNames") List<String> categoryNames,
-            @Param("status") List<String> status
-    );
+    List<Transactions> findAllByBillTypeAndStatus(@Param("categoryNames") List<String> categoryNames, @Param("status") List<String> status, @Param("pmAccountId") String pmAccountId);
 
     @Query(value = "select * from Transactions where RecurringTemplateId = :recurringTemplateId and status not in ('cancel') order by dueDate",
     nativeQuery = true)
@@ -44,7 +41,7 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
                     "FROM AccountingTypePrimaryexpertise a " +
                     "         INNER JOIN New_primaryexpertiseExtensionBase p on p.New_primaryexpertiseId=a.New_primaryexpertiseExtensionBaseId " +
                     "         INNER JOIN NewAccountingType na on na.Id=a.AccountingTypeId " +
-                    "WHERE p.New_code = 11587"
+                    "WHERE na.Name = 'Late Fee Income'"
             , nativeQuery = true)
     ILateFeeAdditionalInformationProjection getLateFeeAdditionalInformation();
 

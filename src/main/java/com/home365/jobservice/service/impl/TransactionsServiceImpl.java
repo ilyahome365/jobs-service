@@ -45,8 +45,8 @@ public class TransactionsServiceImpl implements TransactionsService {
     }
 
     @Override
-    public List<Transactions> findAllByBillTypeAndStatus(List<String> categoryNames, List<String> status) {
-        return transactionsRepository.findAllByBillTypeAndStatus(categoryNames, status);
+    public List<Transactions> findAllByBillTypeAndStatus(List<String> categoryNames, List<String> status, String pmAccountId) {
+        return transactionsRepository.findAllByBillTypeAndStatus(categoryNames, status, pmAccountId);
     }
 
     @Override

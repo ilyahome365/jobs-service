@@ -13,7 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @Slf4j
-@ActiveProfiles("test")
+@ActiveProfiles("prod")
 class JobServiceApplicationTests {
     private final String JOB_PENDING_DUE = "jobPendingJobTest";
     @Autowired
@@ -71,8 +71,13 @@ class JobServiceApplicationTests {
     }*/
 
     @Test
-    public void lateFeeTest() throws Exception {
+    public void lateFeeLVTest() throws Exception {
         lateFeeJobService.execute("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
+    }
+
+    @Test
+    public void lateFeeATTest() throws Exception {
+        lateFeeJobService.execute("F90E128A-CD00-4DF7-B0D0-0F40F80D624A");
     }
 
     @Test

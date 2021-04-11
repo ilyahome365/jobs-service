@@ -13,7 +13,7 @@ public interface TransactionsService extends FindByIdAudit{
 
     List<TransactionsWithProjectedBalance> getTransactionsWithProjectedBalance(String cycleDate, String locationId);
 
-    List<Transactions> findAllByBillTypeAndStatus(List<String> categoryNames, List<String> status);
+    List<Transactions> findAllByBillTypeAndStatus(List<String> categoryNames, List<String> status, String pmAccountId);
 
     List<Transactions> findByRecurringTemplateId(String recurringTemplateId);
 
