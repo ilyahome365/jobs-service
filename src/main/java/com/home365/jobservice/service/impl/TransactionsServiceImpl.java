@@ -4,6 +4,7 @@ import com.home365.jobservice.entities.IAuditableEntity;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
+import com.home365.jobservice.entities.projection.IOwnerRentNotification;
 import com.home365.jobservice.repository.TransactionsRepository;
 import com.home365.jobservice.repository.TransactionsWithProjectedBalanceRepo;
 import com.home365.jobservice.service.TransactionsService;
@@ -107,6 +108,11 @@ public class TransactionsServiceImpl implements TransactionsService {
     @Override
     public void saveAll(List<Transactions> transactions) {
         transactionsRepository.saveAll(transactions);
+    }
+
+    @Override
+    public List<IOwnerRentNotification> getTransactionsForOwnerRent(String pmAccount, String firstDate, String lastDate) {
+       return transactionsRepository.getOwnerRentNotification(pmAccount,firstDate,lastDate);
     }
 
 

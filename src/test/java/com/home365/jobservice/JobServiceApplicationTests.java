@@ -3,6 +3,7 @@ package com.home365.jobservice;
 import com.home365.jobservice.rest.KeyCloakService;
 import com.home365.jobservice.rest.TenantFeignService;
 import com.home365.jobservice.service.JobLogService;
+import com.home365.jobservice.service.OwnerNotificationsService;
 import com.home365.jobservice.service.TransactionsService;
 import com.home365.jobservice.service.impl.*;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @Slf4j
-@ActiveProfiles("prod")
+@ActiveProfiles("test")
 class JobServiceApplicationTests {
     private final String JOB_PENDING_DUE = "jobPendingJobTest";
     @Autowired
@@ -34,6 +35,9 @@ class JobServiceApplicationTests {
     KeyCloakService keyCloakService;
     @Autowired
     PhaseOutPropertyServiceImpl phaseOutPropertyService;
+
+    @Autowired
+    OwnerNotificationsService ownerNotificationsService;
 
     @Test
     void contextLoads() {
@@ -104,6 +108,10 @@ class JobServiceApplicationTests {
     public void phaseOutProperty() {
         phaseOutPropertyService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
 
+    }
+
+    @Test void ownerNotificationTest(){
+        ownerNotificationsService.createOwnerNotification("F90E128A-CD00-4DF7-B0D0-0F40F80D623A");
     }
 
 

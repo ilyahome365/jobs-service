@@ -5,11 +5,8 @@ import com.home365.jobservice.model.jobs.JobInfo;
 import com.home365.jobservice.model.jobs.JobScheduledWrapper;
 import com.home365.jobservice.model.jobs.LocationJobsInfo;
 import com.home365.jobservice.service.JobsConfigurationService;
-import com.home365.jobservice.service.impl.ChangeBillStatusServiceImpl;
-import com.home365.jobservice.service.impl.DueDateNotificationServiceImpl;
-import com.home365.jobservice.service.impl.JobsConfigurationServiceImpl;
-import com.home365.jobservice.service.impl.LeaseUpdatingServiceImpl;
-import com.home365.jobservice.service.impl.PhaseOutPropertyServiceImpl;
+import com.home365.jobservice.service.OwnerNotificationsService;
+import com.home365.jobservice.service.impl.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -33,6 +30,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     private final JobsConfigurationService jobsConfigurationService;
     private final DueDateNotificationServiceImpl dueDateNotificationService;
     private final PhaseOutPropertyServiceImpl phaseOutPropertyService;
+    private final OwnerNotificationsServiceImpl ownerNotificationsService;
 
     // <location, <jobName,jobObject>>
     private final Map<String, Map<String, JobScheduledWrapper>> jobLocationToJob;
@@ -42,12 +40,13 @@ public class AppConfiguration implements SchedulingConfigurer {
 
 
     public AppConfiguration(LeaseUpdatingServiceImpl leaseUpdatingService, DueDateNotificationServiceImpl dueDateNotificationService, ApplicationContext context,
-                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, PhaseOutPropertyServiceImpl phaseOutPropertyService) {
+                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService) {
         this.leaseUpdatingService = leaseUpdatingService;
         this.changeBillStatusService = changeBillStatusService;
         this.jobsConfigurationService = jobsConfigurationService;
         this.dueDateNotificationService = dueDateNotificationService;
         this.phaseOutPropertyService = phaseOutPropertyService;
+        this.ownerNotificationsService = ownerNotificationsService;
         this.jobLocationToJob = new HashMap<>();
         this.context = context;
     }
@@ -107,6 +106,11 @@ public class AppConfiguration implements SchedulingConfigurer {
         addJob(JobsConfigurationServiceImpl.JOBS_ID.DUE_DATE_NOTIFICATION.getName(),
                 "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
                 () -> dueDateNotificationService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+        );
+
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.OWNER_RENT_NOTIFICATION.getName(),
+                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
+                () -> ownerNotificationsService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
         );
 
 

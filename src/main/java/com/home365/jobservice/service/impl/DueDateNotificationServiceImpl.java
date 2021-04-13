@@ -1,7 +1,6 @@
 package com.home365.jobservice.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.home365.jobservice.config.AppProperties;
@@ -54,7 +53,7 @@ public class DueDateNotificationServiceImpl extends JobExecutorImpl implements D
                     .build();
         } else {
             return JobExecutionResults.builder()
-                    .message(String.format("No need to send due date notifications for location {}", locationId))
+                    .message(String.format("No need to send due date notifications for location %s", locationId))
                     .build();
         }
     }

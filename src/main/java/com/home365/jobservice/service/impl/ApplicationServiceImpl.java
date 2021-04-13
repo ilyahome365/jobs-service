@@ -15,8 +15,6 @@ import java.time.LocalDateTime;
 @Slf4j
 public class ApplicationServiceImpl implements ApplicationService {
 
-    private final String JOB_PENDING_DUE = "ChangeBillStatusJob";
-
 
     private final AppProperties appProperties;
 
@@ -29,6 +27,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final DueDateNotificationServiceImpl dueDateNotificationService;
     private final LeaseUpdatingServiceImpl leaseUpdatingService;
     private final PhaseOutPropertyServiceImpl phaseOutPropertyService;
+    private final OwnerNotificationsServiceImpl ownerNotificationsService;
 
     public ApplicationServiceImpl(AppProperties appProperties,
                                   TransactionsService transactionsService,
@@ -38,7 +37,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   LateFeeJobServiceImpl lateFeeJobService,
                                   LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
                                   DueDateNotificationServiceImpl dueDateNotificationService,
-                                  LeaseUpdatingServiceImpl leaseUpdatingService, PhaseOutPropertyServiceImpl phaseOutPropertyService) {
+                                  LeaseUpdatingServiceImpl leaseUpdatingService, PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService) {
         this.appProperties = appProperties;
 
         this.jobLogService = jobLogService;
@@ -50,6 +49,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.dueDateNotificationService = dueDateNotificationService;
         this.leaseUpdatingService = leaseUpdatingService;
         this.phaseOutPropertyService = phaseOutPropertyService;
+        this.ownerNotificationsService = ownerNotificationsService;
     }
 
 
@@ -84,6 +84,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     public JobExecutionResults startPhaseOutProperty(String locationId) {
 
         return phaseOutPropertyService.executeJob(locationId);
+    }
+
+    @Override
+    public JobExecutionResults startOwnerRentNotification(String locationId) {
+        return ownerNotificationsService.executeJob(locationId);
     }
 
     @Override

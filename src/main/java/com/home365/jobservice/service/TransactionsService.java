@@ -3,6 +3,7 @@ package com.home365.jobservice.service;
 import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.Transactions;
+import com.home365.jobservice.entities.projection.IOwnerRentNotification;
 
 import java.util.Date;
 import java.util.List;
@@ -33,6 +34,10 @@ public interface TransactionsService extends FindByIdAudit{
     Optional<Transactions> findTransaction(String transactionId);
 
     void saveAll(List<Transactions> mgmtFeeTransactions);
+
+    List<IOwnerRentNotification> getTransactionsForOwnerRent(String pmAccount , String firstDate ,String lastDate);
+
+
 
 
 }

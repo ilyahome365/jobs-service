@@ -21,5 +21,7 @@ public interface ApplicationService {
     JobExecutionResults startChangeBillStatusJob(String locationId);
     JobExecutionResults startPhaseOutProperty(String locationId);
 
+    JobExecutionResults startOwnerRentNotification(String locationId);
+
 
 }

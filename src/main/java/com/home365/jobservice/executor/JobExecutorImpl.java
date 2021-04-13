@@ -1,10 +1,12 @@
 package com.home365.jobservice.executor;
 
 import com.home365.jobservice.config.AppProperties;
+import com.home365.jobservice.entities.JobLog;
 import com.home365.jobservice.model.JobExecutionResults;
 import com.home365.jobservice.model.RecipientMail;
 import com.home365.jobservice.model.mail.MailDetails;
 import com.home365.jobservice.model.mail.MailResult;
+import com.home365.jobservice.service.JobLogService;
 import com.home365.jobservice.service.MailService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -25,6 +28,8 @@ import java.util.stream.Collectors;
 public abstract class JobExecutorImpl implements JobService {
     protected final AppProperties appProperties;
     protected final MailService mailService;
+    @Autowired
+    private JobLogService jobLogService;
     private final ReentrantLock lock = new ReentrantLock();
 
     @Autowired
@@ -33,6 +38,7 @@ public abstract class JobExecutorImpl implements JobService {
     public JobExecutorImpl(AppProperties appProperties, MailService mailService) {
         this.appProperties = appProperties;
         this.mailService = mailService;
+
     }
 
     @Override
@@ -48,7 +54,7 @@ public abstract class JobExecutorImpl implements JobService {
                 jobExecutionResults.setMessage(jobExecutionResult);
                 jobExecutionResults.setJobName(getJobName());
                 setEndingTimeAndDuration(jobExecutionResults, startTime);
-
+                saveJobLog(jobExecutionResults);
             } else {
                 log.info(getJobName() + " -> Already Running");
                 jobExecutionResults.setMessage(getJobName() + " -> Already Running");
@@ -67,10 +73,26 @@ public abstract class JobExecutorImpl implements JobService {
         return jobExecutionResults;
     }
 
+    private void saveJobLog(JobExecutionResults jobExecutionResult) {
+        JobLog jobLog = new JobLog();
+        jobLog.setDate(Timestamp.valueOf(jobExecutionResult.getStartTime()));
+        jobLog.setJobName(jobExecutionResult.getJobName());
+        jobLog.setComments(StringUtils.isEmpty(jobExecutionResult.getError()) ? jobExecutionResult.getMessage() : jobExecutionResult.getStackTrace());
+        jobLog.setLastRun(jobExecutionResult.getEndTime().toLocalDate());
+        jobLog.setStatus(getStatusFromJob(jobExecutionResult));
+        jobLogService.saveJobLog(jobLog);
+    }
+
+    private String getStatusFromJob(JobExecutionResults jobExecutionResult) {
+        if (StringUtils.isEmpty(jobExecutionResult.getError()))
+            return "completed";
+        else
+            return jobExecutionResult.getError();
+    }
+
     protected abstract String getJobName();
 
     protected abstract String execute(String locationId) throws Exception;
-
 
 
     private void setEndingTimeAndDuration(JobExecutionResults jobExecutionResults,
@@ -107,7 +129,7 @@ public abstract class JobExecutorImpl implements JobService {
 
     private Map<String, String> getContentTemplate(JobExecutionResults jobExecutionResults) {
         String[] activeProfile = environment.getActiveProfiles();
-        String activeProfileStr = String.join(",",activeProfile);
+        String activeProfileStr = String.join(",", activeProfile);
         String message = activeProfileStr + " " + (StringUtils.isEmpty(jobExecutionResults.getMessage()) ? "" : jobExecutionResults.getMessage());
         Map<String, String> contentTemplate = new HashMap<>();
         contentTemplate.put("START_TIME", jobExecutionResults.getStartTimeBeautify());
