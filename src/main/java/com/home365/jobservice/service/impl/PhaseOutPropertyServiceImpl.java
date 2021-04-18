@@ -12,6 +12,7 @@ import com.home365.jobservice.rest.TenantFeignService;
 import com.home365.jobservice.service.MailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -50,11 +51,13 @@ public class PhaseOutPropertyServiceImpl extends JobExecutorImpl {
                 .stream()
                 .filter(Objects::nonNull)
                 .filter(propertyExtension -> propertyExtension.getPhasingOutDate() != null &&
+                        !StringUtils.isEmpty(propertyExtension.getPropertyStatus()) &&
                         propertyExtension.getPropertyStatus().equalsIgnoreCase(PropertyStatus.phasingOut.name())
                         && (propertyExtension.getPhasingOutDate().isBefore(LocalDate.now())
                         || propertyExtension.getPhasingOutDate().equals(LocalDate.now()))).collect(Collectors.toList());
 
-        log.info("");
+        log.info("Start phase out for properties : {} " , propertiesByAccountAndBusinessType.stream()
+                .map(PropertyExtension::getPropertyId).collect(Collectors.joining(",")));
         for (PropertyExtension propertyExtension : propertiesByAccountAndBusinessType) {
 
                 try {
