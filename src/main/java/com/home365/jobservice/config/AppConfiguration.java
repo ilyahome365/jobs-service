@@ -99,6 +99,10 @@ public class AppConfiguration implements SchedulingConfigurer {
                 "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
                 () -> phaseOutPropertyService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
         );
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.PHASE_OUT_PROPERTY.getName(),
+                "23F2EF62-8905-4D6D-9A07-165E89BD6FAA",
+                () -> phaseOutPropertyService.executeJob("23F2EF62-8905-4D6D-9A07-165E89BD6FAA")
+        );
         addJob(JobsConfigurationServiceImpl.JOBS_ID.CHANGE_BILL_STATUS.getName(),
                 "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
                 () -> changeBillStatusService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
