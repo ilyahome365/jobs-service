@@ -64,7 +64,6 @@ public abstract class JobExecutorImpl implements JobService {
             jobExecutionResults.setError(ex.getMessage());
             jobExecutionResults.setStackTrace(Arrays.toString(ex.getStackTrace()));
             log.info(String.format("Job [%s] failed -> Send Mail with the reason", getJobName()));
-            ex.printStackTrace();
         } finally {
             lock.unlock();
             sendMailOnFail(getJobName(), jobExecutionResults);
