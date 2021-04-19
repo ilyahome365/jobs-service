@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.*;
+import com.home365.jobservice.entities.enums.WhoPayChargesTypes;
 import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.repository.RecurringRepository;
@@ -239,6 +240,7 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
                 .transactionId(UUID.randomUUID().toString())
                 .transactionType("Charge")
                 .statementType(StringUtils.isEmpty(recurringCharge.getStatementType()) ? null : recurringCharge.getStatementType().toLowerCase())
+                .payBy(WhoPayChargesTypes.Tenant.name())
                 .build();
 
         return transaction;

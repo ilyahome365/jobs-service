@@ -36,8 +36,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CashPaymentServiceImpl implements CashPaymentService {
 
-    private final ObjectMapper mapper = new ObjectMapper();
-
     @Autowired
     CashPaymentTrackingRepository cashPaymentTrackingRepository;
 
@@ -75,13 +73,9 @@ public class CashPaymentServiceImpl implements CashPaymentService {
                 if(cashPaymentTracking.getSddPayment() == null || cashPaymentTracking.getSddPayment() != true) {
                     List<String> transactions = Arrays.asList(cashPaymentTracking.getRelatedTransactions().split(",", -1));
                     transactions.forEach(transaction -> {
-                        Optional<Transactions> transactionsOptional = null;
-
-                        transactionsOptional = transactionService.findById(transaction);
-
+                        Optional<Transactions> transactionsOptional = transactionService.findById(transaction);
                         if (transactionsOptional.isPresent()) {
                             Transactions transactionObject = transactionsOptional.get();
-
                             Payments paymentObj = paymentsService.createAndSavePayments(
                                     transactionObject.getAmount(),
                                     new Timestamp(new Date().getTime()),

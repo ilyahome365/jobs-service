@@ -5,7 +5,6 @@ import com.home365.jobservice.model.jobs.JobInfo;
 import com.home365.jobservice.model.jobs.JobScheduledWrapper;
 import com.home365.jobservice.model.jobs.LocationJobsInfo;
 import com.home365.jobservice.service.JobsConfigurationService;
-import com.home365.jobservice.service.OwnerNotificationsService;
 import com.home365.jobservice.service.impl.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +24,8 @@ import static com.home365.jobservice.config.ThreadPool.configurePool;
 @Service
 public class AppConfiguration implements SchedulingConfigurer {
 
+    public static final String lvPmAccount = "F90E128A-CD00-4DF7-B0D0-0F40F80D623A";
+    public static final String atPmAccount = "23F2EF62-8905-4D6D-9A07-165E89BD6FAA";
     private final LeaseUpdatingServiceImpl leaseUpdatingService;
     private final ChangeBillStatusServiceImpl changeBillStatusService;
     private final JobsConfigurationService jobsConfigurationService;
@@ -32,7 +33,6 @@ public class AppConfiguration implements SchedulingConfigurer {
     private final PhaseOutPropertyServiceImpl phaseOutPropertyService;
     private final OwnerNotificationsServiceImpl ownerNotificationsService;
 
-    // <location, <jobName,jobObject>>
     private final Map<String, Map<String, JobScheduledWrapper>> jobLocationToJob;
     private ScheduledTaskRegistrar scheduledTaskRegistrar;
 
@@ -60,60 +60,34 @@ public class AppConfiguration implements SchedulingConfigurer {
             this.scheduledTaskRegistrar.setScheduler(configurePool());
         }
 
-
-//        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
-//                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-//                () -> log.info("------------------------> RUN LATE_FEE JOB <------------------------")
-//        );
-
-//        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
-//                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-//                () -> log.info("------------------------> RUN LATE_FEE JOB <------------------------")
-//        );
-//
-//        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_PROPERTY_NOTIFICATION.getName(),
-//                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-//                () -> log.info("------------------------> RUN LEASE_PROPERTY_NOTIFICATION JOB <------------------------")
-//        );
-//
         addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
-                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-                () -> leaseUpdatingService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+                lvPmAccount,
+                () -> leaseUpdatingService.executeJob(lvPmAccount)
         );
         addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
-                "23F2EF62-8905-4D6D-9A07-165E89BD6FAA",
-                () -> leaseUpdatingService.executeJob("23F2EF62-8905-4D6D-9A07-165E89BD6FAA")
+                atPmAccount,
+                () -> leaseUpdatingService.executeJob(atPmAccount)
         );
 
-//        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
-//                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-////                applicationService::startLateFeeJob
-//                ()-> applicationService.startLateFeeJob()
-//        );
-//        addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_PROPERTY_NOTIFICATION.getName(),
-//                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-//                applicationService::startLeasePropertyNotification
-//        );
         addJob(JobsConfigurationServiceImpl.JOBS_ID.PHASE_OUT_PROPERTY.getName(),
-                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-                () -> phaseOutPropertyService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+                lvPmAccount,
+                () -> phaseOutPropertyService.executeJob(lvPmAccount)
         );
+
         addJob(JobsConfigurationServiceImpl.JOBS_ID.CHANGE_BILL_STATUS.getName(),
-                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-                () -> changeBillStatusService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+                lvPmAccount,
+                () -> changeBillStatusService.executeJob(lvPmAccount)
         );
 
         addJob(JobsConfigurationServiceImpl.JOBS_ID.DUE_DATE_NOTIFICATION.getName(),
-                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-                () -> dueDateNotificationService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+                lvPmAccount,
+                () -> dueDateNotificationService.executeJob(lvPmAccount)
         );
 
         addJob(JobsConfigurationServiceImpl.JOBS_ID.OWNER_RENT_NOTIFICATION.getName(),
-                "F90E128A-CD00-4DF7-B0D0-0F40F80D623A",
-                () -> ownerNotificationsService.executeJob("F90E128A-CD00-4DF7-B0D0-0F40F80D623A")
+                lvPmAccount,
+                () -> ownerNotificationsService.executeJob(lvPmAccount)
         );
-
-
     }
 
     public List<LocationJobsInfo> getAllJobs() {

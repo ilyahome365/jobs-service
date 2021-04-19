@@ -38,16 +38,12 @@ public class AuditAspect {
     public void commonSave() {
     }
 
-
-
     /**
      * Pointcut that catch all persistInDb
      */
     @Pointcut("execution(* com.home365.jobservice.repository.*+.saveAll*(..))")
     public void commonSaveAll() {
-
     }
-
 
     @Before("commonSaveAll()")
     public void addAuditingInfoBulk(JoinPoint joinPoint){
@@ -64,9 +60,8 @@ public class AuditAspect {
         }
     }
 
-
     @Before("commonSave()")
-    public void addAuditingInformation(JoinPoint joinPoint) throws Throwable {
+    public void addAuditingInformation(JoinPoint joinPoint) {
         String userId = getUserId();
         Object[] args = joinPoint.getArgs();
         log.debug("Before auditing from method : {} ",joinPoint.getSignature().getName());

@@ -28,8 +28,4 @@ public class AccountExtension {
 
     @Column(name = "Telephone1")
     private String phone;
-
-//    @Column(name = "BusinessTypeCode")
-//    private int businessTypeCode;
-
 }
