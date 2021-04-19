@@ -2,6 +2,7 @@ package com.home365.jobservice.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.home365.jobservice.config.Constants;
 import com.home365.jobservice.entities.ChangeBillConfiguration;
 import com.home365.jobservice.entities.JobConfiguration;
 import com.home365.jobservice.model.LateFeeConfiguration;
@@ -56,10 +57,7 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
 
     @Override
     public ChangeBillConfiguration getChangeBillConfiguration(String locationId) throws JsonProcessingException {
-        String jobName = "bills-status-change";
-        Optional<JobConfiguration> jobConfiguration = getJobByLocationAndName(locationId, jobName);
-//        JobConfiguration jobConfiguration = jobsConfigurationRepository.getOne(JOBS_ID.CHANGE_BILL_STATUS.key);
-
+        Optional<JobConfiguration> jobConfiguration = getJobByLocationAndName(locationId, Constants.BILLS_STATUS_CHANGE);
         return objectMapper.readValue(jobConfiguration.get().getConfigurationJson(),ChangeBillConfiguration.class);
     }
 
@@ -67,7 +65,7 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
         LATE_FEE("late-fee", 1L),
         LEASE_PROPERTY_NOTIFICATION("lease-property-notification", 2L),
         LEASE_UPDATING("lease-updating", 3L),
-        CHANGE_BILL_STATUS("bills-status-change", 4L),
+        CHANGE_BILL_STATUS(Constants.BILLS_STATUS_CHANGE, 4L),
         DUE_DATE_NOTIFICATION("due-date-notification", 5L),
         PHASE_OUT_PROPERTY("phase-out-property",6L),
         OWNER_RENT_NOTIFICATION("owner-rent-notification",7L)

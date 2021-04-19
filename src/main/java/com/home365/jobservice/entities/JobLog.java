@@ -1,7 +1,6 @@
 package com.home365.jobservice.entities;
 
 import lombok.Data;
-import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.sql.Timestamp;

@@ -3,7 +3,8 @@ package com.home365.jobservice.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.home365.jobservice.entities.IAuditableEntity;
+import com.home365.jobservice.config.Constants;
+import com.home365.jobservice.entities.projection.IAuditableEntity;
 import com.home365.jobservice.entities.enums.EntityType;
 import com.home365.jobservice.model.AuditEvent;
 import com.home365.jobservice.repository.AuditEventRepository;
@@ -25,16 +26,23 @@ import java.util.*;
 @Service
 @Slf4j
 public class AuditEventServiceImpl implements AuditEventService {
+    public static final String AMOUNT = "amount";
+    public static final String PROBLEM_WITH_EXTRACTING_TRANSACTION = "Problem with extracting transaction";
+    public static final String CREATED = "Created";
+    public static final String AMOUNT_NOT_FOUND = "Amount not found";
     private final AuditEventRepository auditEventRepository;
     private final FindByIdAudit transactionService;
     private final FindByIdAudit recurringService;
+    private final FindByIdAudit paymentService;
     public static final String DELETED = "Deleted";
     public static final String NO_DIFFERENCES = "No differences";
 
-    public AuditEventServiceImpl(AuditEventRepository auditEventRepository, TransactionsService transactionService, RecurringService recurringService) {
+    public AuditEventServiceImpl(AuditEventRepository auditEventRepository, TransactionsService transactionService, RecurringService recurringService,
+                                 PaymentsService paymentsService) {
         this.auditEventRepository = auditEventRepository;
         this.transactionService = transactionService;
         this.recurringService = recurringService;
+        this.paymentService = paymentsService;
     }
 
     @Override
@@ -51,8 +59,6 @@ public class AuditEventServiceImpl implements AuditEventService {
             }
         } catch (Exception e) {
             log.error(e.getMessage());
-        } finally {
-            return;
         }
     }
 
@@ -66,9 +72,9 @@ public class AuditEventServiceImpl implements AuditEventService {
             compareEntities(newEntity, oldEntity, comments);
         } else {
             if (!serviceFound) {
-                comments.add("Problem with extracting transaction");
+                comments.add(PROBLEM_WITH_EXTRACTING_TRANSACTION);
             } else {
-                comments.add("Created");
+                comments.add(CREATED);
             }
         }
         return commentHolder;
@@ -99,7 +105,7 @@ public class AuditEventServiceImpl implements AuditEventService {
                             ignoreField = true;
                         }
                     }
-                    if (node.getPropertyName().equalsIgnoreCase("amount") || node.getPropertyName().equalsIgnoreCase("amountBeforeDiscount")) {
+                    if (node.getPropertyName().equalsIgnoreCase(AMOUNT) || node.getPropertyName().equalsIgnoreCase("amountBeforeDiscount")) {
                         oldValue = handleAmount(oldValue);
                         newValue = handleAmount(newValue);
                     }
@@ -143,7 +149,7 @@ public class AuditEventServiceImpl implements AuditEventService {
                 .orElse(Collections.emptySet())
                 .stream()
                 .filter(anno -> anno.annotationType().equals(AuditInfo.class))
-                .map(annotation -> (AuditInfo)annotation)
+                .map(AuditInfo.class::cast)
                 .findFirst().orElse(null);
     }
 
@@ -164,7 +170,7 @@ public class AuditEventServiceImpl implements AuditEventService {
     private String getNewAmount(IAuditableEntity newEntity) {
         try {
             DecimalFormat format = new DecimalFormat("0.##");
-            Field amount = newEntity.getClass().getDeclaredField("amount");
+            Field amount = newEntity.getClass().getDeclaredField(AMOUNT);
             amount.setAccessible(true);
             Object am = amount.get(newEntity);
             if (am instanceof Long) {
@@ -173,7 +179,7 @@ public class AuditEventServiceImpl implements AuditEventService {
             return am.toString();
         } catch (NoSuchFieldException | IllegalAccessException e) {
             log.error(e.getMessage());
-            return "Amount nof found";
+            return AMOUNT_NOT_FOUND;
         }
     }
 
@@ -204,7 +210,7 @@ public class AuditEventServiceImpl implements AuditEventService {
     }
 
     private AuditEvent mapToAuditEvent(String userId, IAuditableEntity auditableEntity, String comment) {
-        AuditEvent auditEvent = AuditEvent.builder()
+        return AuditEvent.builder()
                 .entityType(auditableEntity.auditEntityType())
                 .entityIdentifier(auditableEntity.auditEntityIdentifier())
                 .id(UUID.randomUUID().toString())
@@ -212,7 +218,6 @@ public class AuditEventServiceImpl implements AuditEventService {
                 .comment(comment)
                 .message(auditableEntity.auditMessage())
                 .build();
-        return auditEvent;
     }
 
     private FindByIdAudit getService(EntityType entityType){
@@ -221,6 +226,9 @@ public class AuditEventServiceImpl implements AuditEventService {
         }
         if(entityType.equals(EntityType.Recurring)){
             return this.recurringService;
+        }
+        if(entityType.equals(EntityType.PAYMENT)){
+            return this.paymentService;
         }
         return null;
     }
@@ -238,7 +246,7 @@ public class AuditEventServiceImpl implements AuditEventService {
                 return objectMapper.writeValueAsString(this);
             } catch (JsonProcessingException e) {
                 log.error(e.getMessage());
-                return null;
+                return Constants.EMPTY_STRING;
             }
         }
     }

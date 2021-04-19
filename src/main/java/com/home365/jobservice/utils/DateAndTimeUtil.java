@@ -9,7 +9,10 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class DateAndTimeUtil {
 
-    //TODO: switch to sql calculation when using db to region
+    private DateAndTimeUtil(){
+
+    }
+
     public static long getTimeDiff(Calendar currentCalendar, Date dueDate) {
         if (dueDate != null) {
             Calendar dueDateCalendar = Calendar.getInstance();

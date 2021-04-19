@@ -1,11 +1,10 @@
 package com.home365.jobservice.service;
 
+import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
-import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.projection.IOwnerRentNotification;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 

@@ -8,7 +8,11 @@ import com.home365.jobservice.service.JobsConfigurationService;
 import com.home365.jobservice.service.impl.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.stereotype.Service;
@@ -24,8 +28,6 @@ import static com.home365.jobservice.config.ThreadPool.configurePool;
 @Service
 public class AppConfiguration implements SchedulingConfigurer {
 
-    public static final String lvPmAccount = "F90E128A-CD00-4DF7-B0D0-0F40F80D623A";
-    public static final String atPmAccount = "23F2EF62-8905-4D6D-9A07-165E89BD6FAA";
     private final LeaseUpdatingServiceImpl leaseUpdatingService;
     private final ChangeBillStatusServiceImpl changeBillStatusService;
     private final JobsConfigurationService jobsConfigurationService;
@@ -61,32 +63,32 @@ public class AppConfiguration implements SchedulingConfigurer {
         }
 
         addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
-                lvPmAccount,
-                () -> leaseUpdatingService.executeJob(lvPmAccount)
+                Constants.LV_PM_ACCOUNT,
+                () -> leaseUpdatingService.executeJob(Constants.LV_PM_ACCOUNT)
         );
         addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
-                atPmAccount,
-                () -> leaseUpdatingService.executeJob(atPmAccount)
+                Constants.AT_PM_ACCOUNT,
+                () -> leaseUpdatingService.executeJob(Constants.AT_PM_ACCOUNT)
         );
 
         addJob(JobsConfigurationServiceImpl.JOBS_ID.PHASE_OUT_PROPERTY.getName(),
-                lvPmAccount,
-                () -> phaseOutPropertyService.executeJob(lvPmAccount)
+                Constants.LV_PM_ACCOUNT,
+                () -> phaseOutPropertyService.executeJob(Constants.LV_PM_ACCOUNT)
         );
 
         addJob(JobsConfigurationServiceImpl.JOBS_ID.CHANGE_BILL_STATUS.getName(),
-                lvPmAccount,
-                () -> changeBillStatusService.executeJob(lvPmAccount)
+                Constants.LV_PM_ACCOUNT,
+                () -> changeBillStatusService.executeJob(Constants.LV_PM_ACCOUNT)
         );
 
         addJob(JobsConfigurationServiceImpl.JOBS_ID.DUE_DATE_NOTIFICATION.getName(),
-                lvPmAccount,
-                () -> dueDateNotificationService.executeJob(lvPmAccount)
+                Constants.LV_PM_ACCOUNT,
+                () -> dueDateNotificationService.executeJob(Constants.LV_PM_ACCOUNT)
         );
 
         addJob(JobsConfigurationServiceImpl.JOBS_ID.OWNER_RENT_NOTIFICATION.getName(),
-                lvPmAccount,
-                () -> ownerNotificationsService.executeJob(lvPmAccount)
+                Constants.LV_PM_ACCOUNT,
+                () -> ownerNotificationsService.executeJob(Constants.LV_PM_ACCOUNT)
         );
     }
 
@@ -112,7 +114,7 @@ public class AppConfiguration implements SchedulingConfigurer {
 
         Optional<JobConfiguration> jobConfigurationOptional = jobsConfigurationService.getJobByLocationAndName(location, jobName);
         if (jobConfigurationOptional.isEmpty()) {
-            log.error(String.format("Unable to find Job configuration with location [%s] name [%s] -> please verify JobConfiguration is added to DB", location, jobName));
+            log.error("Unable to find Job configuration with location {} name {} -> please verify JobConfiguration is added to DB", location, jobName);
             return;
         }
         JobConfiguration jobConfiguration = jobConfigurationOptional.get();
@@ -128,7 +130,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     public synchronized void removeJob(String location, String jobName) {
         Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.get(location);
         if (locationJobs == null) {
-            log.info("Unable to find Location: " + location);
+            log.info(Constants.UNABLE_TO_FIND_LOCATION,location);
             return;
         }
         JobScheduledWrapper jobScheduledWrapper = locationJobs.get(jobName);
@@ -142,7 +144,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     public synchronized void restartJob(String location, String jobName) {
         Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.get(location);
         if (locationJobs == null) {
-            log.info("Unable to find Location: " + location);
+            log.info(Constants.UNABLE_TO_FIND_LOCATION , location);
             return;
         }
         JobScheduledWrapper jobScheduledWrapper = locationJobs.get(jobName);
@@ -156,7 +158,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     public synchronized void startJob(String location, String jobName) {
         Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.get(location);
         if (locationJobs == null) {
-            log.info("Unable to find Location: " + location);
+            log.info(Constants.UNABLE_TO_FIND_LOCATION, location);
             return;
         }
         JobScheduledWrapper jobScheduledWrapper = locationJobs.get(jobName);
@@ -168,7 +170,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     public synchronized void stopJob(String location, String jobName) {
         Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.get(location);
         if (locationJobs == null) {
-            log.info("Unable to find Location: " + location);
+            log.info(Constants.UNABLE_TO_FIND_LOCATION , location);
             return;
         }
         JobScheduledWrapper jobScheduledWrapper = locationJobs.get(jobName);
@@ -202,10 +204,9 @@ public class AppConfiguration implements SchedulingConfigurer {
                 scheduledFutureWrapper.getName()
         );
         if (jobConfigurationOptional.isEmpty()) {
-            log.error(String.format("Unable to find Job configuration with location [%s] name [%s] -> please verify JobConfiguration is added to DB",
+            log.error("Unable to find Job configuration with location {} name {} -> please verify JobConfiguration is added to DB",
                     scheduledFutureWrapper.getLocation(),
-                    scheduledFutureWrapper.getName())
-            );
+                    scheduledFutureWrapper.getName());
             return;
         }
         JobConfiguration jobConfiguration = jobConfigurationOptional.get();
@@ -229,9 +230,12 @@ public class AppConfiguration implements SchedulingConfigurer {
                 scheduledFutureWrapper.getCron())
         );
 
-        ScheduledFuture<?> task = scheduledTaskRegistrar
-                .getScheduler()
-                .schedule(scheduledFutureWrapper.getTask(), scheduledFutureWrapper.getTrigger());
-        scheduledFutureWrapper.setScheduledFuture(task);
+        if(scheduledTaskRegistrar.getScheduler() != null){
+            ScheduledFuture<?> task = scheduledTaskRegistrar
+                    .getScheduler()
+                    .schedule(scheduledFutureWrapper.getTask(), scheduledFutureWrapper.getTrigger());
+            scheduledFutureWrapper.setScheduledFuture(task);
+        }
     }
+
 }

@@ -7,7 +7,7 @@ import com.home365.jobservice.entities.enums.PaymentStatus;
 
 import java.sql.Timestamp;
 
-public interface PaymentsService {
+public interface PaymentsService extends  FindByIdAudit {
     Payments createAndSavePayments(double amount,
                                    Timestamp currentTimeAndDate,
                                    PaymentStatus status,

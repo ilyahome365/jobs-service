@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class GlobalErrorDecoder implements ErrorDecoder {
-    private Gson gson;
+    private final Gson gson;
 
     public GlobalErrorDecoder() {
         this.gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
@@ -20,19 +20,6 @@ public class GlobalErrorDecoder implements ErrorDecoder {
     public Exception decode(String s, Response response) {
         GeneralException generalException = new GeneralException();
         generalException.setMethodName(s);
-//        if (response.status() == 303) {
-//            if (response.body() != null) {
-//
-//
-//                try {
-//                    String reasonBody = Util.toString(response.body().asReader());
-//                    log.info("Error from TDL-API :" + reasonBody);
-//
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
         try {
             String reasonBody = Util.toString(response.body().asReader());
             generalException.setMessage(reasonBody);

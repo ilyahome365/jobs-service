@@ -1,26 +1,15 @@
 package com.home365.jobservice.exception;
 
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class GeneralException extends Exception {
 
-    String message;
+    private String message;
 
-    String methodName;
+    private String methodName;
 
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getMethodName() {
-        return methodName;
-    }
-
-    public void setMethodName(String methodName) {
-        this.methodName = methodName;
-    }
 }

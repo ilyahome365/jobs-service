@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
+    public static final String NO_PROJECTED_BALANCE_FOR_THIS_ACCOUNT = "No Projected Balance for this account :";
+    public static final String CANT_CHANGE_THIS_TRANSACTION = " : Cant change this transaction ";
     private final String JOB_PENDING_DUE = "ChangeBillStatusJob";
 
     private final TransactionsService transactionsService;
@@ -82,11 +84,6 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
         return String.format("%s : Finished get  : %d transactions  until date %s with results : %s ", getJobName(), transactions.size(), cycleDate, pendingStatusJobData.toString());
     }
 
-    private void saveAllTrsnactionsWithProjectedBalance(List<TransactionsWithProjectedBalance> transactionsPerAccount) {
-        for (TransactionsWithProjectedBalance transactionsWithProjectedBalance : transactionsPerAccount) {
-            transactionsService.saveTransactionsWithBalance(transactionsWithProjectedBalance);
-        }
-    }
 
     private List<Transactions> createTransactionFromTransactionsWithProjectBalance(List<TransactionsWithProjectedBalance> transactionsPerAccount) {
         List<Transactions> transactions = new ArrayList<>();
@@ -94,8 +91,6 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
 
             Optional<Transactions> transaction = transactionsService.findTransaction(transactionsWithProjectedBalance.getTransactionId());
             if (transaction.isPresent()) {
-//                if (transaction.get().getVersion() == null)
-//                    transaction.get().setVersion(0L);
                 transaction.get().setStatus(transactionsWithProjectedBalance.getStatus());
                 transactions.add(transaction.get());
             }
@@ -138,7 +133,6 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
         Date date = new Date();
         Timestamp currentTimeAndDate = new Timestamp(date.getTime());
         JobLog jobLog = new JobLog();
-//        jobLog.setId(UUID.randomUUID().toString());
         jobLog.setJobName(JOB_PENDING_DUE);
         jobLog.setLastRun(localDate);
         jobLog.setDate(currentTimeAndDate);
@@ -163,7 +157,6 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
                 } else {
                     log.info("Change transaction {} to pendingContribution", transaction.getTransactionId());
                     transaction.setStatus(TransactionType.pendingContribution.name());
-//                    pendingStatusJobData.setPendingContribution(pendingStatusJobData.getPendingContribution() + 1);
                 }
             } catch (Exception e) {
                 log.error("Failed to change transaction {}  for account {}  ", transaction.getTransactionId(), transaction.getChargeAccountId());
@@ -173,7 +166,7 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
                 pendingStatusJobData.setFailedToChange(pendingStatusJobData.getFailedToChange() + 1);
                 TransactionsFailedToChange transactionsFailedToChange = new TransactionsFailedToChange();
                 transactionsFailedToChange.setTransactionId(transaction.getTransactionId());
-                transactionsFailedToChange.setReasonFailedToChange("No Projected Balance for this account :" + transaction.getChargeAccountId());
+                transactionsFailedToChange.setReasonFailedToChange(NO_PROJECTED_BALANCE_FOR_THIS_ACCOUNT + transaction.getChargeAccountId());
                 pendingStatusJobData.getTransactionsFailedToChanges().add(transactionsFailedToChange);
             }
         }
@@ -184,7 +177,7 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
         LocalDate localDate = LocalDate.now();
         TransactionsLog transactionsLog = new TransactionsLog();
         transactionsLog.setTransactionId(transaction.getTransactionId());
-        transactionsLog.setArgument(JOB_PENDING_DUE + " : Cant change this transaction " + transaction.getTransactionId());
+        transactionsLog.setArgument(JOB_PENDING_DUE + CANT_CHANGE_THIS_TRANSACTION + transaction.getTransactionId());
         transactionsLog.setEventName(7);
         transactionsLog.setContactAccountId(transaction.getChargeAccountId());
         transactionsLog.setTransactionLogId(UUID.randomUUID().toString());

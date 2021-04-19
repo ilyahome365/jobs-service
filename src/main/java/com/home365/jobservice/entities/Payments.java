@@ -2,6 +2,7 @@ package com.home365.jobservice.entities;
 
 import com.home365.jobservice.entities.enums.EntityType;
 import com.home365.jobservice.entities.enums.PaymentStatus;
+import com.home365.jobservice.entities.projection.IAuditableEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;

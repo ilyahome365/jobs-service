@@ -1,6 +1,5 @@
 package com.home365.jobservice.entities;
 
-import com.home365.jobservice.entities.enums.OwnerDrawStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

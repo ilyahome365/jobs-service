@@ -1,9 +1,8 @@
 package com.home365.jobservice.service;
 
-import com.home365.jobservice.entities.IPropertyLeaseInformation;
-import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
+import com.home365.jobservice.entities.projection.IPropertyLeaseInformation;
 import com.home365.jobservice.entities.Recurring;
-import com.home365.jobservice.model.JobExecutionResults;
+import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Date;

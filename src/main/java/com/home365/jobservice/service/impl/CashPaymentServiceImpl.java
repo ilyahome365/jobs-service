@@ -1,6 +1,6 @@
 package com.home365.jobservice.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.home365.jobservice.config.Constants;
 import com.home365.jobservice.entities.*;
 import com.home365.jobservice.entities.enums.CashPaymentStatus;
 import com.home365.jobservice.entities.enums.PaymentMethod;
@@ -70,7 +70,7 @@ public class CashPaymentServiceImpl implements CashPaymentService {
         if (cashPaymentTrackingOpt.isPresent()) {
             CashPaymentTracking cashPaymentTracking = cashPaymentTrackingOpt.get();
             if (!CashPaymentStatus.PAYMENT_EXPIRED.name().equalsIgnoreCase(eventType)) {
-                if(cashPaymentTracking.getSddPayment() == null || cashPaymentTracking.getSddPayment() != true) {
+                if(cashPaymentTracking.getSddPayment() == null || !cashPaymentTracking.getSddPayment()) {
                     List<String> transactions = Arrays.asList(cashPaymentTracking.getRelatedTransactions().split(",", -1));
                     transactions.forEach(transaction -> {
                         Optional<Transactions> transactionsOptional = transactionService.findById(transaction);
@@ -142,8 +142,8 @@ public class CashPaymentServiceImpl implements CashPaymentService {
 
         Stripe.apiKey = getStripeApiKeyByPmAccountId(pmAccountId);
 
-        payAndUpdateRefundTransactions(Stripe.apiKey, 0, "Transaction refunded the number is : ", null, refundTransactionsByCharge, transactionsByReceive,
-                refundSum, accountExtensionRepo.findById(pmAccountId).get(), receiveAccountWithAmount);
+        payAndUpdateRefundTransactions(Stripe.apiKey, 0, Constants.TRANSACTION_REFUNDED_THE_NUMBER_IS, refundTransactionsByCharge, transactionsByReceive,
+                accountExtensionRepo.findById(pmAccountId).get(), receiveAccountWithAmount);
 
     }
 
@@ -206,11 +206,10 @@ public class CashPaymentServiceImpl implements CashPaymentService {
     }
 
     public void payAndUpdateRefundTransactions(String apiKey, long amountFeeInCents,
-                                               String description, List<TransactionChargeWrapper> allPaidTransactions,
+                                               String description,
                                                Map<String, List<Transactions>> refundedTransactions,
-                                               Map<String, List<Transactions>> transactionsByReceive, Long refundSum, AccountExtensionBase pmAccount,
+                                               Map<String, List<Transactions>> transactionsByReceive, AccountExtensionBase pmAccount,
                                                Map<String, AmountChargeWithRefund> receiveAccountWithAmount) {
-        List<TransactionChargeWrapper> refundedTransactionsWrapper = new ArrayList<>();
         Map<String, Integer> accounts = new HashMap<>();
         Optional<AccountExtensionBase> accountInsurance = accountExtensionRepo.findDistinctByAccountTypeAndNewManagerId(TransferTo.InsuranceAccount.name(), pmAccount.getAccountId());
         Optional<AccountExtensionBase> accountOperation = accountExtensionRepo.findDistinctByAccountTypeAndNewManagerId(TransferTo.OperationPMAccount.name(), pmAccount.getAccountId());
@@ -220,7 +219,7 @@ public class CashPaymentServiceImpl implements CashPaymentService {
         Map<String, Integer> chargeReceivedAccountWithAmount = createMapWithAmount(transactionsByReceive);
         Map<String, Integer> refundChargeAccountWithAmount = createMapWithAmount(refundedTransactions);
         addToAccountsRefundAndCharges(chargeReceivedAccountWithAmount, refundChargeAccountWithAmount, accounts);
-        payTransactionAndCreatePaymentForRefund(apiKey, amountFeeInCents, description, accounts, receiveAccountWithAmount, refundedTransactions, pmAccount);
+        payTransactionAndCreatePaymentForRefund(apiKey, amountFeeInCents, description, accounts, receiveAccountWithAmount, refundedTransactions);
 
     }
 
@@ -260,7 +259,7 @@ public class CashPaymentServiceImpl implements CashPaymentService {
                                                          String description,
                                                          Map<String, Integer> accounts,
                                                          Map<String, AmountChargeWithRefund> receiveAccountWithAmount
-            , Map<String, List<Transactions>> refundedTransactions, AccountExtensionBase pmAccount) {
+            , Map<String, List<Transactions>> refundedTransactions) {
         List<RefundChargeAndStripe> refunds = new ArrayList<>();
 
         for (Map.Entry<String, Integer> e : accounts.entrySet()) {
@@ -293,7 +292,7 @@ public class CashPaymentServiceImpl implements CashPaymentService {
 
         for (RefundChargeAndStripe refundChargeAndStripe : refunds) {
 
-            TransactionChargeWrapper transactionsWrapper = getTransactionRefundWrapper(refundChargeAndStripe, refundedTransactions, pmAccount);
+            TransactionChargeWrapper transactionsWrapper = getTransactionRefundWrapper(refundChargeAndStripe, refundedTransactions);
             if (transactionsWrapper.isHaveAccountsExtensionBase()) {
                 if (!transactionsWrapper.getOwnerRefund() && transactionsWrapper.getAmount() > 0) {
                     chargeStripePayment(apiKey, transactionsWrapper, amountFeeInCents, description, false);
@@ -341,7 +340,7 @@ public class CashPaymentServiceImpl implements CashPaymentService {
         });
     }
 
-    private TransactionChargeWrapper getTransactionRefundWrapper(RefundChargeAndStripe refundChargeAndStripe, Map<String, List<Transactions>> refundedTransactions, AccountExtensionBase pmAccount) {
+    private TransactionChargeWrapper getTransactionRefundWrapper(RefundChargeAndStripe refundChargeAndStripe, Map<String, List<Transactions>> refundedTransactions) {
         log.info("START: Get Transaction Charge Wrapper");
 
         Optional<AccountExtensionBase> receiveAccountExtensionBaseOptional = accountExtensionRepo.findStripeAccountByAccountId(refundChargeAndStripe.getReciveAccount());
@@ -396,7 +395,7 @@ public class CashPaymentServiceImpl implements CashPaymentService {
 
     private String getDescription(String description) {
         if (StringUtils.isEmpty(description))
-            return "Tenant Charge : with transaction number : ";
+            return Constants.TENANT_CHARGE_WITH_TRANSACTION_NUMBER;
         else
             return description;
     }

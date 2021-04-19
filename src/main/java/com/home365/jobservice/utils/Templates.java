@@ -9,6 +9,9 @@ import java.util.Map;
 public  class Templates {
 
 
+    private Templates(){
+
+    }
 
     public static Map<String, String> getJobsContentTemplate(JobExecutionResults jobExecutionResults) {
         Map<String, String> contentTemplate = new HashMap<>();

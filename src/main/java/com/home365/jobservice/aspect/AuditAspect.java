@@ -1,7 +1,8 @@
-package com.home365.jobservice.ascpect;
+package com.home365.jobservice.aspect;
 
 
-import com.home365.jobservice.entities.IAuditableEntity;
+import com.home365.jobservice.config.Constants;
+import com.home365.jobservice.entities.projection.IAuditableEntity;
 import com.home365.jobservice.service.AuditEventService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -36,6 +37,7 @@ public class AuditAspect {
      */
     @Pointcut("execution(* com.home365.jobservice.repository.*.save*(..))")
     public void commonSave() {
+        // Do nothing because its pointcut point cut to aspect for auditing
     }
 
     /**
@@ -43,6 +45,7 @@ public class AuditAspect {
      */
     @Pointcut("execution(* com.home365.jobservice.repository.*+.saveAll*(..))")
     public void commonSaveAll() {
+        //point cut to aspect for auditing
     }
 
     @Before("commonSaveAll()")
@@ -72,11 +75,11 @@ public class AuditAspect {
 
 
     private String getUserId() {
-        String userId = "HOME365_BOT";
+        String userId = Constants.HOME_365_BOT;
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         if (requestAttributes instanceof ServletRequestAttributes) {
             HttpServletRequest request = ((ServletRequestAttributes)requestAttributes).getRequest();
-            String userIdFromRequest = request.getParameter("userId");
+            String userIdFromRequest = request.getParameter(Constants.USER_ID);
             if(!StringUtils.isEmpty(userIdFromRequest)){
                 userId = userIdFromRequest;
             }

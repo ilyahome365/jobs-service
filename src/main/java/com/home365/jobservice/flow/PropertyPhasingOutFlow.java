@@ -18,7 +18,6 @@ import com.home365.jobservice.model.wrapper.TenantWrapper;
 import com.home365.jobservice.rest.PropertyPhaseOutExternal;
 import com.home365.jobservice.rest.TenantServiceExternal;
 import com.home365.jobservice.service.MailService;
-import com.home365.jobservice.service.PropertyAccountService;
 import com.home365.jobservice.service.PropertyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,16 +35,14 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
     private final TenantServiceExternal tenantServiceExternal;
     private final AppProperties appProperties;
     private final MailService mailService;
-    private final PropertyAccountService propertyAccountService;
 
 
-    public PropertyPhasingOutFlow(PropertyPhaseOutExternal propertyPhaseOutExternal, PropertyService propertyService, TenantServiceExternal tenantServiceExternal, AppProperties appProperties, MailService mailService, PropertyAccountService propertyAccountService) {
+    public PropertyPhasingOutFlow(PropertyPhaseOutExternal propertyPhaseOutExternal, PropertyService propertyService, TenantServiceExternal tenantServiceExternal, AppProperties appProperties, MailService mailService) {
         this.propertyPhaseOutExternal = propertyPhaseOutExternal;
         this.propertyService = propertyService;
         this.tenantServiceExternal = tenantServiceExternal;
         this.appProperties = appProperties;
         this.mailService = mailService;
-        this.propertyAccountService = propertyAccountService;
     }
 
     @Override
@@ -89,8 +86,6 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         if (!projectedBalance.isNaN()) {
             if (projectedBalance >= 0) {
                 createAndSendMail(ownerFromProperty, "Property phasing out", property.get());
-            } else if (projectedBalance < 0) {
-
             }
         }
 

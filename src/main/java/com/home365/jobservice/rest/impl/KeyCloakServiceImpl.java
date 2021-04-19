@@ -1,7 +1,6 @@
 package com.home365.jobservice.rest.impl;
 
 import com.home365.jobservice.config.AppPropertiesExternal;
-
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.rest.KeyCloakService;
 import com.home365.jobservice.rest.KeycloakFeignService;

@@ -4,8 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home365.jobservice.config.AppProperties;
-import com.home365.jobservice.entities.*;
+import com.home365.jobservice.entities.LocationRules;
+import com.home365.jobservice.entities.Recurring;
+import com.home365.jobservice.entities.Rules;
+import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.enums.WhoPayChargesTypes;
+import com.home365.jobservice.entities.projection.IAuditableEntity;
+import com.home365.jobservice.entities.projection.IPropertyLeaseInformation;
 import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.repository.RecurringRepository;
@@ -93,9 +98,8 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
         int activeRecurringChargeListSize = activeRecurringChargeList.size();
 
         StringBuffer responseStr = new StringBuffer();
-        responseStr.append("Number of recurring charges: " + activeRecurringChargeList.size() + "\n");
-        responseStr.append("Number of installments charges: " + installmentsRecurringChargeList.size() + "\n");
-
+        responseStr.append("Number of recurring charges: ").append(activeRecurringChargeList.size()).append("\n");
+        responseStr.append("Number of installments charges: ").append(installmentsRecurringChargeList.size()).append("\n");
 
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -123,10 +127,6 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
             Date moveOutDate = leaseList.get(0).getMoveOutDate();
 
             List<Transactions> existingRecurringTransactions = transactionsService.findByRecurringTemplateId(recurringCharge.getId());
-//            if (CollectionUtils.isEmpty(existingRecurringTransactions) && !"Imported from Buildium".equals(recurringCharge.getMemo())) {
-//                log.error("Cannot create transactions for recurring charges of propertyId {} since no first charge have been found", recurringCharge.getPropertyId());
-//                return;
-//            } else
             if (dayInMonthToCreateRecurring == calendar.get(Calendar.DAY_OF_MONTH) && (moveOutDate == null || moveOutDate.after(nextDueDate)) && (leaseStartDate == null || leaseStartDate.before(nextDueDate))) {
                 if (existingRecurringTransactions.size() == 1) {
                     Transactions firstTransaction = existingRecurringTransactions.get(0);
@@ -218,7 +218,7 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
 
         String category = typeCategoryRepository.getCategoryNameByID(recurringCharge.getCategoryId());
 
-        Transactions transaction = Transactions.builder()
+        return Transactions.builder()
                 .amount((long) recurringCharge.getAmount())
                 .pmAccountId(recurringCharge.getPmAccountId())
                 .accountingTypeId(recurringCharge.getAccountingTypeId())
@@ -242,8 +242,6 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
                 .statementType(StringUtils.isEmpty(recurringCharge.getStatementType()) ? null : recurringCharge.getStatementType().toLowerCase())
                 .payBy(WhoPayChargesTypes.Tenant.name())
                 .build();
-
-        return transaction;
     }
 
     @Override

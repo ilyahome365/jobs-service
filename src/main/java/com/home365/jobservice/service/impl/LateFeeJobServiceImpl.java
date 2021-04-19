@@ -27,6 +27,7 @@ import java.util.UUID;
 @Service
 public class LateFeeJobServiceImpl extends JobExecutorImpl {
     public static final String LATE_FEE_JOB = "Late Fee Job";
+    public static final String LATE_FEE_JOB_FINISHED = "Late Fee Job Finished";
 
     private final JobsConfigurationService jobsConfigurationService;
     private final TransactionsService transactionsService;
@@ -65,10 +66,8 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
 
         List<Transactions> candidateTransactionsWithNoLateFee = transactionsService.findAllByBillTypeAndStatus(lateFeeConfiguration.getCategoryNames(), lateFeeConfiguration.getStatus(), locationRules.getPmAccountId());
 
-        candidateTransactionsWithNoLateFee.forEach(transactions -> {
-            log.info("{}, {}, {}, {}, {}, {} ", transactions.getAmount() / 100, transactions.getDueDate(), transactions.getTransactionId(), transactions.getStatus(),
-                    transactions.getCategoryName(), transactions.getChargeAccountId());
-        });
+        candidateTransactionsWithNoLateFee.forEach(transactions -> log.info("{}, {}, {}, {}, {}, {} ", transactions.getAmount() / 100, transactions.getDueDate(), transactions.getTransactionId(), transactions.getStatus(),
+                transactions.getCategoryName(), transactions.getChargeAccountId()));
 
 
         List<Transactions> lateFeeTransactions = createLateFeeTransactions(
@@ -77,8 +76,8 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
                 locationRules
         );
         showSummary(lateFeeTransactions);
-        log.info("Late Fee Job Finished");
-        return "Late Fee Job Finished";
+        log.info(LATE_FEE_JOB_FINISHED);
+        return LATE_FEE_JOB_FINISHED;
     }
 
     private List<Transactions> createLateFeeTransactions(LateFeeConfiguration lateFeeConfiguration,
@@ -93,36 +92,30 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
             long ownerAmount = getAmount(lateFees.getOwnerPercentage(), lateFeeConfiguration, transactions);
             if (ownerAmount > 0) {
                 log.info("Owner amount : {} for transaction : {} and owner id : {}", ownerAmount, transactions.getTransactionId(), transactions.getReceiveAccountId());
-                Transactions feeTransaction = createTransaction(lateFeeConfiguration, lateFeeAdditionalInformationProjection, transactions, ownerAmount, transactions.getReceiveAccountId());
+                Transactions feeTransaction = createTransaction(lateFeeAdditionalInformationProjection, transactions, ownerAmount, transactions.getReceiveAccountId());
                 feeTransactions.add(feeTransaction);
             }
             long feeAccountManagerPercentage = getAmount(lateFees.getAccountManagerPercentage(), lateFeeConfiguration, transactions);
             if (feeAccountManagerPercentage > 0) {
                 log.info("Pm fee amount : {}  for transaction : {} and owner id : {} ", feeAccountManagerPercentage, transactions.getTransactionId(), lateFees.getPmAccount());
-                Transactions feeTransaction = createTransaction(lateFeeConfiguration, lateFeeAdditionalInformationProjection, transactions, feeAccountManagerPercentage, lateFees.getPmAccount());
+                Transactions feeTransaction = createTransaction(lateFeeAdditionalInformationProjection, transactions, feeAccountManagerPercentage, lateFees.getPmAccount());
                 feeTransactions.add(feeTransaction);
             }
         });
 
         return transactionsService.saveAllTransactions(feeTransactions);
-//        return new ArrayList<>();
     }
 
 
     private long getAmount(Float percentage, LateFeeConfiguration lateFeeConfiguration, Transactions transactions) {
         double amount = lateFeeConfiguration.getFeeAmount();
-//        double maxFeeAmount = lateFeeConfiguration.getMaxFeeAmount();
         long feeAmount = 0;
-//        if (transactions.getAmount() * amount >= maxFeeAmount) {
-//            feeAmount = (long) maxFeeAmount;
-//        } else {
         feeAmount = (long) (transactions.getAmount() * amount);
-//        }
         feeAmount = (long) (feeAmount * (percentage / 100.0f));
         return feeAmount;
     }
 
-    private Transactions createTransaction(LateFeeConfiguration lateFeeConfiguration, ILateFeeAdditionalInformationProjection lateFeeAdditionalInformationProjection, Transactions transactions, Long feeAmount,
+    private Transactions createTransaction(ILateFeeAdditionalInformationProjection lateFeeAdditionalInformationProjection, Transactions transactions, Long feeAmount,
                                            String receiveAccountId) {
         String transactionId = transactions.getTransactionId();
 

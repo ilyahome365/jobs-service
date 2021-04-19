@@ -2,9 +2,9 @@ package com.home365.jobservice.entities;
 
 
 import com.home365.jobservice.entities.enums.EntityType;
-import com.home365.jobservice.entities.enums.OwnerDrawStatus;
-import com.home365.jobservice.service.AuditInfo;
+import com.home365.jobservice.entities.projection.IAuditableEntity;
 import com.home365.jobservice.model.enums.CreditType;
+import com.home365.jobservice.service.AuditInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.UUID;
 
 
 @Entity
@@ -22,7 +21,7 @@ import java.util.UUID;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Transactions implements Serializable ,IAuditableEntity{
+public class Transactions implements Serializable , IAuditableEntity {
 
     @Id
     @AuditInfo(ignore = true)

@@ -14,7 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -81,11 +84,11 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override
-    public MailResult sendMailFromJobExecuteResults(JobExecutionResults jobExecutionResults, String from, List<String> recipientList, String TemplateName) {
+    public MailResult sendMailFromJobExecuteResults(JobExecutionResults jobExecutionResults, String from, List<String> recipientList, String templateName) {
         MailDetails mailDetails = new MailDetails();
         mailDetails.setFrom(from);
         mailDetails.setSubject(jobExecutionResults.getJobName());
-        mailDetails.setTemplateName(TemplateName);
+        mailDetails.setTemplateName(templateName);
         List<RecipientMail> recipientMails = ListUtils
                 .emptyIfNull(recipientList)
                 .stream()

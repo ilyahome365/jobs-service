@@ -1,6 +1,6 @@
 package com.home365.jobservice.service.impl;
 
-import com.home365.jobservice.entities.IAuditableEntity;
+import com.home365.jobservice.entities.projection.IAuditableEntity;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,7 +34,6 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     @Override
     public List<Transactions> saveAllTransactions(List<Transactions> transactions) {
-        //log.info("enter to save All Transactions {} ", transactions);
         return transactionsRepository.saveAll(transactions);
     }
 

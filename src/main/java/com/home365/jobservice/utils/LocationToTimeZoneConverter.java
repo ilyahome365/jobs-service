@@ -3,7 +3,11 @@ package com.home365.jobservice.utils;
 import java.util.TimeZone;
 
 public abstract class LocationToTimeZoneConverter {
-    public static TimeZone getTimeZone(String location){
+
+    private LocationToTimeZoneConverter(){
+
+    }
+    public static TimeZone getTimeZone(){
         return TimeZone.getDefault();
     }
 }

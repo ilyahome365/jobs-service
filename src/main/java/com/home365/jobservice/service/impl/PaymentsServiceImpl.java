@@ -1,14 +1,11 @@
 package com.home365.jobservice.service.impl;
 
-import com.home365.jobservice.entities.IAuditableEntity;
 import com.home365.jobservice.entities.Payments;
 import com.home365.jobservice.entities.enums.PaymentMethod;
 import com.home365.jobservice.entities.enums.PaymentStatus;
+import com.home365.jobservice.entities.projection.IAuditableEntity;
 import com.home365.jobservice.repository.PaymentsRepo;
-import com.home365.jobservice.service.FindByIdAudit;
 import com.home365.jobservice.service.PaymentsService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -16,9 +13,8 @@ import javax.persistence.PersistenceContext;
 import java.sql.Timestamp;
 
 @Service
-public class PaymentsServiceImpl implements PaymentsService, FindByIdAudit {
+public class PaymentsServiceImpl implements PaymentsService {
 
-    private static final Logger log = LoggerFactory.getLogger(PaymentsServiceImpl.class.getName());
     private final PaymentsRepo paymentsRepo;
 
     @PersistenceContext

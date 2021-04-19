@@ -35,15 +35,15 @@ public class FeignConfiguration {
     @Value("${service.balance.url}")
     private String balanceService;
 
+    private final Gson gson;
 
-    Gson gson = new GsonBuilder()
-            .setDateFormat("yyyy-MM-dd")
-            .registerTypeAdapter(LocalDateTime.class, (JsonDeserializer<LocalDateTime>) (json, type, jsonDeserializationContext) -> LocalDateTime.parse(json.getAsJsonPrimitive().getAsString()))
-            .registerTypeAdapter(LocalDate.class, (JsonDeserializer<LocalDate>) (json, type, jsonDeserializationContext) -> LocalDate.parse(json.getAsJsonPrimitive().getAsString()))
-            .create();
-
-
-
+    public FeignConfiguration(){
+         this.gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd")
+                .registerTypeAdapter(LocalDateTime.class, (JsonDeserializer<LocalDateTime>) (json, type, jsonDeserializationContext) -> LocalDateTime.parse(json.getAsJsonPrimitive().getAsString()))
+                .registerTypeAdapter(LocalDate.class, (JsonDeserializer<LocalDate>) (json, type, jsonDeserializationContext) -> LocalDate.parse(json.getAsJsonPrimitive().getAsString()))
+                .create();
+    }
     @Bean
     public TenantFeignService getTenantFeignService() {
         return Feign

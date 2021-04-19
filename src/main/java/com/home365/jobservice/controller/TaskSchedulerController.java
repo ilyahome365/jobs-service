@@ -1,5 +1,6 @@
 package com.home365.jobservice.controller;
 
+import com.home365.jobservice.config.Constants;
 import com.home365.jobservice.model.PropertyPhasingOutWrapper;
 import com.home365.jobservice.model.TaskSchedulerResponse;
 import com.home365.jobservice.tasks.PropertyPhaseOutTask;
@@ -39,7 +40,7 @@ public class TaskSchedulerController {
             }
             JobDetail jobDetail = buildJobDetail(propertyPhasingOutWrapper);
             Trigger trigger = buildJobTrigger(jobDetail, date);
-            Trigger existingTrigger = scheduler.getTrigger(new TriggerKey(propertyPhasingOutWrapper.getPropertyId(), "propertyPhasingOut-triggers"));
+            Trigger existingTrigger = scheduler.getTrigger(new TriggerKey(propertyPhasingOutWrapper.getPropertyId(), Constants.PROPERTY_PHASING_OUT_TRIGGERS));
             if (existingTrigger != null) {
                 scheduler.rescheduleJob(existingTrigger.getKey(), trigger);
             } else {
@@ -60,13 +61,9 @@ public class TaskSchedulerController {
 
     private JobDetail buildJobDetail(PropertyPhasingOutWrapper propertyPhasingOutWrapper) {
         JobDataMap jobDataMap = new JobDataMap();
-
         jobDataMap.put("propertyId", propertyPhasingOutWrapper.getPropertyId());
-//        jobDataMap.put("subject", scheduleEmailRequest.getSubject());
-//        jobDataMap.put("body", scheduleEmailRequest.getBody());
-
         return JobBuilder.newJob(PropertyPhaseOutTask.class)
-                .withIdentity(propertyPhasingOutWrapper.getPropertyId(), "email-jobs")
+                .withIdentity(propertyPhasingOutWrapper.getPropertyId(), Constants.EMAIL_JOBS)
                 .withDescription("Send Email Job")
                 .usingJobData(jobDataMap)
                 .storeDurably()
@@ -76,7 +73,7 @@ public class TaskSchedulerController {
     private Trigger buildJobTrigger(JobDetail jobDetail, LocalDate startAt) {
         return TriggerBuilder.newTrigger()
                 .forJob(jobDetail)
-                .withIdentity(jobDetail.getKey().getName(), "email-triggers")
+                .withIdentity(jobDetail.getKey().getName(), Constants.EMAIL_TRIGGERS)
                 .withDescription("Send Email Trigger")
                 .startAt(Date.from(startAt.atStartOfDay(ZoneId.systemDefault()).toInstant()))
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule().withMisfireHandlingInstructionFireNow())

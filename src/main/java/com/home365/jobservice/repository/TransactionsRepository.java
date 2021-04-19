@@ -1,7 +1,6 @@
 package com.home365.jobservice.repository;
 
 import com.home365.jobservice.entities.Transactions;
-import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import com.home365.jobservice.entities.projection.IDueDateEntry;
 import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationProjection;
 import com.home365.jobservice.entities.projection.IOwnerRentNotification;

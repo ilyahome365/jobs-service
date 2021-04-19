@@ -8,7 +8,6 @@ import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.TenantStatusChangeRequest;
 import com.home365.jobservice.repository.AccountExtensionRepo;
-import com.home365.jobservice.repository.PropertyAccountRepository;
 import com.home365.jobservice.rest.TenantServiceExternal;
 import com.home365.jobservice.service.IPropertyTenantExtensionService;
 import com.home365.jobservice.service.MailService;
@@ -28,20 +27,17 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
     public static final String LEASE_UPDATING_JOB = "Lease Updating Job";
     private final IPropertyTenantExtensionService propertyTenantExtensionService;
-    private final int TENANT_BUSINESS_TYPE = 10;
     private final TenantServiceExternal tenantServiceExternal;
 
 
-    private AccountExtensionRepo accountExtensionRepo;
+    private final AccountExtensionRepo accountExtensionRepo;
 
     public LeaseUpdatingServiceImpl(AppProperties appProperties,
                                     MailService mailService,
-                                    IPropertyTenantExtensionService propertyTenantExtensionService, TenantServiceExternal tenantServiceExternal, PropertyAccountRepository propertyAccountRepository, AccountExtensionRepo accountExtensionRepo) {
+                                    IPropertyTenantExtensionService propertyTenantExtensionService, TenantServiceExternal tenantServiceExternal, AccountExtensionRepo accountExtensionRepo) {
         super(appProperties, mailService);
         this.propertyTenantExtensionService = propertyTenantExtensionService;
         this.tenantServiceExternal = tenantServiceExternal;
-
-
         this.accountExtensionRepo = accountExtensionRepo;
     }
 
@@ -64,8 +60,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
                                     propertyTenantExtension.getLeaseType().name(),
                                     propertyTenantExtension.getDaysLeft()));
                         }
-                )
-                .peek(propertyTenantExtension -> {
+                ).peek(propertyTenantExtension -> {
                     if (propertyTenantExtension.getDaysLeft() <= 0) {
                         if (propertyTenantExtension.getMoveOutDate() != null) {
                             int moveOutLeft = DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getMoveOutDate());

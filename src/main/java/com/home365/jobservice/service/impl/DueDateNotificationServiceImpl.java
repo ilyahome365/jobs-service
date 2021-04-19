@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.home365.jobservice.config.AppProperties;
+import com.home365.jobservice.config.Constants;
 import com.home365.jobservice.entities.projection.IDueDateEntry;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.JobExecutionResults;
@@ -15,7 +16,6 @@ import com.home365.jobservice.service.DueDateNotificationService;
 import com.home365.jobservice.service.MailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -27,16 +27,14 @@ import java.util.concurrent.atomic.AtomicReference;
 @Service
 @Slf4j
 public class DueDateNotificationServiceImpl extends JobExecutorImpl implements DueDateNotificationService {
-    private final JdbcTemplate jdbcTemplate;
     private final TransactionsRepository transactionsRepo;
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Value("${tenant.login.url}")
     String tenantLoginUrl;
 
-    public DueDateNotificationServiceImpl(JdbcTemplate jdbcTemplate, AppProperties appProperties, MailService mailService, TransactionsRepository transactionsRepo) {
+    public DueDateNotificationServiceImpl( AppProperties appProperties, MailService mailService, TransactionsRepository transactionsRepo) {
         super(appProperties, mailService);
-        this.jdbcTemplate = jdbcTemplate;
         this.transactionsRepo = transactionsRepo;
     }
 
@@ -62,8 +60,8 @@ public class DueDateNotificationServiceImpl extends JobExecutorImpl implements D
         if (StringUtils.isEmpty(eMailAddress)) {
             AtomicReference<String> eMailAddressAtomic = new AtomicReference();
             try {
-                mapper.readTree(tenantJson).get("tenantDetails").forEach(e -> {
-                    BooleanNode isContactPerson = (BooleanNode) e.get("contactPerson");
+                mapper.readTree(tenantJson).get(Constants.TENANT_DETAILS).forEach(e -> {
+                    BooleanNode isContactPerson = (BooleanNode) e.get(Constants.CONTACT_PERSON);
                     if(isContactPerson.asBoolean()) {
                         eMailAddressAtomic.set(e.get("email").asText());
                     }
@@ -75,18 +73,16 @@ public class DueDateNotificationServiceImpl extends JobExecutorImpl implements D
         } if(!StringUtils.isEmpty(eMailAddress)) {
             MailDetails mailDetails = new MailDetails();
             mailDetails.setFrom(appProperties.getMailSupport());
-            mailDetails.setSubject("Payment Reminder");
-            mailDetails.setTemplateName("duedate-payment-notification");
+            mailDetails.setSubject(Constants.PAYMENT_REMINDER);
+            mailDetails.setTemplateName(Constants.DUEDATE_PAYMENT_NOTIFICATION);
             mailDetails.setContentTemplate(getContentTemplate(fullName, maxDueDate));
-            String finalEMailAddress = eMailAddress;
-            List<RecipientMail> recipients = new ArrayList<>() {{
-                add(new RecipientMail(fullName, finalEMailAddress));
-                add(new RecipientMail("Shauly Yonay", "shauly@home365.co"));
-            }};
+            List<RecipientMail> recipients = new ArrayList<>(
+                    Arrays.asList(new RecipientMail(fullName, eMailAddress),
+                    new RecipientMail("Shauly Yonay", "shauly@home365.co")));
             mailDetails.setRecipients(recipients);
 
             MailResult mailResult = mailService.sendMail(mailDetails);
-            log.info("Mail Result for {}: ", fullName, mailResult.getError());
+            log.info("Mail Result for {}: {}", fullName, mailResult.getError());
         } else {
             log.warn("Cannot send mail to {} due to missing email address", fullName);
         }

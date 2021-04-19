@@ -53,7 +53,6 @@ public class PaymentStripeServiceImpl implements PaymentStripeService {
         stripeChargeRequest.setAddAchFee(true);
         stripeChargeRequest.setDescription(description + " for AccountId  : " + accountId + " Name :  " + ownerName);
         return createCharge(stripeChargeRequest);
-//        ChargeWrapper charge = paymentFeignService.createCharge(stripeChargeRequest);
     }
 
     private StripePayment createCharge(StripeChargeRequest stripeChargeRequest) throws StripeException {

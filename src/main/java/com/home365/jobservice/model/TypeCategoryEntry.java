@@ -1,8 +1,6 @@
 package com.home365.jobservice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import com.home365.jobservice.model.enums.TransferTo;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

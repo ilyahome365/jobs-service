@@ -1,6 +1,5 @@
 package com.home365.jobservice.repository;
 
-import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.TransactionsWithProjectedBalance;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

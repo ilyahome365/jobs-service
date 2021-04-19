@@ -29,7 +29,7 @@ public class JobScheduledWrapper {
         this.location = location;
         this.cron = cron;
         this.task = task;
-        this.timeZone = LocationToTimeZoneConverter.getTimeZone(location);
+        this.timeZone = LocationToTimeZoneConverter.getTimeZone();
     }
 
     public void stopJob(boolean mayInterruptIfRunning) {

@@ -24,13 +24,10 @@ import java.util.stream.Collectors;
 public class OwnerNotificationsServiceImpl extends JobExecutorImpl implements OwnerNotificationsService {
 
     private final TransactionsServiceImpl transactionsService;
-    private final AppProperties appProperties;
-    private final String emailSubject = "We are working to collect your rent";
 
-    public OwnerNotificationsServiceImpl(AppProperties appProperties, MailService mailService, TransactionsServiceImpl transactionsService, AppProperties appProperties1) {
+    public OwnerNotificationsServiceImpl(AppProperties appProperties, MailService mailService, TransactionsServiceImpl transactionsService) {
         super(appProperties, mailService);
         this.transactionsService = transactionsService;
-        this.appProperties = appProperties1;
     }
 
     @Override
@@ -64,6 +61,7 @@ public class OwnerNotificationsServiceImpl extends JobExecutorImpl implements Ow
                 .email(ownerRentNotification.getEmail())
                 .build();
         mailDetails.setRecipients(List.of(recipientMail));
+        String emailSubject = "We are working to collect your rent";
         mailDetails.setSubject(emailSubject);
         mailDetails.setTemplateName("owner-rent-notification");
         MailResult mailResult = mailService.sendMail(mailDetails);
@@ -86,7 +84,7 @@ public class OwnerNotificationsServiceImpl extends JobExecutorImpl implements Ow
     }
 
     @Override
-    protected String execute(String locationId) throws Exception {
+    protected String execute(String locationId) {
         return createOwnerNotification(locationId);
     }
 }

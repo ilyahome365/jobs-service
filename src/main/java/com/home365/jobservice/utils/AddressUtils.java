@@ -3,7 +3,13 @@ package com.home365.jobservice.utils;
 
 import org.springframework.util.StringUtils;
 
+
 public class AddressUtils {
+
+
+    private AddressUtils() {
+
+    }
 
     public static String addUnitAndBuildingToAddress(String address, String unit, String building) {
         String returnAddress = address;

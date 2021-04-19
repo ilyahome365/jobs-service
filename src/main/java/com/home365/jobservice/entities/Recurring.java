@@ -1,15 +1,13 @@
 package com.home365.jobservice.entities;
 
 import com.home365.jobservice.entities.enums.EntityType;
+import com.home365.jobservice.entities.projection.IAuditableEntity;
 import com.home365.jobservice.service.AuditInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Immutable;
 import org.springframework.util.StringUtils;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.sql.Date;

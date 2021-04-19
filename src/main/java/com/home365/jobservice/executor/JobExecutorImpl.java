@@ -35,7 +35,7 @@ public abstract class JobExecutorImpl implements JobService {
     @Autowired
     private Environment environment;
 
-    public JobExecutorImpl(AppProperties appProperties, MailService mailService) {
+    protected JobExecutorImpl(AppProperties appProperties, MailService mailService) {
         this.appProperties = appProperties;
         this.mailService = mailService;
 
@@ -63,7 +63,6 @@ public abstract class JobExecutorImpl implements JobService {
             setEndingTimeAndDuration(jobExecutionResults, startTime);
             jobExecutionResults.setError(ex.getMessage());
             jobExecutionResults.setStackTrace(Arrays.toString(ex.getStackTrace()));
-//            sendMailOnFail(getJobName(), jobExecutionResults);
             log.info(String.format("Job [%s] failed -> Send Mail with the reason", getJobName()));
             ex.printStackTrace();
         } finally {

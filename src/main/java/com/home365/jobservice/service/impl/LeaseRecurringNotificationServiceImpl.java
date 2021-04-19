@@ -1,6 +1,7 @@
 package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
+import com.home365.jobservice.config.Constants;
 import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProjection;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.LeasePropertyNotificationConfiguration;
@@ -27,7 +28,12 @@ import java.util.stream.Collectors;
 @Service
 public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
 
-    public static final String LEASE_PROPERTY_NOTIFICATION_JOB = "Lease Property Notification Job";
+    public static final String _TH = "</th>";
+    public static final String TH = "<th>";
+    public static final String _TD = "</td>";
+    public static final String TD = "<td>";
+    public static final String TR = "<tr>";
+    public static final String _TR = "</tr>";
 
     private final PropertyService propertyService;
     private final JobsConfigurationService jobsConfigurationService;
@@ -43,7 +49,7 @@ public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
 
     @Override
     protected String getJobName() {
-        return LEASE_PROPERTY_NOTIFICATION_JOB;
+        return Constants.LEASE_PROPERTY_NOTIFICATION_JOB;
     }
 
     @Override
@@ -132,20 +138,20 @@ public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
                 .append("th { padding: 15px; text-align: center; } td { text-align: center; }")
                 .append("</style>")
                 .append("<table style=\"width:100%\">")
-                .append("<tr>")
-                .append("<th>").append("PROPERTY").append("</th>")
-                .append("<th>").append("TENANT").append("</th>")
-                .append("<th>").append("DAYS").append("</th>")
-                .append("<th>").append("EXP").append("</th>")
-                .append("<tr>");
+                .append(TR)
+                .append(TH).append("PROPERTY").append(_TH)
+                .append(TH).append("TENANT").append(_TH)
+                .append(TH).append("DAYS").append(_TH)
+                .append(TH).append("EXP").append(_TH)
+                .append(TR);
         ListUtils.emptyIfNull(leaseExpiryPropertySummaries).forEach(leaseExpiryPropertySummary -> {
             stringBuilder
-                    .append("<tr>")
-                    .append("<td>").append(leaseExpiryPropertySummary.getProperty()).append("</td>")
-                    .append("<td>").append(leaseExpiryPropertySummary.getTenant()).append("</td>")
-                    .append("<td>").append(leaseExpiryPropertySummary.getDaysLeft()).append("</td>")
-                    .append("<td>").append(leaseExpiryPropertySummary.getExpiredDate()).append("</td>")
-                    .append("</tr>");
+                    .append(TR)
+                    .append(TD).append(leaseExpiryPropertySummary.getProperty()).append(_TD)
+                    .append(TD).append(leaseExpiryPropertySummary.getTenant()).append(_TD)
+                    .append(TD).append(leaseExpiryPropertySummary.getDaysLeft()).append(_TD)
+                    .append(TD).append(leaseExpiryPropertySummary.getExpiredDate()).append(_TD)
+                    .append(_TR);
         });
         stringBuilder.append("</table>")
                 .append("</body>")
