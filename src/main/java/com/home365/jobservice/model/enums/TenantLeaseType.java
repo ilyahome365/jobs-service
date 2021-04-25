@@ -1,17 +1,17 @@
-package com.home365.jobservice.entities.enums;
+package com.home365.jobservice.model.enums;
 
-public enum LeaseType {
+public enum TenantLeaseType {
     Monthly("monthly"),
     Yearly("endOfTerm");
 
     private final String value;
 
-    LeaseType(String value) {
+    TenantLeaseType(String value) {
         this.value = value;
     }
 
-    public static LeaseType findByName(String type) {
-        for(LeaseType value : values()){
+    public static TenantLeaseType findByName(String type) {
+        for(TenantLeaseType value : values()){
             if(value.value.equals(type)){
                 return value;
             }
