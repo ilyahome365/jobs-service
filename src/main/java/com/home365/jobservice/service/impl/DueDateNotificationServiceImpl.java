@@ -76,9 +76,7 @@ public class DueDateNotificationServiceImpl extends JobExecutorImpl implements D
             mailDetails.setSubject(Constants.PAYMENT_REMINDER);
             mailDetails.setTemplateName(Constants.DUEDATE_PAYMENT_NOTIFICATION);
             mailDetails.setContentTemplate(getContentTemplate(fullName, maxDueDate));
-            List<RecipientMail> recipients = new ArrayList<>(
-                    Arrays.asList(new RecipientMail(fullName, eMailAddress),
-                    new RecipientMail("Shauly Yonay", "shauly@home365.co")));
+            List<RecipientMail> recipients = new ArrayList<>(Arrays.asList(new RecipientMail(fullName, eMailAddress)));
             mailDetails.setRecipients(recipients);
 
             MailResult mailResult = mailService.sendMail(mailDetails);

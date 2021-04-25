@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -28,7 +29,7 @@ public class TaskSchedulerController {
         this.scheduler = scheduler;
     }
 
-
+    @ApiIgnore
     @PostMapping("/property-deactivation")
     public ResponseEntity<TaskSchedulerResponse> propertySchedulerForPhasingOut(@RequestBody PropertyPhasingOutWrapper propertyPhasingOutWrapper) {
         try {

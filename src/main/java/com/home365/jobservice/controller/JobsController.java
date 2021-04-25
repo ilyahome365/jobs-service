@@ -20,12 +20,6 @@ public class JobsController {
         this.jobsService = jobsService;
     }
 
-    @GetMapping("/test-jobs")
-    public ResponseEntity<Boolean> getTest() {
-        log.info("Enter to test jobs");
-        return ResponseEntity.ok(true);
-    }
-
     @GetMapping("/change-bill-state")
     public ResponseEntity<JobExecutionResults> changeBillStates(@RequestParam String locationId) {
         return ResponseEntity.ok(jobsService.startChangeBillStatusJob(locationId));
