@@ -44,7 +44,7 @@ public class OwnerNotificationsServiceImpl extends JobExecutorImpl implements Ow
                 .collect(Collectors.groupingBy(IOwnerRentNotification::getContactId));
         for (Map.Entry<String, List<IOwnerRentNotification>> entry : ownerNotificationByContact.entrySet()) {
             List<IOwnerRentNotification> ownerRentNotifications = entry.getValue();
-            String properties = ownerRentNotifications.stream().map(IOwnerRentNotification::getAddress).collect(Collectors.joining("\n"));
+            String properties = ownerRentNotifications.stream().map(IOwnerRentNotification::getAddress).collect(Collectors.joining("<br>"));
             IOwnerRentNotification ownerRentNotification = ownerRentNotifications.get(0);
             createMailAndSend(ownerRentNotification, properties);
             propertiesToSendNotification.append(properties);

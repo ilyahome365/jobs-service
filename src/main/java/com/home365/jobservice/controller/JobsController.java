@@ -61,4 +61,12 @@ public class JobsController {
         log.info("Start property phase out for locationId : {} ", locationId);
         return ResponseEntity.ok(jobsService.startPhaseOutProperty(locationId));
     }
+
+    @GetMapping("/owner-notification")
+    public ResponseEntity<JobExecutionResults> ownerNotification(@RequestParam String locationId) {
+        log.info("Start property phase out for locationId : {} ", locationId);
+        return ResponseEntity.ok(jobsService.startOwnerRentNotification(locationId));
+    }
+
+
 }

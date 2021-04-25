@@ -66,7 +66,7 @@ public abstract class JobExecutorImpl implements JobService {
             log.info(String.format("Job [%s] failed -> Send Mail with the reason", getJobName()));
         } finally {
             lock.unlock();
-            sendMailOnFail(getJobName(), jobExecutionResults);
+            sendMailOnFail(getJobName() + " -  "+ locationId , jobExecutionResults);
         }
         return jobExecutionResults;
     }
