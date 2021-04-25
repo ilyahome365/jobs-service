@@ -7,6 +7,7 @@ import com.home365.jobservice.entities.enums.LeaseType;
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.TenantStatusChangeRequest;
+import com.home365.jobservice.model.TenantsRequest;
 import com.home365.jobservice.repository.AccountExtensionRepo;
 import com.home365.jobservice.rest.TenantServiceExternal;
 import com.home365.jobservice.service.IPropertyTenantExtensionService;
@@ -18,8 +19,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -51,31 +52,31 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         LocalDate currentCalendar = LocalDate.now();
         LocalDate nextMonth = LocalDate.now().plusMonths(1);
 
-        List<PropertyTenantExtension> leaseToUpdate = propertyTenantExtensionService.getAllActivePlansToUpdate(locationId).stream().
-                filter(propertyTenantExtension -> propertyTenantExtension.getLeaseType() != null && propertyTenantExtension.getEndDate() != null)
-                .peek(propertyTenantExtension -> {
-                            propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate().toLocalDate()));
-                            log.info(String.format("PropertyTenantExtension with id [%s], Lease Type [%s], Days Left [%d]",
-                                    propertyTenantExtension.getPropertyTenantId(),
-                                    propertyTenantExtension.getLeaseType().name(),
-                                    propertyTenantExtension.getDaysLeft()));
-                        }
-                ).peek(propertyTenantExtension -> {
-                    if (propertyTenantExtension.getDaysLeft() <= 0) {
-                        if (propertyTenantExtension.getMoveOutDate() != null) {
-                            int moveOutLeft = DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getMoveOutDate());
-                            if (moveOutLeft <= 0) {
-                                changePropertyTenantToInactive(propertyTenantExtension);
-
-                            } else {
-                                changePropertyTenantLease(propertyTenantExtension, LeaseType.Monthly, propertyTenantExtension.getMoveOutDate().atStartOfDay());
-                            }
+        List<PropertyTenantExtension> leaseToUpdate = new ArrayList<>();
+        for (PropertyTenantExtension propertyTenantExtension : propertyTenantExtensionService.getAllActivePlansToUpdate(locationId)) {
+            if (propertyTenantExtension.getLeaseType() != null && propertyTenantExtension.getEndDate() != null) {
+                propertyTenantExtension.setDaysLeft(DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getEndDate().toLocalDate()));
+                log.info(String.format("PropertyTenantExtension with id [%s], Lease Type [%s], Days Left [%d]",
+                        propertyTenantExtension.getPropertyTenantId(),
+                        propertyTenantExtension.getLeaseType().name(),
+                        propertyTenantExtension.getDaysLeft()));
+                if (propertyTenantExtension.getDaysLeft() <= 0) {
+                    if (propertyTenantExtension.getMoveOutDate() != null) {
+                        int moveOutLeft = DateAndTimeUtil.getDaysLeft(currentCalendar, propertyTenantExtension.getMoveOutDate());
+                        if (moveOutLeft <= 0) {
+                            changePropertyTenantToInactive(propertyTenantExtension);
 
                         } else {
-                            changePropertyTenantLease(propertyTenantExtension, LeaseType.Monthly, nextMonth.atStartOfDay());
+                            changePropertyTenantLease(propertyTenantExtension, LeaseType.Monthly, propertyTenantExtension.getMoveOutDate().atStartOfDay());
                         }
+
+                    } else {
+                        changePropertyTenantLease(propertyTenantExtension, LeaseType.Monthly, nextMonth.atStartOfDay());
                     }
-                }).collect(Collectors.toList());
+                }
+                leaseToUpdate.add(propertyTenantExtension);
+            }
+        }
 
 
         propertyTenantExtensionService.save(leaseToUpdate);
@@ -83,7 +84,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         return getJobName() + " Finished ";
     }
 
-    private void changePropertyTenantLease(PropertyTenantExtension propertyTenantExtension, LeaseType leaseType, LocalDateTime endDate) {
+    private void changePropertyTenantLease(PropertyTenantExtension propertyTenantExtension, LeaseType leaseType, LocalDateTime endDate) throws GeneralException {
         LocalDate currentCalendar = LocalDate.now();
         propertyTenantExtension.setLeaseType(leaseType);
         propertyTenantExtension.setEndDate(endDate);
@@ -92,6 +93,10 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
                 propertyTenantExtension.getPropertyTenantId(),
                 propertyTenantExtension.getLeaseType().name(),
                 propertyTenantExtension.getDaysLeft()));
+        TenantsRequest tenantByContact = tenantServiceExternal.getTenantByContact(propertyTenantExtension.getContactId());
+        tenantByContact.getLeaseDetails().setType(leaseType);
+        tenantByContact.getLeaseDetails().setEndDate(endDate);
+        tenantServiceExternal.updateLeasePerTenant(tenantByContact);
     }
 
     private void changePropertyTenantToInactive(PropertyTenantExtension propertyTenantExtension) {

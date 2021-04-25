@@ -2,6 +2,7 @@ package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.model.TenantStatusChangeRequest;
+import com.home365.jobservice.model.TenantsRequest;
 import com.home365.jobservice.model.wrapper.OwnerWrapper;
 import com.home365.jobservice.model.wrapper.TenantWrapper;
 import com.home365.jobservice.rest.KeyCloakService;
@@ -50,5 +51,19 @@ public class TenantServiceExternalImpl implements TenantServiceExternal {
     public OwnerWrapper getOwnerFromProperty(String propertyId) throws GeneralException {
         KeycloakResponse token = keyCloakService.getKey();
         return tenantFeignService.getOwnerAccountFromProperty(token.getAccess_token(), propertyId);
+    }
+
+    @Override
+    public TenantsRequest getTenantByContact(String contactId) throws GeneralException {
+        log.info("get tenant by contact id  : {} ", contactId);
+        KeycloakResponse token = keyCloakService.getKey();
+        return tenantFeignService.getTenantByContactId(token.getAccess_token(), contactId);
+    }
+
+    @Override
+    public void updateLeasePerTenant(TenantsRequest tenantsRequest) throws GeneralException {
+        log.info("update lease for  {} ", tenantsRequest.toString());
+        KeycloakResponse token = keyCloakService.getKey();
+        tenantFeignService.updateLease(token.getAccess_token(), tenantsRequest);
     }
 }
