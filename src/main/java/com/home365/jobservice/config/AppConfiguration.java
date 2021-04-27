@@ -66,15 +66,26 @@ public class AppConfiguration implements SchedulingConfigurer {
                 Constants.AT_PM_ACCOUNT,
                 () -> leaseUpdatingService.executeJob(Constants.AT_PM_ACCOUNT)
         );
-
+// phsae out property
         addJob(JobsConfigurationServiceImpl.JOBS_ID.PHASE_OUT_PROPERTY.getName(),
                 Constants.LV_PM_ACCOUNT,
                 () -> phaseOutPropertyService.executeJob(Constants.LV_PM_ACCOUNT)
         );
 
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.PHASE_OUT_PROPERTY.getName(),
+                Constants.AT_PM_ACCOUNT,
+                () -> phaseOutPropertyService.executeJob(Constants.AT_PM_ACCOUNT)
+        );
+
+//         change bill status
         addJob(JobsConfigurationServiceImpl.JOBS_ID.CHANGE_BILL_STATUS.getName(),
                 Constants.LV_PM_ACCOUNT,
                 () -> changeBillStatusService.executeJob(Constants.LV_PM_ACCOUNT)
+        );
+
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.CHANGE_BILL_STATUS.getName(),
+                Constants.AT_PM_ACCOUNT,
+                () -> changeBillStatusService.executeJob(Constants.AT_PM_ACCOUNT)
         );
 
         addJob(JobsConfigurationServiceImpl.JOBS_ID.DUE_DATE_NOTIFICATION.getName(),
