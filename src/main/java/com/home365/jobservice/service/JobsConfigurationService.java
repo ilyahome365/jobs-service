@@ -9,7 +9,7 @@ import com.home365.jobservice.model.LeasePropertyNotificationConfiguration;
 import java.util.Optional;
 
 public interface JobsConfigurationService {
-    LateFeeConfiguration getLateFeeConfiguration() throws JsonProcessingException;
+    LateFeeConfiguration getLateFeeConfiguration(String locationId) throws JsonProcessingException;
 
     LeasePropertyNotificationConfiguration getLeasePropertyNotificationConfiguration() throws JsonProcessingException;
 

@@ -62,7 +62,7 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
             rules = new Rules();
         }
         locationRules.setRule(rules);
-        LateFeeConfiguration lateFeeConfiguration = jobsConfigurationService.getLateFeeConfiguration();
+        LateFeeConfiguration lateFeeConfiguration = jobsConfigurationService.getLateFeeConfiguration(locationId);
 
         List<Transactions> candidateTransactionsWithNoLateFee = transactionsService.findAllByBillTypeAndStatus(lateFeeConfiguration.getCategoryNames(), lateFeeConfiguration.getStatus(), locationRules.getPmAccountId());
 

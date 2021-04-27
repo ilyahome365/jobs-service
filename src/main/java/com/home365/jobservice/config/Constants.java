@@ -12,11 +12,13 @@ public class Constants {
     public static final String TENANT_DETAILS = "tenantDetails";
     public static final String CONTACT_PERSON = "contactPerson";
     public static final String BILLS_STATUS_CHANGE = "bills-status-change";
+    public static final String LATE_FEE = "late-fee";
     public static final String LEASE_PROPERTY_NOTIFICATION_JOB = "Lease Property Notification Job";
 
-    private Constants(){
+    private Constants() {
 
     }
+
     public static final String EXPENSES = "expenses";
     public static final String APPROVED_BILLS = "approved_bills";
     public static final String INCOMES = "incomes";

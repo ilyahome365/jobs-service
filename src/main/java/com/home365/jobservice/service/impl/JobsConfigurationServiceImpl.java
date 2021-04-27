@@ -28,8 +28,8 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
     }
 
     @Override
-    public LateFeeConfiguration getLateFeeConfiguration() throws JsonProcessingException {
-        Optional<JobConfiguration> jobConfiguration = jobsConfigurationRepository.findByLocationAndName("F90E128A-CD00-4DF7-B0D0-0F40F80D623A","late-fee");
+    public LateFeeConfiguration getLateFeeConfiguration(String locationId) throws JsonProcessingException {
+        Optional<JobConfiguration> jobConfiguration = jobsConfigurationRepository.findByLocationAndName(locationId, JOBS_ID.LATE_FEE.getName());
         return objectMapper.readValue(jobConfiguration.get().getConfigurationJson(), LateFeeConfiguration.class);
     }
 
@@ -58,7 +58,7 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
     @Override
     public ChangeBillConfiguration getChangeBillConfiguration(String locationId) throws JsonProcessingException {
         Optional<JobConfiguration> jobConfiguration = getJobByLocationAndName(locationId, Constants.BILLS_STATUS_CHANGE);
-        return objectMapper.readValue(jobConfiguration.get().getConfigurationJson(),ChangeBillConfiguration.class);
+        return objectMapper.readValue(jobConfiguration.get().getConfigurationJson(), ChangeBillConfiguration.class);
     }
 
     public enum JOBS_ID {
@@ -67,9 +67,8 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
         LEASE_UPDATING("lease-updating", 3L),
         CHANGE_BILL_STATUS(Constants.BILLS_STATUS_CHANGE, 4L),
         DUE_DATE_NOTIFICATION("due-date-notification", 5L),
-        PHASE_OUT_PROPERTY("phase-out-property",6L),
-        OWNER_RENT_NOTIFICATION("owner-rent-notification",7L)
-        ;
+        PHASE_OUT_PROPERTY("phase-out-property", 6L),
+        OWNER_RENT_NOTIFICATION("owner-rent-notification", 7L);
 
         private final String name;
         private final Long key;
