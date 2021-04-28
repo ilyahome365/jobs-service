@@ -55,5 +55,5 @@ public interface BalanceServiceFeign {
 
     @RequestLine("POST /charges/disposition-tenant-payment")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    void dispositionTenantPayment(@Param("token") String token, @Param("dispositionWrapper") DispositionWrapper dispositionWrapper, @Param("userId") String userId) throws GeneralException;
+    void dispositionTenantPayment(@Param("token") String token, @Param("userId") String userId) throws GeneralException;
 }

@@ -99,7 +99,8 @@ public class CashPaymentServiceImpl implements CashPaymentService {
                     KeycloakResponse token = null;
                     try {
                         token = keyCloakService.getKey();
-                        balanceServiceFeign.dispositionTenantPayment(token.getAccess_token(), null, cashPaymentTracking.getTenantId());
+                        balanceServiceFeign.dispositionTenantPayment(token.getAccess_token(), cashPaymentTracking.getTenantId());
+                        balanceServiceFeign.dispositionTenantPayment(token.getAccess_token(), cashPaymentTracking.getTenantId());
                     } catch (GeneralException e) {
                         log.error(e.getMessage());
                     }
