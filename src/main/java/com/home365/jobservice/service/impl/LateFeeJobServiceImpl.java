@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -63,10 +64,11 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
         }
         locationRules.setRule(rules);
         LateFeeConfiguration lateFeeConfiguration = jobsConfigurationService.getLateFeeConfiguration(locationId);
-
+        String from = LocalDate.now().withDayOfMonth(1).toString();
+        String to = LocalDate.now().withDayOfMonth(2).toString();
         List<Transactions> candidateTransactionsWithNoLateFee = transactionsService.
                 findAllByBillTypeAndStatus(lateFeeConfiguration.getCategoryNames(), lateFeeConfiguration.getStatus(),
-                        locationRules.getPmAccountId());
+                        locationRules.getPmAccountId(),from,to);
 
         candidateTransactionsWithNoLateFee.forEach(transactions -> log.info("{}, {}, {}, {}, {}, {} ", transactions.getAmount() / 100, transactions.getDueDate(), transactions.getTransactionId(), transactions.getStatus(),
                 transactions.getCategoryName(), transactions.getChargeAccountId()));

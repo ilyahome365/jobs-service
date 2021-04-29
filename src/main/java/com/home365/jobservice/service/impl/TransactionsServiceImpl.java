@@ -44,8 +44,9 @@ public class TransactionsServiceImpl implements TransactionsService {
     }
 
     @Override
-    public List<Transactions> findAllByBillTypeAndStatus(List<String> categoryNames, List<String> status, String pmAccountId) {
-        return transactionsRepository.findAllByBillTypeAndStatus(categoryNames, status, pmAccountId);
+    public List<Transactions> findAllByBillTypeAndStatus(List<String> categoryNames, List<String> status, String pmAccountId, String from
+            , String to) {
+        return transactionsRepository.findAllByBillTypeAndStatus(categoryNames, status, pmAccountId,from,to);
     }
 
     @Override
@@ -110,7 +111,7 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     @Override
     public List<IOwnerRentNotification> getTransactionsForOwnerRent(String pmAccount, String firstDate, String lastDate) {
-       return transactionsRepository.getOwnerRentNotification(pmAccount,firstDate,lastDate);
+        return transactionsRepository.getOwnerRentNotification(pmAccount, firstDate, lastDate);
     }
 
 

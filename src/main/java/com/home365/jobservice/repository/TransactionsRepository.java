@@ -18,7 +18,7 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
     @Query(
             value = "SELECT * " +
                     "FROM Transactions " +
-                    "WHERE TransactionType = 'Charge' AND DueDate between '20210401 00:00:00' AND '20210401 23:59:59' AND pmAccountId = :pmAccountId and Amount > 0 " +
+                    "WHERE TransactionType = 'Charge' AND DueDate between :from AND :to AND pmAccountId = :pmAccountId and Amount > 0 " +
                     "      AND categoryName IN (:categoryNames)" +
                     "      AND Status IN (:status) " +
                     "AND TransactionId NOT IN ( " +
@@ -27,7 +27,9 @@ public interface TransactionsRepository extends JpaRepository<Transactions, Stri
                     "   WHERE BillType = 'lateFee' AND ReferenceTransactionId is not null" +
                     ")",
             nativeQuery = true)
-    List<Transactions> findAllByBillTypeAndStatus(@Param("categoryNames") List<String> categoryNames, @Param("status") List<String> status, @Param("pmAccountId") String pmAccountId);
+    List<Transactions> findAllByBillTypeAndStatus(@Param("categoryNames") List<String> categoryNames,
+                                                  @Param("status") List<String> status, @Param("pmAccountId") String pmAccountId, @Param("from") String from
+            , @Param("to") String to);
 
     @Query(value = "select * from Transactions where RecurringTemplateId = :recurringTemplateId and status not in ('cancel') order by dueDate",
             nativeQuery = true)
