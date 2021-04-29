@@ -106,7 +106,12 @@ public class CashPaymentServiceImpl implements CashPaymentService {
 
                     try {
                         token = keyCloakService.getKey();
-                        balanceServiceFeign.dispositionTenantPayment(token.getAccess_token(), null, cashPaymentTracking.getTenantId());
+                        DispositionWrapper dispositionWrapper = new DispositionWrapper();
+                        CashPaymentSdd cashPaymentSdd = new CashPaymentSdd();
+                        cashPaymentSdd.setCashId(cashPaymentTracking.getId());
+                        cashPaymentSdd.setPaySefId(cashPaymentTracking.getPaysafeId());
+                        dispositionWrapper.setCashPaymentSdd(cashPaymentSdd);
+                        balanceServiceFeign.dispositionTenantPayment(token.getAccess_token(), dispositionWrapper,cashPaymentTracking.getTenantId());
                     } catch (GeneralException e) {
                         log.error(e.getMessage());
                     }

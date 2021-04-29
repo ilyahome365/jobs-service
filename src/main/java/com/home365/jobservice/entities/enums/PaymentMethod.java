@@ -8,5 +8,6 @@ public enum PaymentMethod {
     check,
     other,
     ach,
-    stripeCheckOut, noPaymentMethod
+    stripeCheckOut, noPaymentMethod,
+    securityDeposit
 }
