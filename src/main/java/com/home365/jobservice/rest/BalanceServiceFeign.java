@@ -49,11 +49,18 @@ public interface BalanceServiceFeign {
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     OwnerProjectedBalanceWrapper getAllOwnersProjectedBalance(@Param("token") String token) throws GeneralException;
 
+
+    @RequestLine("GET /move-late-fee-to-home365?chargesIds={chargesIds}")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    void moveLateFeeToPM(@Param("token") String token ,@Param("chargesIds") List<String>chargesIds) throws GeneralException;
+
     @RequestLine("GET /account/{accountId}/balance?isProjectedBalance={isProjectedBalance}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    AccountBalance getOwnerProjectedBalance(@Param("token") String token, @Param("accountId") String accountId , @Param("isProjectedBalance") Boolean projectedBalance) throws GeneralException;
+    AccountBalance getOwnerProjectedBalance(@Param("token") String token, @Param("accountId") String accountId, @Param("isProjectedBalance") Boolean projectedBalance) throws GeneralException;
 
     @RequestLine("POST /charges/disposition-tenant-payment")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     void dispositionTenantPayment(@Param("token") String token, @Param("dispositionWrapper") DispositionWrapper dispositionWrapper, @Param("userId") String userId) throws GeneralException;
+
+
 }

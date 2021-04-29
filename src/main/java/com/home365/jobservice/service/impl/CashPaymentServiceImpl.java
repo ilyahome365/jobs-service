@@ -66,11 +66,12 @@ public class CashPaymentServiceImpl implements CashPaymentService {
         String mtid = (String) ((Map<String, Object>) requestMap.get("data")).get("mtid");
 
         Optional<CashPaymentTracking> cashPaymentTrackingOpt = cashPaymentTrackingRepository.findByPaysafeId(mtid);
+        KeycloakResponse token = null;
 
         if (cashPaymentTrackingOpt.isPresent()) {
             CashPaymentTracking cashPaymentTracking = cashPaymentTrackingOpt.get();
             if (!CashPaymentStatus.PAYMENT_EXPIRED.name().equalsIgnoreCase(eventType)) {
-                if(cashPaymentTracking.getSddPayment() == null || !cashPaymentTracking.getSddPayment()) {
+                if (cashPaymentTracking.getSddPayment() == null || !cashPaymentTracking.getSddPayment()) {
                     List<String> transactions = Arrays.asList(cashPaymentTracking.getRelatedTransactions().split(",", -1));
                     transactions.forEach(transaction -> {
                         Optional<Transactions> transactionsOptional = transactionService.findById(transaction);
@@ -95,8 +96,14 @@ public class CashPaymentServiceImpl implements CashPaymentService {
                     });
 
                     handleCreditTransactions(cashPaymentTracking.getRelatedTransactions());
+                    try {
+                        token = keyCloakService.getKey();
+                        balanceServiceFeign.moveLateFeeToPM(token.getAccess_token(), transactions);
+                    } catch (GeneralException e) {
+                        e.printStackTrace();
+                    }
                 } else {
-                    KeycloakResponse token = null;
+
                     try {
                         token = keyCloakService.getKey();
                         balanceServiceFeign.dispositionTenantPayment(token.getAccess_token(), null, cashPaymentTracking.getTenantId());
@@ -104,6 +111,7 @@ public class CashPaymentServiceImpl implements CashPaymentService {
                         log.error(e.getMessage());
                     }
                 }
+
             }
             cashPaymentTracking.setStatus(CashPaymentStatus.valueOf(eventType));
             cashPaymentTrackingRepository.save(cashPaymentTracking);
