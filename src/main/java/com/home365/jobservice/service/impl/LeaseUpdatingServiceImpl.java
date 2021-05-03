@@ -96,6 +96,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         TenantsRequest tenantByContact = tenantServiceExternal.getTenantByContact(propertyTenantExtension.getContactId());
         tenantByContact.getLeaseDetails().setType(leaseType);
         tenantByContact.getLeaseDetails().setEndDate(endDate);
+        tenantByContact.getLeaseDetails().setTotalRent(null);
         tenantServiceExternal.updateLeasePerTenant(tenantByContact);
     }
 
