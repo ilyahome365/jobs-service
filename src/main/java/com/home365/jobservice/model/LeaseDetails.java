@@ -27,7 +27,8 @@ public class LeaseDetails {
                 "type=" + type +
                         ", startDate=" + startDate.toLocalDate() +
                         ", endDate=" + endDate.toLocalDate() +
-                        ", moveOutDate=" + moveOutDate
+                        ", moveOutDate=" + moveOutDate +
+                        " , total Rent  = " + totalRent
                 ;
     }
 }

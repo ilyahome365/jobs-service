@@ -63,7 +63,7 @@ public class OwnerNotificationsServiceImpl extends JobExecutorImpl implements Ow
         mailDetails.setRecipients(List.of(recipientMail));
         String emailSubject = "We are working to collect your rent";
         mailDetails.setSubject(emailSubject);
-        mailDetails.setTemplateName("owner-rent-notification");
+        mailDetails.setTemplateName("owner-no-rent-received-notification");
         MailResult mailResult = mailService.sendMail(mailDetails);
         log.info("Mail Result : {} ", mailResult);
     }

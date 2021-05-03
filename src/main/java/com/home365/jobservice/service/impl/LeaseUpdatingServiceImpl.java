@@ -12,6 +12,7 @@ import com.home365.jobservice.repository.AccountExtensionRepo;
 import com.home365.jobservice.rest.TenantServiceExternal;
 import com.home365.jobservice.service.IPropertyTenantExtensionService;
 import com.home365.jobservice.service.MailService;
+import com.home365.jobservice.utils.CurrencyConverter;
 import com.home365.jobservice.utils.DateAndTimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -96,7 +97,8 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         TenantsRequest tenantByContact = tenantServiceExternal.getTenantByContact(propertyTenantExtension.getContactId());
         tenantByContact.getLeaseDetails().setType(leaseType);
         tenantByContact.getLeaseDetails().setEndDate(endDate);
-        tenantByContact.getLeaseDetails().setTotalRent(null);
+        if (tenantByContact.getLeaseDetails().getTotalRent()!= null )
+            tenantByContact.getLeaseDetails().setTotalRent(CurrencyConverter.toDollar(tenantByContact.getLeaseDetails().getTotalRent()).longValue());
         tenantServiceExternal.updateLeasePerTenant(tenantByContact);
     }
 
