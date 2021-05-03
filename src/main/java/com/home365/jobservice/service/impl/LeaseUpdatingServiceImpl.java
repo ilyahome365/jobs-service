@@ -85,7 +85,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         return getJobName() + " Finished ";
     }
 
-    private void changePropertyTenantLease(PropertyTenantExtension propertyTenantExtension, LeaseType leaseType, LocalDateTime endDate) throws GeneralException {
+    private void changePropertyTenantLease(PropertyTenantExtension propertyTenantExtension, LeaseType leaseType, LocalDateTime endDate) {
         LocalDate currentCalendar = LocalDate.now();
         propertyTenantExtension.setLeaseType(leaseType);
         propertyTenantExtension.setEndDate(endDate);
@@ -94,12 +94,18 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
                 propertyTenantExtension.getPropertyTenantId(),
                 propertyTenantExtension.getLeaseType().name(),
                 propertyTenantExtension.getDaysLeft()));
-        TenantsRequest tenantByContact = tenantServiceExternal.getTenantByContact(propertyTenantExtension.getContactId());
-        tenantByContact.getLeaseDetails().setType(leaseType);
-        tenantByContact.getLeaseDetails().setEndDate(endDate);
-        if (tenantByContact.getLeaseDetails().getTotalRent()!= null )
-            tenantByContact.getLeaseDetails().setTotalRent(CurrencyConverter.toDollar(tenantByContact.getLeaseDetails().getTotalRent()).longValue());
-        tenantServiceExternal.updateLeasePerTenant(tenantByContact);
+        TenantsRequest tenantByContact = null;
+        try {
+            tenantByContact = tenantServiceExternal.getTenantByContact(propertyTenantExtension.getContactId());
+            tenantByContact.getLeaseDetails().setType(leaseType);
+            tenantByContact.getLeaseDetails().setEndDate(endDate);
+            if (tenantByContact.getLeaseDetails().getTotalRent() != null)
+                tenantByContact.getLeaseDetails().setTotalRent(CurrencyConverter.toDollar(tenantByContact.getLeaseDetails().getTotalRent()).longValue());
+            tenantServiceExternal.updateLeasePerTenant(tenantByContact);
+        } catch (GeneralException e) {
+            log.info(e.getMessage());
+        }
+
     }
 
     private void changePropertyTenantToInactive(PropertyTenantExtension propertyTenantExtension) {
