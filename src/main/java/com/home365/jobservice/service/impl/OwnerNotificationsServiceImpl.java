@@ -72,6 +72,7 @@ public class OwnerNotificationsServiceImpl extends JobExecutorImpl implements Ow
         Map<String, String> contentTemplate = new HashMap<>();
         contentTemplate.put("OWNER_NAME", ownerRentNotification.getFirstName() + " " + ownerRentNotification.getLastName());
         contentTemplate.put("PROPERTY_ADDRESS", properties);
+        contentTemplate.put("LINK_URL", appProperties.getPortalUrl());
         return contentTemplate;
     }
 

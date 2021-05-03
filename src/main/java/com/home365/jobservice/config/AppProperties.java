@@ -16,6 +16,7 @@ public class AppProperties {
     private Long trashHold;
     private String mandrillApiKey;
     private String mailSupport;
+    private String portalUrl;
     private String jobExecutorMailToName;
     private List<String> jobExecutorMailToEmail;
     private String jobExecuteTemplateName;
