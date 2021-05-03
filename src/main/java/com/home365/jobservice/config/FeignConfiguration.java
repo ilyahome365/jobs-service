@@ -1,6 +1,10 @@
 package com.home365.jobservice.config;
 
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
@@ -13,6 +17,8 @@ import feign.Logger;
 import feign.form.FormEncoder;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
+import feign.jackson.JacksonDecoder;
+import feign.jackson.JacksonEncoder;
 import feign.okhttp.OkHttpClient;
 import feign.slf4j.Slf4jLogger;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +42,7 @@ public class FeignConfiguration {
     private String balanceService;
 
     private final Gson gson;
+    ObjectMapper objectMapper = new ObjectMapper();
 
     public FeignConfiguration(){
          this.gson = new GsonBuilder()
@@ -43,14 +50,19 @@ public class FeignConfiguration {
                 .registerTypeAdapter(LocalDateTime.class, (JsonDeserializer<LocalDateTime>) (json, type, jsonDeserializationContext) -> LocalDateTime.parse(json.getAsJsonPrimitive().getAsString()))
                 .registerTypeAdapter(LocalDate.class, (JsonDeserializer<LocalDate>) (json, type, jsonDeserializationContext) -> LocalDate.parse(json.getAsJsonPrimitive().getAsString()))
                 .create();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
+
+
     @Bean
     public TenantFeignService getTenantFeignService() {
         return Feign
                 .builder()
                 .client(new OkHttpClient())
-                .encoder(new GsonEncoder(gson))
-                .decoder(new GsonDecoder(gson))
+                .encoder(new JacksonEncoder(objectMapper))
+                .decoder(new JacksonDecoder(objectMapper))
                 .logger(new Slf4jLogger(TenantFeignService.class))
                 .logLevel(Logger.Level.FULL)
                 .errorDecoder(new GlobalErrorDecoder())
