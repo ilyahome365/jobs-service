@@ -97,6 +97,11 @@ public class AppConfiguration implements SchedulingConfigurer {
                 Constants.LV_PM_ACCOUNT,
                 () -> ownerNotificationsService.executeJob(Constants.LV_PM_ACCOUNT)
         );
+
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.OWNER_RENT_NOTIFICATION.getName(),
+                Constants.AT_PM_ACCOUNT,
+                () -> ownerNotificationsService.executeJob(Constants.AT_PM_ACCOUNT)
+        );
     }
 
     public List<LocationJobsInfo> getAllJobs() {
