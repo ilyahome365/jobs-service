@@ -15,6 +15,7 @@ import com.home365.jobservice.repository.TransactionsRepository;
 import com.home365.jobservice.service.DueDateNotificationService;
 import com.home365.jobservice.service.MailService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -29,6 +30,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DueDateNotificationServiceImpl extends JobExecutorImpl implements DueDateNotificationService {
     private final TransactionsRepository transactionsRepo;
     private final ObjectMapper mapper = new ObjectMapper();
+
+    private EmailValidator emailValidator = EmailValidator.getInstance();
 
     @Value("${tenant.login.url}")
     String tenantLoginUrl;
@@ -70,13 +73,16 @@ public class DueDateNotificationServiceImpl extends JobExecutorImpl implements D
                 log.error("Cannot parse json {}", tenantJson);
             }
             eMailAddress = eMailAddressAtomic.get();
-        } if(!StringUtils.isEmpty(eMailAddress)) {
+        } if(!StringUtils.isEmpty(eMailAddress) && emailValidator.isValid(eMailAddress)) {
             MailDetails mailDetails = new MailDetails();
             mailDetails.setFrom(appProperties.getMailSupport());
             mailDetails.setSubject(Constants.PAYMENT_REMINDER);
             mailDetails.setTemplateName(Constants.DUEDATE_PAYMENT_NOTIFICATION);
             mailDetails.setContentTemplate(getContentTemplate(fullName, maxDueDate));
-            List<RecipientMail> recipients = new ArrayList<>(Arrays.asList(new RecipientMail(fullName, eMailAddress)));
+            String finalEMailAddress = eMailAddress;
+            List<RecipientMail> recipients = new ArrayList<>() {{
+                add(new RecipientMail(fullName, finalEMailAddress));
+            }};
             mailDetails.setRecipients(recipients);
 
             MailResult mailResult = mailService.sendMail(mailDetails);
