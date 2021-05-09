@@ -78,9 +78,7 @@ public class DueDateNotificationServiceImpl extends JobExecutorImpl implements D
             mailDetails.setContentTemplate(getContentTemplate(fullName, maxDueDate));
             List<RecipientMail> recipients = new ArrayList<>(Arrays.asList(new RecipientMail(fullName, eMailAddress)));
             mailDetails.setRecipients(recipients);
-
-            MailResult mailResult = mailService.sendMail(mailDetails);
-            log.info("Mail Result for {}: {}", fullName, mailResult.getError());
+            mailService.sendMail(mailDetails);
         } else {
             log.warn("Cannot send mail to {} due to missing email address", fullName);
         }

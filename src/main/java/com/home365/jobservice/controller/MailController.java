@@ -24,11 +24,11 @@ public class MailController {
     }
 
     @PostMapping("/send-mail-per-job")
-    public ResponseEntity<MailResult> sendMail(@RequestBody JobExecutionResults jobExecutionResults) {
+    public ResponseEntity sendMail(@RequestBody JobExecutionResults jobExecutionResults) {
         log.info("POST / Send Mail for : {} ",jobExecutionResults);
 
-        MailResult mailResults = mailService.sendMailFromJobExecuteResults(jobExecutionResults, appProperties.getMailSupport(),
+        mailService.sendMailFromJobExecuteResults(jobExecutionResults, appProperties.getMailSupport(),
                 appProperties.getJobExecutorMailToEmail(), appProperties.getJobExecuteTemplateName());
-        return ResponseEntity.ok(mailResults);
+        return ResponseEntity.ok().build();
     }
 }

@@ -1,21 +1,25 @@
 package com.home365.jobservice.service.impl;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.model.JobExecutionResults;
+import com.home365.jobservice.model.MailWrapper;
 import com.home365.jobservice.model.RecipientMail;
 import com.home365.jobservice.model.mail.MailDetails;
-import com.home365.jobservice.model.mail.MailResult;
 import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.utils.Templates;
-import com.microtripit.mandrillapp.lutung.MandrillApi;
 import com.microtripit.mandrillapp.lutung.view.MandrillMessage;
-import com.microtripit.mandrillapp.lutung.view.MandrillMessageStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,66 +29,44 @@ import java.util.stream.Collectors;
 public class MailServiceImpl implements MailService {
 
     private final AppProperties appProperties;
-    private final MandrillApi mandrillApi;
 
-    public MailServiceImpl(AppProperties appProperties) {
-        this.appProperties = appProperties;
-        this.mandrillApi = new MandrillApi(appProperties.getMandrillApiKey());
-    }
+    AmazonSQSAsync amazonSQS;
+    private QueueMessagingTemplate queueMessagingTemplate;
+    private String sqsUrl;
 
-    @Override
-    public MailResult sendMail(MailDetails mailDetails) {
-        MailResult mailResult = new MailResult();
-
-        List<MandrillMessage.Recipient> recipientList = createRecipients(mailDetails.getRecipients());
-
-        List<MandrillMessage.MessageContent> messageContents = ListUtils.emptyIfNull(mailDetails.getMessageContents())
-                .stream()
-                .map(messageContent -> createMessageContent(
-                        messageContent.getContent(),
-                        messageContent.getType(),
-                        messageContent.getName()
-                ))
-                .collect(Collectors.toList());
-
-        MandrillMessage mandrillMessage = createMessage(
-                mailDetails.getFrom(),
-                mailDetails.getSubject(),
-                recipientList,
-                createMergeVars(recipientList, mailDetails.getContentTemplate()),
-                messageContents
-        );
-
-        try {
-            MandrillMessageStatus[] messageStatusReports = mandrillApi.messages().sendTemplate(
-                    mailDetails.getTemplateName(),
-                    mailDetails.getContentTemplate(),
-                    mandrillMessage,
-                    false
-            );
-
-            List<MailResult.MailSummary> mailSummaries = new ArrayList<>();
-            Arrays.stream(messageStatusReports).forEach(mandrillMessageStatus -> {
-                MailResult.MailSummary mailSummary = new MailResult.MailSummary();
-                mailSummary.setId(mandrillMessageStatus.getId());
-                mailSummary.setTo(mandrillMessageStatus.getEmail());
-                mailSummary.setStatus(mandrillMessageStatus.getStatus());
-                mailSummary.setError(mandrillMessageStatus.getRejectReason());
-                mailSummaries.add(mailSummary);
-            });
-
-            mailResult.setMailSummaries(mailSummaries);
-            mailResult.setCompleted(true);
-        } catch (Exception exception) {
-            mailResult.setCompleted(false);
-            mailResult.setError(exception.getMessage());
-            mailResult.setStackTrace(Arrays.toString(exception.getStackTrace()));
+    public MailServiceImpl(@Value("${aws.accessKey:@null}") String accessKey, @Value("${aws.secretKey:@null}")String secretKey,
+                           @Value("${aws.region:@null}") String region, @Value("${sqs.url:@null}") String sqsUrl,
+                           AppProperties appProperties) {
+        if(!StringUtils.isEmpty(accessKey) && !StringUtils.isEmpty(secretKey)){
+            AWSStaticCredentialsProvider awsStaticCredentialsProvider = new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey));
+            amazonSQS = AmazonSQSAsyncClientBuilder.standard().withCredentials(awsStaticCredentialsProvider).build();
+            this.queueMessagingTemplate = new QueueMessagingTemplate(amazonSQS);
         }
-        return mailResult;
+        this.sqsUrl = sqsUrl;
+        this.appProperties = appProperties;
     }
 
     @Override
-    public MailResult sendMailFromJobExecuteResults(JobExecutionResults jobExecutionResults, String from, List<String> recipientList, String templateName) {
+    public void sendMail(MailDetails mailDetails) {
+        log.info("Send mail for {} ", mailDetails);
+        MailWrapper mailWrapper = null;
+        if(mailDetails != null){
+            mailWrapper = new MailWrapper();
+            mailWrapper.setTemplateName(mailDetails.getTemplateName());
+            mailWrapper.setContentTemplate(mailDetails.getContentTemplate());
+            mailWrapper.setRecipients(mailDetails.getRecipients());
+            mailWrapper.setSubject(mailDetails.getSubject());
+            mailWrapper.setFrom(mailDetails.getFrom());
+        }
+        if(amazonSQS != null && mailWrapper != null){
+            queueMessagingTemplate.convertAndSend("home365NoCrmDevQueue",mailWrapper);
+        }else{
+            log.error("No sqs defined");
+        }
+    }
+
+    @Override
+    public void sendMailFromJobExecuteResults(JobExecutionResults jobExecutionResults, String from, List<String> recipientList, String templateName) {
         MailDetails mailDetails = new MailDetails();
         mailDetails.setFrom(from);
         mailDetails.setSubject(jobExecutionResults.getJobName());
@@ -100,65 +82,7 @@ public class MailServiceImpl implements MailService {
                 }).collect(Collectors.toList());
         mailDetails.setRecipients(recipientMails);
         mailDetails.setContentTemplate(Templates.getJobsContentTemplate(jobExecutionResults));
-        return sendMail(mailDetails);
-    }
-    private List<MandrillMessage.Recipient> createRecipients(List<RecipientMail> recipients) {
-        return recipients
-                .stream()
-                .map(recipientMail -> {
-                    MandrillMessage.Recipient recipient = new MandrillMessage.Recipient();
-                    recipient.setName(recipientMail.getName());
-                    recipient.setEmail(recipientMail.getEmail());
-                    return recipient;
-                })
-                .collect(Collectors.toList());
+        sendMail(mailDetails);
     }
 
-    private MandrillMessage createMessage(String from,
-                                          String subject,
-                                          List<MandrillMessage.Recipient> recipients,
-                                          List<MandrillMessage.MergeVarBucket> mergeVarBuckets,
-                                          List<MandrillMessage.MessageContent> messageContents) {
-        MandrillMessage message = new MandrillMessage();
-        message.setSubject(subject);
-        message.setFromEmail(from);
-        message.setTo(recipients);
-        message.setMerge(true);
-        message.setMergeLanguage("mailchimp");
-        message.setMergeVars(mergeVarBuckets);
-        message.setAttachments(messageContents);
-        return message;
-    }
-
-    private MandrillMessage.MessageContent createMessageContent(String content,
-                                                                String contentType,
-                                                                String contentName) {
-        MandrillMessage.MessageContent messageContent = new MandrillMessage.MessageContent();
-        messageContent.setContent(content);
-        messageContent.setType(contentType);
-        messageContent.setName(contentName);
-        return messageContent;
-    }
-
-    private List<MandrillMessage.MergeVarBucket> createMergeVars(List<MandrillMessage.Recipient> recipients,
-                                                                 Map<String, String> vars) {
-        List<MandrillMessage.MergeVarBucket> mergeVarBuckets = new ArrayList<>();
-        for (MandrillMessage.Recipient recipient : recipients) {
-            MandrillMessage.MergeVarBucket mergeVarBucket = new MandrillMessage.MergeVarBucket();
-            mergeVarBucket.setRcpt(recipient.getEmail());
-            MandrillMessage.MergeVar[] mergeVars = new MandrillMessage.MergeVar[vars.size()];
-            int index = 0;
-            for (Map.Entry<String, String> pair : vars.entrySet()) {
-                MandrillMessage.MergeVar mergeVar = new MandrillMessage.MergeVar();
-                mergeVar.setName(pair.getKey());
-                mergeVar.setContent(pair.getValue());
-                mergeVars[index] = mergeVar;
-                index = index + 1;
-
-            }
-            mergeVarBucket.setVars(mergeVars);
-            mergeVarBuckets.add(mergeVarBucket);
-        }
-        return mergeVarBuckets;
-    }
 }

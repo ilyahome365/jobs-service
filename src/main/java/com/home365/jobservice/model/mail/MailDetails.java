@@ -17,5 +17,4 @@ public class MailDetails {
     private String templateName;
     private List<RecipientMail> recipients;
     private Map<String, String> contentTemplate;
-    private List<MailMessageContent> messageContents;
 }

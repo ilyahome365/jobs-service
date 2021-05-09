@@ -110,8 +110,7 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
                 .build();
         mailDetails.setRecipients(List.of(recipientMail, localRecipient));
         mailDetails.setContentTemplate(getContentTemplate(property, ownerFromProperty));
-        MailResult mailResult = mailService.sendMail(mailDetails);
-        log.info("mail log result : {} ", mailResult);
+         mailService.sendMail(mailDetails);
     }
 
     private Map<String, String> getContentTemplate(PropertyExtension property, OwnerWrapper ownerFromProperty) {

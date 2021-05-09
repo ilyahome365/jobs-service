@@ -117,9 +117,7 @@ public abstract class JobExecutorImpl implements JobService {
                     }).collect(Collectors.toList());
             mailDetails.setRecipients(recipientMails);
             mailDetails.setContentTemplate(getContentTemplate(jobExecutionResults));
-
-            MailResult mailResult = mailService.sendMail(mailDetails);
-            log.info(mailResult.toString());
+            mailService.sendMail(mailDetails);
             return;
         }
         log.info("Job Executor failed -> Send Mail is disabled");

@@ -114,8 +114,8 @@ public class LeaseRecurringNotificationServiceImpl extends JobExecutorImpl {
                 .collect(Collectors.toList());
 
         mailDetails.setRecipients(recipientsMail);
-        MailResult mailResult = mailService.sendMail(mailDetails);
-        log.info(mailResult.toString());
+        mailService.sendMail(mailDetails);
+
     }
 
     private Map<String, String> getContentTemplate(LeasePropertyNotificationConfiguration leasePropertyNotificationConfiguration,
