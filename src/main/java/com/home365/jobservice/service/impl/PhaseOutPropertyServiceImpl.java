@@ -56,7 +56,9 @@ public class PhaseOutPropertyServiceImpl extends JobExecutorImpl {
                         && (propertyExtension.getPhasingOutDate().isBefore(LocalDate.now())
                         || propertyExtension.getPhasingOutDate().equals(LocalDate.now()))).collect(Collectors.toList());
 
-        log.info("");
+
+        log.info("Start phase out for properties : {} " , propertiesByAccountAndBusinessType.stream()
+                .map(PropertyExtension::getPropertyId).collect(Collectors.joining(",")));
         for (PropertyExtension propertyExtension : propertiesByAccountAndBusinessType) {
 
                 try {
