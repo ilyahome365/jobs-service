@@ -64,7 +64,7 @@ public interface BalanceServiceFeign {
     void dispositionTenantPayment(@Param("token") String token,DispositionWrapper dispositionWrapper, @Param("userId") String userId) throws GeneralException;
 
 
-    @RequestLine("POST /finance/payment-notification")
+    @RequestLine("POST /payment-notification")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     void notifyTransactionPaid(@Param("token") String token, PaymentNotification notificationOfPayment) throws GeneralException;
 
