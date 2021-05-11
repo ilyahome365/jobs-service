@@ -3,6 +3,7 @@ package com.home365.jobservice.rest;
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.model.AccountBalance;
 import com.home365.jobservice.model.DispositionWrapper;
+import com.home365.jobservice.model.PaymentNotification;
 import com.home365.jobservice.model.PropertyPhasingOutWrapper;
 import com.home365.jobservice.model.wrapper.CancelChargeWrapper;
 import com.home365.jobservice.model.wrapper.OwnerBillsWrapper;
@@ -61,5 +62,10 @@ public interface BalanceServiceFeign {
     @RequestLine("POST /charges/disposition-tenant-payment?userId={userId}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     void dispositionTenantPayment(@Param("token") String token,DispositionWrapper dispositionWrapper, @Param("userId") String userId) throws GeneralException;
+
+
+    @RequestLine("POST /finance/payment-notification")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    void notifyTransactionPaid(@Param("token") String token, PaymentNotification notificationOfPayment) throws GeneralException;
 
 }

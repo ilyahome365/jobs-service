@@ -98,7 +98,9 @@ public class CashPaymentServiceImpl implements CashPaymentService {
                     handleCreditTransactions(cashPaymentTracking.getRelatedTransactions());
                     try {
                         token = keyCloakService.getKey();
-                        balanceServiceFeign.moveLateFeeToPM(token.getAccess_token(), transactions);
+                        PaymentNotification paymentNotification = new PaymentNotification();
+                        paymentNotification.setChargeIds(transactions);
+                        balanceServiceFeign.notifyTransactionPaid(token.getAccess_token(),paymentNotification);
                     } catch (GeneralException e) {
                         e.printStackTrace();
                     }
