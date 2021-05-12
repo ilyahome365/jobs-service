@@ -18,12 +18,13 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final LeaseUpdatingServiceImpl leaseUpdatingService;
     private final PhaseOutPropertyServiceImpl phaseOutPropertyService;
     private final OwnerNotificationsServiceImpl ownerNotificationsService;
+    private final ActivateOwnerServiceImpl activateOwnerService;
 
     public ApplicationServiceImpl(ChangeBillStatusServiceImpl changeBillStatusService, RecurringServiceImpl recurringService,
                                   LateFeeJobServiceImpl lateFeeJobService,
                                   LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
                                   DueDateNotificationServiceImpl dueDateNotificationService,
-                                  LeaseUpdatingServiceImpl leaseUpdatingService, PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService) {
+                                  LeaseUpdatingServiceImpl leaseUpdatingService, PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService, ActivateOwnerServiceImpl activateOwnerService) {
 
         this.changeBillStatusService = changeBillStatusService;
         this.lateFeeJobService = lateFeeJobService;
@@ -33,6 +34,13 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.leaseUpdatingService = leaseUpdatingService;
         this.phaseOutPropertyService = phaseOutPropertyService;
         this.ownerNotificationsService = ownerNotificationsService;
+        this.activateOwnerService = activateOwnerService;
+    }
+
+
+    @Override
+    public JobExecutionResults activateOwners(){
+        return ownerNotificationsService.executeJob(null);
     }
 
     @Override

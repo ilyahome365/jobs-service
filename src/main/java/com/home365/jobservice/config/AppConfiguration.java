@@ -30,6 +30,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     private final DueDateNotificationServiceImpl dueDateNotificationService;
     private final PhaseOutPropertyServiceImpl phaseOutPropertyService;
     private final OwnerNotificationsServiceImpl ownerNotificationsService;
+    private final ActivateOwnerServiceImpl activateOwnerService;
 
     private final Map<String, Map<String, JobScheduledWrapper>> jobLocationToJob;
     private ScheduledTaskRegistrar scheduledTaskRegistrar;
@@ -38,13 +39,14 @@ public class AppConfiguration implements SchedulingConfigurer {
 
 
     public AppConfiguration(LeaseUpdatingServiceImpl leaseUpdatingService, DueDateNotificationServiceImpl dueDateNotificationService, ApplicationContext context,
-                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService) {
+                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService, ActivateOwnerServiceImpl activateOwnerService) {
         this.leaseUpdatingService = leaseUpdatingService;
         this.changeBillStatusService = changeBillStatusService;
         this.jobsConfigurationService = jobsConfigurationService;
         this.dueDateNotificationService = dueDateNotificationService;
         this.phaseOutPropertyService = phaseOutPropertyService;
         this.ownerNotificationsService = ownerNotificationsService;
+        this.activateOwnerService = activateOwnerService;
         this.jobLocationToJob = new HashMap<>();
         this.context = context;
     }
@@ -102,6 +104,9 @@ public class AppConfiguration implements SchedulingConfigurer {
                 Constants.AT_PM_ACCOUNT,
                 () -> ownerNotificationsService.executeJob(Constants.AT_PM_ACCOUNT)
         );
+
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.OWNER_RENT_NOTIFICATION.getName(), Constants.LV_PM_ACCOUNT, () -> activateOwnerService
+                .executeJob(null));
     }
 
     public List<LocationJobsInfo> getAllJobs() {
@@ -142,7 +147,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     public synchronized void removeJob(String location, String jobName) {
         Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.get(location);
         if (locationJobs == null) {
-            log.info(Constants.UNABLE_TO_FIND_LOCATION,location);
+            log.info(Constants.UNABLE_TO_FIND_LOCATION, location);
             return;
         }
         JobScheduledWrapper jobScheduledWrapper = locationJobs.get(jobName);
@@ -156,7 +161,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     public synchronized void restartJob(String location, String jobName) {
         Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.get(location);
         if (locationJobs == null) {
-            log.info(Constants.UNABLE_TO_FIND_LOCATION , location);
+            log.info(Constants.UNABLE_TO_FIND_LOCATION, location);
             return;
         }
         JobScheduledWrapper jobScheduledWrapper = locationJobs.get(jobName);
@@ -182,7 +187,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     public synchronized void stopJob(String location, String jobName) {
         Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.get(location);
         if (locationJobs == null) {
-            log.info(Constants.UNABLE_TO_FIND_LOCATION , location);
+            log.info(Constants.UNABLE_TO_FIND_LOCATION, location);
             return;
         }
         JobScheduledWrapper jobScheduledWrapper = locationJobs.get(jobName);
@@ -242,7 +247,7 @@ public class AppConfiguration implements SchedulingConfigurer {
                 scheduledFutureWrapper.getCron())
         );
 
-        if(scheduledTaskRegistrar.getScheduler() != null){
+        if (scheduledTaskRegistrar.getScheduler() != null) {
             ScheduledFuture<?> task = scheduledTaskRegistrar
                     .getScheduler()
                     .schedule(scheduledFutureWrapper.getTask(), scheduledFutureWrapper.getTrigger());

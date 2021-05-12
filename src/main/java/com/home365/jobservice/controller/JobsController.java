@@ -62,5 +62,10 @@ public class JobsController {
         return ResponseEntity.ok(jobsService.startOwnerRentNotification(locationId));
     }
 
+    @GetMapping("/activate-owners")
+    public ResponseEntity<JobExecutionResults> activateOwners(){
+        return ResponseEntity.ok(jobsService.activateOwners());
+    }
+
 
 }

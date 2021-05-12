@@ -15,4 +15,5 @@ public interface TenantServiceExternal {
     OwnerWrapper getOwnerFromProperty(String propertyId) throws GeneralException;
     TenantsRequest getTenantByContact(String contactId) throws GeneralException;
     void updateLeasePerTenant( TenantsRequest tenantsRequest) throws GeneralException;
+    List<String> activatedOwners() throws GeneralException;
 }

@@ -4,6 +4,8 @@ import com.home365.jobservice.model.JobExecutionResults;
 
 public interface ApplicationService {
 
+    JobExecutionResults activateOwners();
+
     JobExecutionResults startLateFeeJob(String locationId);
 
     JobExecutionResults createTransactionsForRecurringCharges(String locationId);
