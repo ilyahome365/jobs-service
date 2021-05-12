@@ -40,7 +40,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public JobExecutionResults activateOwners(){
-        return ownerNotificationsService.executeJob(null);
+        return activateOwnerService.executeJob(null);
     }
 
     @Override
