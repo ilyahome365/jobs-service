@@ -20,12 +20,18 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final OwnerNotificationsServiceImpl ownerNotificationsService;
     private final ActivateOwnerServiceImpl activateOwnerService;
     private final CreateWelcomeCreditServiceImpl createWelcomeCreditService;
+    private final ReminderFirstContribution reminderFirstContribution;
 
     public ApplicationServiceImpl(ChangeBillStatusServiceImpl changeBillStatusService, RecurringServiceImpl recurringService,
                                   LateFeeJobServiceImpl lateFeeJobService,
                                   LeaseRecurringNotificationServiceImpl leaseRecurringNotificationService,
                                   DueDateNotificationServiceImpl dueDateNotificationService,
-                                  LeaseUpdatingServiceImpl leaseUpdatingService, PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService, ActivateOwnerServiceImpl activateOwnerService, CreateWelcomeCreditServiceImpl createWelcomeCreditService) {
+                                  LeaseUpdatingServiceImpl leaseUpdatingService,
+                                  PhaseOutPropertyServiceImpl phaseOutPropertyService,
+                                  OwnerNotificationsServiceImpl ownerNotificationsService,
+                                  ActivateOwnerServiceImpl activateOwnerService,
+                                  CreateWelcomeCreditServiceImpl createWelcomeCreditService,
+                                  ReminderFirstContribution reminderFirstContribution) {
 
         this.changeBillStatusService = changeBillStatusService;
         this.lateFeeJobService = lateFeeJobService;
@@ -37,16 +43,22 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.ownerNotificationsService = ownerNotificationsService;
         this.activateOwnerService = activateOwnerService;
         this.createWelcomeCreditService = createWelcomeCreditService;
+        this.reminderFirstContribution = reminderFirstContribution;
     }
 
 
     @Override
-    public JobExecutionResults activateOwners(){
+    public JobExecutionResults sendReminderOfFirstContribution() {
+        return reminderFirstContribution.executeJob(null);
+    }
+
+    @Override
+    public JobExecutionResults activateOwners() {
         return activateOwnerService.executeJob(null);
     }
 
     @Override
-    public JobExecutionResults  createWelcomeCredit(){
+    public JobExecutionResults createWelcomeCredit() {
         return createWelcomeCreditService.executeJob(null);
     }
 
@@ -59,8 +71,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     public JobExecutionResults startLeasePropertyNotification(String locationId) {
         return leaseRecurringNotificationService.executeJob(locationId);
     }
-
-
 
 
     @Override

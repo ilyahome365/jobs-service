@@ -75,4 +75,12 @@ public class TenantServiceExternalImpl implements TenantServiceExternal {
         log.info("Activated owners : {}",activatedOwners);
         return activatedOwners;
     }
+
+    @Override
+    public List<String> sendReminderOfFirstContribution() throws GeneralException {
+        log.info("Run request for reminder");
+        KeycloakResponse token = keyCloakService.getKey();
+        List<String> ownerIds = tenantFeignService.firstContributionReminder(token.getAccess_token());
+        return ownerIds;
+    }
 }

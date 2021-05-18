@@ -14,6 +14,8 @@ public interface ApplicationService {
 
     JobExecutionResults startLeasePropertyNotification(String locationId);
 
+    JobExecutionResults sendReminderOfFirstContribution();
+
     JobExecutionResults dueDateTenantNotification(String locationId);
 
     JobExecutionResults startLeaseUpdating(String locationId);

@@ -71,4 +71,9 @@ public class JobsController {
     public ResponseEntity<JobExecutionResults> createWelcomeCredit(){
         return ResponseEntity.ok(jobsService.createWelcomeCredit());
     }
+
+    @GetMapping("/reminder-first-contribution")
+    public ResponseEntity<JobExecutionResults> sendReminderOfFirstContribution(){
+        return ResponseEntity.ok(jobsService.sendReminderOfFirstContribution());
+    }
 }

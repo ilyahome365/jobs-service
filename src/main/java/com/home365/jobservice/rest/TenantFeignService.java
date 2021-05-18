@@ -43,6 +43,11 @@ public interface TenantFeignService {
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     List<String> activateOwners(@Param("token") String token) throws GeneralException;
 
+
+    @RequestLine("GET /tenant/first-contribution-reminder")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    List<String> firstContributionReminder(@Param("token") String token) throws GeneralException;
+
     @RequestLine("POST /tenant/edit-lease")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     void updateLease(@Param("token") String token, TenantsRequest tenantsRequest) throws GeneralException;

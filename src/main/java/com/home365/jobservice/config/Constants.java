@@ -26,6 +26,7 @@ public class Constants {
     public static final String OWNER_RENT_NOTIFICATION = "owner-rent-notification";
     public static final String ACTIVE_OWNER = "activate-owners";
     public static final String WELCOME_CREDIT = "welcome-credit";
+    public static final String REMINDER_FIRST_CONTRIBUTION = "reminder-first-contribution";
     public static final String LV_PM_ACCOUNT = "F90E128A-CD00-4DF7-B0D0-0F40F80D623A";
     public static final String AT_PM_ACCOUNT = "23F2EF62-8905-4D6D-9A07-165E89BD6FAA";
     public static final String UNABLE_TO_FIND_LOCATION = "Unable to find Location: {}";
