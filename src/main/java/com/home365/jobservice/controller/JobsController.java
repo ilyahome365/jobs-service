@@ -67,5 +67,8 @@ public class JobsController {
         return ResponseEntity.ok(jobsService.activateOwners());
     }
 
-
+    @GetMapping("/create-welcome-credit")
+    public ResponseEntity<JobExecutionResults> createWelcomeCredit(){
+        return ResponseEntity.ok(jobsService.createWelcomeCredit());
+    }
 }

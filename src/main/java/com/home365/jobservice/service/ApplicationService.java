@@ -6,6 +6,8 @@ public interface ApplicationService {
 
     JobExecutionResults activateOwners();
 
+    JobExecutionResults  createWelcomeCredit();
+
     JobExecutionResults startLateFeeJob(String locationId);
 
     JobExecutionResults createTransactionsForRecurringCharges(String locationId);

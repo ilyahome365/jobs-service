@@ -68,4 +68,11 @@ public interface BalanceServiceFeign {
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     void notifyTransactionPaid(@Param("token") String token, PaymentNotification notificationOfPayment) throws GeneralException;
 
+
+
+    @RequestLine("GET /create-welcome-credit")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    List<String> createWelcomeCredit(@Param("token") String token) throws GeneralException;
+
+
 }
