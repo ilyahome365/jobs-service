@@ -20,4 +20,5 @@ public class AppProperties {
     private String jobExecutorMailToName;
     private List<String> jobExecutorMailToEmail;
     private String jobExecuteTemplateName;
+    private List<String> locations;
 }

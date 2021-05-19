@@ -15,7 +15,7 @@ import com.home365.jobservice.model.mail.MailResult;
 import com.home365.jobservice.model.wrapper.OwnerBillsWrapper;
 import com.home365.jobservice.model.wrapper.OwnerWrapper;
 import com.home365.jobservice.model.wrapper.TenantWrapper;
-import com.home365.jobservice.rest.PropertyPhaseOutExternal;
+import com.home365.jobservice.rest.BalanceServiceExternal;
 import com.home365.jobservice.rest.TenantServiceExternal;
 import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.service.PropertyService;
@@ -30,15 +30,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PropertyPhasingOutFlow implements PropertyPhasingOut {
 
-    private final PropertyPhaseOutExternal propertyPhaseOutExternal;
+    private final BalanceServiceExternal balanceServiceExternal;
     private final PropertyService propertyService;
     private final TenantServiceExternal tenantServiceExternal;
     private final AppProperties appProperties;
     private final MailService mailService;
 
 
-    public PropertyPhasingOutFlow(PropertyPhaseOutExternal propertyPhaseOutExternal, PropertyService propertyService, TenantServiceExternal tenantServiceExternal, AppProperties appProperties, MailService mailService) {
-        this.propertyPhaseOutExternal = propertyPhaseOutExternal;
+    public PropertyPhasingOutFlow(BalanceServiceExternal balanceServiceExternal, PropertyService propertyService, TenantServiceExternal tenantServiceExternal, AppProperties appProperties, MailService mailService) {
+        this.balanceServiceExternal = balanceServiceExternal;
         this.propertyService = propertyService;
         this.tenantServiceExternal = tenantServiceExternal;
         this.appProperties = appProperties;
@@ -78,9 +78,9 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         String materialTransferFee = createMaterialTransferFee(propertyId);
         log.info("Material transfer fee bill id : {} ", materialTransferFee);
 
-        propertyPhaseOutExternal.moveSecurityDepositToOwnerAccount(propertyId);
+        balanceServiceExternal.moveSecurityDepositToOwnerAccount(propertyId);
         OwnerWrapper ownerFromProperty = tenantServiceExternal.getOwnerFromProperty(propertyId);
-        AccountBalance ownerProjectedBalance = propertyPhaseOutExternal.getOwnerProjectedBalance(ownerFromProperty.getAccountId());
+        AccountBalance ownerProjectedBalance = balanceServiceExternal.getOwnerProjectedBalance(ownerFromProperty.getAccountId());
         Double projectedBalance = ownerProjectedBalance.getBalance();
         log.info("Projected balance for account : {}  is {} ", ownerFromProperty.getAccountId(), projectedBalance);
         if (!projectedBalance.isNaN()) {
@@ -125,14 +125,14 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
     private String createMaterialTransferFee(String propertyId) throws GeneralException {
         OwnerBillsWrapper ownerBillsWrapper = new OwnerBillsWrapper();
         ownerBillsWrapper.setPropertyId(propertyId);
-        return propertyPhaseOutExternal.createMaterialTransferFee(ownerBillsWrapper);
+        return balanceServiceExternal.createMaterialTransferFee(ownerBillsWrapper);
     }
 
     private String createTearminationFeeBill(String propertyId) throws GeneralException {
         log.info("Create Termination Fee for propertyId : {} ", propertyId);
         OwnerBillsWrapper ownerBillsWrapper = new OwnerBillsWrapper();
         ownerBillsWrapper.setPropertyId(propertyId);
-        return propertyPhaseOutExternal.createTerminationFeeBill(ownerBillsWrapper);
+        return balanceServiceExternal.createTerminationFeeBill(ownerBillsWrapper);
     }
 
     private void createOwnerBillFromTenantCharges(PropertyPhasingOutWrapper propertyPhasingOutWrapper, List<TenantWrapper> tenants) throws GeneralException {
@@ -141,7 +141,7 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         if (tenant.isPresent()) {
             ownerBillsWrapper.setChargeAccount(tenant.get().getAccountId());
             ownerBillsWrapper.setPropertyId(propertyPhasingOutWrapper.getPropertyId());
-            propertyPhaseOutExternal.createOwnerBillForTenantDebts(ownerBillsWrapper);
+            balanceServiceExternal.createOwnerBillForTenantDebts(ownerBillsWrapper);
         }
     }
 
@@ -152,7 +152,7 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         if (!CollectionUtils.isEmpty(tenants)) {
             List<TenantWrapper> activeTenants = tenants.stream().filter(tenantWrapper -> !tenantWrapper.getTenantStatus().equals(TenantStatus.Inactive)).collect(Collectors.toList());
             for (TenantWrapper tenantWrapper : activeTenants) {
-                canceledRecurring.addAll(propertyPhaseOutExternal.cancelAllRecurringByChargeAccount(tenantWrapper.getAccountId()));
+                canceledRecurring.addAll(balanceServiceExternal.cancelAllRecurringByChargeAccount(tenantWrapper.getAccountId()));
             }
             log.info("Canceled recurring : {} ", canceledRecurring);
         }
@@ -161,13 +161,13 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
     private void cancelFutureCharges(PropertyPhasingOutWrapper propertyPhasingOutWrapper) throws GeneralException {
         log.info("start phase future Charges for : {}  ", propertyPhasingOutWrapper);
         propertyPhasingOutWrapper.setIsBill(false);
-        propertyPhaseOutExternal.cancelBillsByPropertyIdAndPhaseOutDate(propertyPhasingOutWrapper);
+        balanceServiceExternal.cancelBillsByPropertyIdAndPhaseOutDate(propertyPhasingOutWrapper);
     }
 
     private void cancelFutureBills(PropertyPhasingOutWrapper propertyDetailsWithStatus) throws GeneralException {
         log.info("start phase future bills for : {}  ", propertyDetailsWithStatus);
         propertyDetailsWithStatus.setIsBill(true);
-        propertyPhaseOutExternal.cancelBillsByPropertyIdAndPhaseOutDate(propertyDetailsWithStatus);
+        balanceServiceExternal.cancelBillsByPropertyIdAndPhaseOutDate(propertyDetailsWithStatus);
 
     }
 

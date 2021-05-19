@@ -68,7 +68,8 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
         CHANGE_BILL_STATUS(Constants.BILLS_STATUS_CHANGE, 4L),
         DUE_DATE_NOTIFICATION("due-date-notification", 5L),
         PHASE_OUT_PROPERTY("phase-out-property", 6L),
-        OWNER_RENT_NOTIFICATION("owner-rent-notification", 7L);
+        OWNER_RENT_NOTIFICATION("owner-rent-notification", 7L),
+        INSURANCE_PAY_BILLS(Constants.INSURANCE_PAY_BILLS, 8L);
 
         private final String name;
         private final Long key;

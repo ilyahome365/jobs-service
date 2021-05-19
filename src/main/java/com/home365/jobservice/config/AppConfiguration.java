@@ -5,6 +5,7 @@ import com.home365.jobservice.model.jobs.JobInfo;
 import com.home365.jobservice.model.jobs.JobScheduledWrapper;
 import com.home365.jobservice.model.jobs.LocationJobsInfo;
 import com.home365.jobservice.service.JobsConfigurationService;
+import com.home365.jobservice.service.PayBillsService;
 import com.home365.jobservice.service.impl.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -35,16 +36,22 @@ public class AppConfiguration implements SchedulingConfigurer {
     private ScheduledTaskRegistrar scheduledTaskRegistrar;
 
     private final ApplicationContext context;
+    private final AppProperties appProperties;
+    private final PayBillsServiceImpl payBillsService;
 
 
     public AppConfiguration(LeaseUpdatingServiceImpl leaseUpdatingService, DueDateNotificationServiceImpl dueDateNotificationService, ApplicationContext context,
-                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService) {
+                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService,
+                            PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService,
+                            AppProperties appProperties, PayBillsServiceImpl payBillsService) {
         this.leaseUpdatingService = leaseUpdatingService;
         this.changeBillStatusService = changeBillStatusService;
         this.jobsConfigurationService = jobsConfigurationService;
         this.dueDateNotificationService = dueDateNotificationService;
         this.phaseOutPropertyService = phaseOutPropertyService;
         this.ownerNotificationsService = ownerNotificationsService;
+        this.appProperties = appProperties;
+        this.payBillsService = payBillsService;
         this.jobLocationToJob = new HashMap<>();
         this.context = context;
     }
@@ -102,6 +109,17 @@ public class AppConfiguration implements SchedulingConfigurer {
                 Constants.AT_PM_ACCOUNT,
                 () -> ownerNotificationsService.executeJob(Constants.AT_PM_ACCOUNT)
         );
+//        Insurance pay bills
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.INSURANCE_PAY_BILLS.getName(),
+                Constants.AT_PM_ACCOUNT,
+                () -> payBillsService.executeJob(Constants.AT_PM_ACCOUNT)
+        );
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.INSURANCE_PAY_BILLS.getName(),
+                Constants.LV_PM_ACCOUNT,
+                () -> payBillsService.executeJob(Constants.LV_PM_ACCOUNT)
+        );
+
+
     }
 
     public List<LocationJobsInfo> getAllJobs() {
@@ -142,7 +160,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     public synchronized void removeJob(String location, String jobName) {
         Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.get(location);
         if (locationJobs == null) {
-            log.info(Constants.UNABLE_TO_FIND_LOCATION,location);
+            log.info(Constants.UNABLE_TO_FIND_LOCATION, location);
             return;
         }
         JobScheduledWrapper jobScheduledWrapper = locationJobs.get(jobName);
@@ -156,7 +174,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     public synchronized void restartJob(String location, String jobName) {
         Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.get(location);
         if (locationJobs == null) {
-            log.info(Constants.UNABLE_TO_FIND_LOCATION , location);
+            log.info(Constants.UNABLE_TO_FIND_LOCATION, location);
             return;
         }
         JobScheduledWrapper jobScheduledWrapper = locationJobs.get(jobName);
@@ -182,7 +200,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     public synchronized void stopJob(String location, String jobName) {
         Map<String, JobScheduledWrapper> locationJobs = jobLocationToJob.get(location);
         if (locationJobs == null) {
-            log.info(Constants.UNABLE_TO_FIND_LOCATION , location);
+            log.info(Constants.UNABLE_TO_FIND_LOCATION, location);
             return;
         }
         JobScheduledWrapper jobScheduledWrapper = locationJobs.get(jobName);
@@ -242,7 +260,7 @@ public class AppConfiguration implements SchedulingConfigurer {
                 scheduledFutureWrapper.getCron())
         );
 
-        if(scheduledTaskRegistrar.getScheduler() != null){
+        if (scheduledTaskRegistrar.getScheduler() != null) {
             ScheduledFuture<?> task = scheduledTaskRegistrar
                     .getScheduler()
                     .schedule(scheduledFutureWrapper.getTask(), scheduledFutureWrapper.getTrigger());

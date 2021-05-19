@@ -1,7 +1,11 @@
 package com.home365.jobservice.rest;
 
+import com.home365.jobservice.entities.Transactions;
+import com.home365.jobservice.entities.enums.TransactionStatus;
+import com.home365.jobservice.entities.enums.TransactionType;
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.model.AccountBalance;
+import com.home365.jobservice.model.ChargeWithStripeRequest;
 import com.home365.jobservice.model.DispositionWrapper;
 import com.home365.jobservice.model.PropertyPhasingOutWrapper;
 import com.home365.jobservice.model.wrapper.CancelChargeWrapper;
@@ -52,7 +56,7 @@ public interface BalanceServiceFeign {
 
     @RequestLine("GET /move-late-fee-to-home365?chargesIds={chargesIds}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    void moveLateFeeToPM(@Param("token") String token ,@Param("chargesIds") List<String>chargesIds) throws GeneralException;
+    void moveLateFeeToPM(@Param("token") String token, @Param("chargesIds") List<String> chargesIds) throws GeneralException;
 
     @RequestLine("GET /account/{accountId}/balance?isProjectedBalance={isProjectedBalance}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
@@ -60,6 +64,16 @@ public interface BalanceServiceFeign {
 
     @RequestLine("POST /charges/disposition-tenant-payment?userId={userId}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    void dispositionTenantPayment(@Param("token") String token,DispositionWrapper dispositionWrapper, @Param("userId") String userId) throws GeneralException;
+    void dispositionTenantPayment(@Param("token") String token, DispositionWrapper dispositionWrapper, @Param("userId") String userId) throws GeneralException;
 
+    @RequestLine("GET /transactions/get-by-charge-account-and-billType?chargeAccount={chargeAccount}&&transactionType={transactionType}")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    List<Transactions> getTransactionsByChargeAccountAndBillType(@Param("token") String token,
+                                                                 @Param("chargeAccount") String chargeAccount,
+                                                                 @Param("transactionType") TransactionType transactionStatus) throws GeneralException;
+
+
+    @RequestLine("POST /charges/charge-with-stripe")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    void chargeWithStripe(@Param("token") String token, ChargeWithStripeRequest chargeWithStripeRequest) throws GeneralException;
 }

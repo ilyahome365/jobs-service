@@ -26,4 +26,5 @@ public interface AccountExtensionRepo extends JpaRepository<AccountExtensionBase
 
     Optional<AccountExtensionBase> findStripeAccountByAccountId(@Param("accountId") String accountId);
 
+
 }
