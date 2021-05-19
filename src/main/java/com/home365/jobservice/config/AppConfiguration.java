@@ -36,10 +36,13 @@ public class AppConfiguration implements SchedulingConfigurer {
     private ScheduledTaskRegistrar scheduledTaskRegistrar;
 
     private final ApplicationContext context;
+    private final PayBillsServiceImpl payBillsServiceImpl;
 
 
     public AppConfiguration(LeaseUpdatingServiceImpl leaseUpdatingService, DueDateNotificationServiceImpl dueDateNotificationService, ApplicationContext context,
-                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService, PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService, ActivateOwnerServiceImpl activateOwnerService) {
+                            ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService,
+                            PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService,
+                            ActivateOwnerServiceImpl activateOwnerService, PayBillsServiceImpl payBillsServiceImpl) {
         this.leaseUpdatingService = leaseUpdatingService;
         this.changeBillStatusService = changeBillStatusService;
         this.jobsConfigurationService = jobsConfigurationService;
@@ -47,6 +50,7 @@ public class AppConfiguration implements SchedulingConfigurer {
         this.phaseOutPropertyService = phaseOutPropertyService;
         this.ownerNotificationsService = ownerNotificationsService;
         this.activateOwnerService = activateOwnerService;
+        this.payBillsServiceImpl = payBillsServiceImpl;
         this.jobLocationToJob = new HashMap<>();
         this.context = context;
     }
@@ -107,6 +111,15 @@ public class AppConfiguration implements SchedulingConfigurer {
 
         addJob(JobsConfigurationServiceImpl.JOBS_ID.OWNER_RENT_NOTIFICATION.getName(), Constants.LV_PM_ACCOUNT, () -> activateOwnerService
                 .executeJob(null));
+
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.INSURANCE_PAY_BILLS.getName(),
+                Constants.AT_PM_ACCOUNT,
+                () -> payBillsServiceImpl.executeJob(Constants.AT_PM_ACCOUNT)
+        );
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.INSURANCE_PAY_BILLS.getName(),
+                Constants.LV_PM_ACCOUNT,
+                () -> payBillsServiceImpl.executeJob(Constants.LV_PM_ACCOUNT)
+        );
     }
 
     public List<LocationJobsInfo> getAllJobs() {

@@ -76,4 +76,9 @@ public class JobsController {
     public ResponseEntity<JobExecutionResults> sendReminderOfFirstContribution(){
         return ResponseEntity.ok(jobsService.sendReminderOfFirstContribution());
     }
+
+    @GetMapping("/insurance-pay-bills")
+    public ResponseEntity<JobExecutionResults> payInsuranceBills(@RequestParam String locationId){
+        return ResponseEntity.ok(jobsService.startInsurancePayBills(locationId));
+    }
 }

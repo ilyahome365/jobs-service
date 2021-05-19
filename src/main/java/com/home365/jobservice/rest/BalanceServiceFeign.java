@@ -1,10 +1,9 @@
 package com.home365.jobservice.rest;
 
+import com.home365.jobservice.entities.Transactions;
+import com.home365.jobservice.entities.enums.TransactionType;
 import com.home365.jobservice.exception.GeneralException;
-import com.home365.jobservice.model.AccountBalance;
-import com.home365.jobservice.model.DispositionWrapper;
-import com.home365.jobservice.model.PaymentNotification;
-import com.home365.jobservice.model.PropertyPhasingOutWrapper;
+import com.home365.jobservice.model.*;
 import com.home365.jobservice.model.wrapper.CancelChargeWrapper;
 import com.home365.jobservice.model.wrapper.OwnerBillsWrapper;
 import com.home365.jobservice.model.wrapper.OwnerProjectedBalanceWrapper;
@@ -73,6 +72,17 @@ public interface BalanceServiceFeign {
     @RequestLine("GET /create-welcome-credit")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     List<String> createWelcomeCredit(@Param("token") String token) throws GeneralException;
+
+    @RequestLine("GET /transactions/get-by-charge-account-and-billType?chargeAccount={chargeAccount}&transactionType={transactionType}")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    List<Transactions> getTransactionsByChargeAccountAndBillType(@Param("token") String token,
+                                                                 @Param("chargeAccount") String chargeAccount,
+                                                                 @Param("transactionType") TransactionType transactionStatus) throws GeneralException;
+
+
+    @RequestLine("POST /charges/charge-with-stripe")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    void chargeWithStripe(@Param("token") String token, ChargeWithStripeRequest chargeWithStripeRequest) throws GeneralException;
 
 
 }

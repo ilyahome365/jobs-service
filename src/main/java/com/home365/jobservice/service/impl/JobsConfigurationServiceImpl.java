@@ -69,7 +69,8 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
         DUE_DATE_NOTIFICATION("due-date-notification", 5L),
         PHASE_OUT_PROPERTY("phase-out-property", 6L),
         OWNER_RENT_NOTIFICATION("owner-rent-notification", 7L),
-        ACTIVATE_OWNERS(Constants.ACTIVE_OWNER,8L);
+        ACTIVATE_OWNERS(Constants.ACTIVE_OWNER,8L),
+        INSURANCE_PAY_BILLS(Constants.INSURANCE_PAY_BILLS, 9L);
         private final String name;
         private final Long key;
 

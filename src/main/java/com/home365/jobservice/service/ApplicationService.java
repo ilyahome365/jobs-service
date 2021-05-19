@@ -25,4 +25,5 @@ public interface ApplicationService {
     JobExecutionResults startPhaseOutProperty(String locationId);
 
     JobExecutionResults startOwnerRentNotification(String locationId);
+    JobExecutionResults startInsurancePayBills(String locationId);
 }

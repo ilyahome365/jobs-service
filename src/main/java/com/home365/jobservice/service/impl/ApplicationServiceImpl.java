@@ -21,6 +21,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final ActivateOwnerServiceImpl activateOwnerService;
     private final CreateWelcomeCreditServiceImpl createWelcomeCreditService;
     private final ReminderFirstContribution reminderFirstContribution;
+    private final PayBillsServiceImpl payBillsService;
 
     public ApplicationServiceImpl(ChangeBillStatusServiceImpl changeBillStatusService, RecurringServiceImpl recurringService,
                                   LateFeeJobServiceImpl lateFeeJobService,
@@ -31,7 +32,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   OwnerNotificationsServiceImpl ownerNotificationsService,
                                   ActivateOwnerServiceImpl activateOwnerService,
                                   CreateWelcomeCreditServiceImpl createWelcomeCreditService,
-                                  ReminderFirstContribution reminderFirstContribution) {
+                                  ReminderFirstContribution reminderFirstContribution, PayBillsServiceImpl payBillsService) {
 
         this.changeBillStatusService = changeBillStatusService;
         this.lateFeeJobService = lateFeeJobService;
@@ -44,6 +45,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.activateOwnerService = activateOwnerService;
         this.createWelcomeCreditService = createWelcomeCreditService;
         this.reminderFirstContribution = reminderFirstContribution;
+        this.payBillsService = payBillsService;
     }
 
 
@@ -96,6 +98,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public JobExecutionResults startOwnerRentNotification(String locationId) {
         return ownerNotificationsService.executeJob(locationId);
+    }
+
+    @Override
+    public JobExecutionResults startInsurancePayBills(String locationId) {
+        return payBillsService.executeJob(locationId);
     }
 
     @Override

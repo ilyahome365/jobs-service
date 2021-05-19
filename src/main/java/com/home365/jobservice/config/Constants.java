@@ -24,6 +24,7 @@ public class Constants {
     public static final String INCOMES = "incomes";
 
     public static final String OWNER_RENT_NOTIFICATION = "owner-rent-notification";
+    public static final String INSURANCE_PAY_BILLS = "insurance-pay-bills";
     public static final String ACTIVE_OWNER = "activate-owners";
     public static final String WELCOME_CREDIT = "welcome-credit";
     public static final String REMINDER_FIRST_CONTRIBUTION = "reminder-first-contribution";

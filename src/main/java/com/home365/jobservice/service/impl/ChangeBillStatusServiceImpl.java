@@ -3,7 +3,7 @@ package com.home365.jobservice.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.entities.*;
-import com.home365.jobservice.entities.enums.TransactionType;
+import com.home365.jobservice.entities.enums.TransactionStatus;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.PendingStatusJobData;
 import com.home365.jobservice.model.TransactionsFailedToChange;
@@ -118,9 +118,9 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
 
     private void saveStatistics(Transactions transactionAfterSave, PendingStatusJobData pendingStatusJobData) {
         String transactionStatus = transactionAfterSave.getStatus();
-        if (transactionStatus.equals(TransactionType.readyForPayment.name()))
+        if (transactionStatus.equals(TransactionStatus.readyForPayment.name()))
             pendingStatusJobData.setReadyForPayment(pendingStatusJobData.getReadyForPayment() + 1);
-        else if (transactionStatus.equals(TransactionType.pendingContribution.name()))
+        else if (transactionStatus.equals(TransactionStatus.pendingContribution.name()))
             pendingStatusJobData.setPendingContribution(pendingStatusJobData.getPendingContribution() + 1);
     }
 
@@ -152,11 +152,11 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
                 log.info("transaction id {} with billBalance {}   and projected balance {}", transaction.getTransactionId(), billBalance, projectedBalanceWithTrashHold);
                 if (projectedBalanceWithTrashHold >= billBalance) {
                     log.info("Change transaction {} to readyForPayment", transaction.getTransactionId());
-                    transaction.setStatus(TransactionType.readyForPayment.name());
+                    transaction.setStatus(TransactionStatus.readyForPayment.name());
 
                 } else {
                     log.info("Change transaction {} to pendingContribution", transaction.getTransactionId());
-                    transaction.setStatus(TransactionType.pendingContribution.name());
+                    transaction.setStatus(TransactionStatus.pendingContribution.name());
                 }
             } catch (Exception e) {
                 log.error("Failed to change transaction {}  for account {}  ", transaction.getTransactionId(), transaction.getChargeAccountId());
