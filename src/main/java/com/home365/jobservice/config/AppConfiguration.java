@@ -37,12 +37,14 @@ public class AppConfiguration implements SchedulingConfigurer {
 
     private final ApplicationContext context;
     private final PayBillsServiceImpl payBillsServiceImpl;
+    private final CreateWelcomeCreditServiceImpl createWelcomeCreditService;
+    private final ReminderFirstContribution reminderFirstContribution;
 
 
     public AppConfiguration(LeaseUpdatingServiceImpl leaseUpdatingService, DueDateNotificationServiceImpl dueDateNotificationService, ApplicationContext context,
                             ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService,
                             PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService,
-                            ActivateOwnerServiceImpl activateOwnerService, PayBillsServiceImpl payBillsServiceImpl) {
+                            ActivateOwnerServiceImpl activateOwnerService, PayBillsServiceImpl payBillsServiceImpl, CreateWelcomeCreditServiceImpl createWelcomeCreditService, ReminderFirstContribution reminderFirstContribution) {
         this.leaseUpdatingService = leaseUpdatingService;
         this.changeBillStatusService = changeBillStatusService;
         this.jobsConfigurationService = jobsConfigurationService;
@@ -51,6 +53,8 @@ public class AppConfiguration implements SchedulingConfigurer {
         this.ownerNotificationsService = ownerNotificationsService;
         this.activateOwnerService = activateOwnerService;
         this.payBillsServiceImpl = payBillsServiceImpl;
+        this.createWelcomeCreditService = createWelcomeCreditService;
+        this.reminderFirstContribution = reminderFirstContribution;
         this.jobLocationToJob = new HashMap<>();
         this.context = context;
     }
@@ -63,7 +67,7 @@ public class AppConfiguration implements SchedulingConfigurer {
         if (this.scheduledTaskRegistrar.getScheduler() == null) {
             this.scheduledTaskRegistrar.setScheduler(configurePool());
         }
-
+// lease update jobs
         addJob(JobsConfigurationServiceImpl.JOBS_ID.LEASE_UPDATING.getName(),
                 Constants.LV_PM_ACCOUNT,
                 () -> leaseUpdatingService.executeJob(Constants.LV_PM_ACCOUNT)
@@ -72,7 +76,7 @@ public class AppConfiguration implements SchedulingConfigurer {
                 Constants.AT_PM_ACCOUNT,
                 () -> leaseUpdatingService.executeJob(Constants.AT_PM_ACCOUNT)
         );
-// phsae out property
+// phase out property
         addJob(JobsConfigurationServiceImpl.JOBS_ID.PHASE_OUT_PROPERTY.getName(),
                 Constants.LV_PM_ACCOUNT,
                 () -> phaseOutPropertyService.executeJob(Constants.LV_PM_ACCOUNT)
@@ -93,12 +97,12 @@ public class AppConfiguration implements SchedulingConfigurer {
                 Constants.AT_PM_ACCOUNT,
                 () -> changeBillStatusService.executeJob(Constants.AT_PM_ACCOUNT)
         );
-
+// due date job
         addJob(JobsConfigurationServiceImpl.JOBS_ID.DUE_DATE_NOTIFICATION.getName(),
                 Constants.LV_PM_ACCOUNT,
                 () -> dueDateNotificationService.executeJob(Constants.LV_PM_ACCOUNT)
         );
-
+// owner notification
         addJob(JobsConfigurationServiceImpl.JOBS_ID.OWNER_RENT_NOTIFICATION.getName(),
                 Constants.LV_PM_ACCOUNT,
                 () -> ownerNotificationsService.executeJob(Constants.LV_PM_ACCOUNT)
@@ -109,9 +113,7 @@ public class AppConfiguration implements SchedulingConfigurer {
                 () -> ownerNotificationsService.executeJob(Constants.AT_PM_ACCOUNT)
         );
 
-        addJob(JobsConfigurationServiceImpl.JOBS_ID.OWNER_RENT_NOTIFICATION.getName(), Constants.LV_PM_ACCOUNT, () -> activateOwnerService
-                .executeJob(null));
-
+//     insurance pay bills
         addJob(JobsConfigurationServiceImpl.JOBS_ID.INSURANCE_PAY_BILLS.getName(),
                 Constants.AT_PM_ACCOUNT,
                 () -> payBillsServiceImpl.executeJob(Constants.AT_PM_ACCOUNT)
@@ -120,6 +122,20 @@ public class AppConfiguration implements SchedulingConfigurer {
                 Constants.LV_PM_ACCOUNT,
                 () -> payBillsServiceImpl.executeJob(Constants.LV_PM_ACCOUNT)
         );
+//         welcome credit
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.WELCOME_CREDIT.getName(),
+                Constants.LV_PM_ACCOUNT,
+                () -> createWelcomeCreditService.executeJob(Constants.LV_PM_ACCOUNT));
+
+//         reminder first contribution
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.REMINDER_CONTRIBUTION.getName(),
+                Constants.LV_PM_ACCOUNT,
+                () -> createWelcomeCreditService.executeJob(Constants.LV_PM_ACCOUNT));
+
+// activate owner job
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.ACTIVATE_OWNERS.getName(), Constants.LV_PM_ACCOUNT,
+                () -> activateOwnerService
+                        .executeJob(null));
     }
 
     public List<LocationJobsInfo> getAllJobs() {

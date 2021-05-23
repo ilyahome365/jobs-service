@@ -32,7 +32,7 @@ public class ReminderFirstContribution  extends JobExecutorImpl {
     @Override
     protected String execute(String locationId) throws Exception {
         log.info("Running reminder for owners");
-        List<String> activatedOwners = tenantServiceExternal.activatedOwners();
+        List<String> activatedOwners = tenantServiceExternal.sendReminderOfFirstContribution();
         return objectMapper.writeValueAsString(activatedOwners);
     }
 }

@@ -70,7 +70,9 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
         PHASE_OUT_PROPERTY("phase-out-property", 6L),
         OWNER_RENT_NOTIFICATION("owner-rent-notification", 7L),
         ACTIVATE_OWNERS(Constants.ACTIVE_OWNER,8L),
-        INSURANCE_PAY_BILLS(Constants.INSURANCE_PAY_BILLS, 9L);
+        INSURANCE_PAY_BILLS(Constants.INSURANCE_PAY_BILLS, 9L)
+        ,WELCOME_CREDIT(Constants.WELCOME_CREDIT,10L),
+        REMINDER_CONTRIBUTION(Constants.REMINDER_FIRST_CONTRIBUTION,11L);
         private final String name;
         private final Long key;
 
