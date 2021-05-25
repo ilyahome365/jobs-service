@@ -16,8 +16,8 @@ import com.home365.jobservice.rest.BalanceServiceExternal;
 import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.service.PayBillsService;
 import com.home365.jobservice.utils.CodeUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Objects;

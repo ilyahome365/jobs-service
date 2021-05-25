@@ -8,8 +8,8 @@ import com.home365.jobservice.rest.BalanceServiceFeign;
 import com.home365.jobservice.rest.KeyCloakService;
 import com.home365.jobservice.service.MailService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
