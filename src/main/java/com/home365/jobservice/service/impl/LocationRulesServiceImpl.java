@@ -21,4 +21,9 @@ public class LocationRulesServiceImpl implements LocationRulesService {
     public Optional<LocationRules> findLocationRulesById(String id) {
         return locationRulesRepository.findById(id);
     }
+
+    @Override
+    public Optional<LocationRules> findByPmAccountId(String pmAccountId) {
+        return  locationRulesRepository.findByPmAccountId(pmAccountId);
+    }
 }

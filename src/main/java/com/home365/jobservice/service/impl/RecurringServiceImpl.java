@@ -78,7 +78,9 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
 
     @Override
     public String createTransactionsForRecurringCharges(String id) {
-        Optional<LocationRules> locationRules = locationRulesService.findLocationRulesById(id);
+        //Optional<LocationRules> locationRules = locationRulesService.findLocationRulesById(id);
+
+        Optional<LocationRules> locationRules = locationRulesService.findByPmAccountId(id);
         Rules rules = null;
 
         try {
