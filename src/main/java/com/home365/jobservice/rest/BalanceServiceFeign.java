@@ -18,12 +18,12 @@ public interface BalanceServiceFeign {
     @RequestLine("POST /bills/cancel-bills-by-property-and-dueDate?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     List<Integer> cancelBillsByPropertyAndDueDate(@Param("token") String token,
-                                                  PropertyPhasingOutWrapper propertyPhasingOutWrapper,String businessAction) throws GeneralException;
+                                                  PropertyPhasingOutWrapper propertyPhasingOutWrapper,@Param("businessAction") String businessAction) throws GeneralException;
 
     @RequestLine("POST /charges/cancel-all-recurring?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     List<String> cancelAllRecurringByAccount(@Param("token") String token,
-                                             CancelChargeWrapper cancelChargeWrapper,String businessAction) throws GeneralException;
+                                             CancelChargeWrapper cancelChargeWrapper,@Param("businessAction") String businessAction) throws GeneralException;
 
     @RequestLine("POST /bills/create-owner-bill-for-tenant-debts")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
@@ -43,7 +43,7 @@ public interface BalanceServiceFeign {
     @RequestLine("GET /move-security-deposit-to-owner-account?propertyId={propertyId}&businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     String moveSecurityDepositToOwnerAccount(@Param("token") String token,
-                                             @Param("propertyId") String propertyId,String businessAction) throws GeneralException;
+                                             @Param("propertyId") String propertyId,@Param("businessAction") String businessAction) throws GeneralException;
 
     @RequestLine("GET /get-owner-projected-balance")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
