@@ -25,20 +25,20 @@ public interface BalanceServiceFeign {
     List<String> cancelAllRecurringByAccount(@Param("token") String token,
                                              CancelChargeWrapper cancelChargeWrapper,@Param("businessAction") String businessAction) throws GeneralException;
 
-    @RequestLine("POST /bills/create-owner-bill-for-tenant-debts")
+    @RequestLine("POST /bills/create-owner-bill-for-tenant-debts?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     void createOwnerBillForTenantDebts(@Param("token") String token,
-                                       OwnerBillsWrapper ownerBillsWrapper) throws GeneralException;
+                                       OwnerBillsWrapper ownerBillsWrapper,@Param("businessAction") String businessAction) throws GeneralException;
 
-    @RequestLine("POST /bills/create-Termination-Fee")
+    @RequestLine("POST /bills/create-Termination-Fee?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     String createTerminationFeeByProperty(@Param("token") String token,
-                                          OwnerBillsWrapper ownerBillsWrapper) throws GeneralException;
+                                          OwnerBillsWrapper ownerBillsWrapper,@Param("businessAction") String businessAction) throws GeneralException;
 
-    @RequestLine("POST /bills/create-material-transfer-fee")
+    @RequestLine("POST /bills/create-material-transfer-fee?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     String createMaterialTransferFee(@Param("token") String token,
-                                     OwnerBillsWrapper ownerBillsWrapper) throws GeneralException;
+                                     OwnerBillsWrapper ownerBillsWrapper,@Param("businessAction") String businessAction) throws GeneralException;
 
     @RequestLine("GET /move-security-deposit-to-owner-account?propertyId={propertyId}&businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})

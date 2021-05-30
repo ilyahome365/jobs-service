@@ -44,21 +44,21 @@ public class BalanceServiceExternalImpl implements BalanceServiceExternal {
     }
 
     @Override
-    public void createOwnerBillForTenantDebts(OwnerBillsWrapper ownerBillsWrapper) throws GeneralException {
+    public void createOwnerBillForTenantDebts(OwnerBillsWrapper ownerBillsWrapper, String businessAction) throws GeneralException {
         KeycloakResponse token = keyCloakService.getKey();
-        balanceServiceFeign.createOwnerBillForTenantDebts(token.getAccess_token(), ownerBillsWrapper);
+        balanceServiceFeign.createOwnerBillForTenantDebts(token.getAccess_token(),ownerBillsWrapper,businessAction);
     }
 
     @Override
-    public String createTerminationFeeBill(OwnerBillsWrapper ownerBillsWrapper) throws GeneralException {
+    public String createTerminationFeeBill(OwnerBillsWrapper ownerBillsWrapper, String businessAction) throws GeneralException {
         KeycloakResponse token = keyCloakService.getKey();
-        return balanceServiceFeign.createTerminationFeeByProperty(token.getAccess_token(), ownerBillsWrapper);
+        return balanceServiceFeign.createTerminationFeeByProperty(token.getAccess_token(), ownerBillsWrapper,businessAction);
     }
 
     @Override
-    public String createMaterialTransferFee(OwnerBillsWrapper ownerBillsWrapper) throws GeneralException {
+    public String createMaterialTransferFee(OwnerBillsWrapper ownerBillsWrapper, String businessAction) throws GeneralException {
         KeycloakResponse token = keyCloakService.getKey();
-        return balanceServiceFeign.createMaterialTransferFee(token.getAccess_token(), ownerBillsWrapper);
+        return balanceServiceFeign.createMaterialTransferFee(token.getAccess_token(), ownerBillsWrapper,businessAction);
     }
 
     @Override

@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PropertyPhasingOutFlow implements PropertyPhasingOut {
 
+    public static final String PROPERTY_DEACTIVATION = " Property Phasing Out ";
     private final BalanceServiceExternal balanceServiceExternal;
     private final PropertyService propertyService;
     private final TenantServiceExternal tenantServiceExternal;
@@ -71,11 +72,11 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         createOwnerBillFromTenantCharges(propertyPhasingOutWrapper, tenants);
         if (!property.get().getReasonForLeaving().equalsIgnoreCase(ReasonForLeavingProperty.SoldByHome365_PropertyNotStaysInHome365.name()) &&
                 !property.get().getReasonForLeaving().equalsIgnoreCase(ReasonForLeavingProperty.SoldByHome365_PropertyStaysInHome365.name())) {
-            String createdBill = createTearminationFeeBill(propertyId);
+            String createdBill = createTearminationFeeBill(propertyId, PROPERTY_DEACTIVATION);
             log.info("Created BIll Id : {} ", createdBill);
         }
 
-        String materialTransferFee = createMaterialTransferFee(propertyId);
+        String materialTransferFee = createMaterialTransferFee(propertyId, PROPERTY_DEACTIVATION);
         log.info("Material transfer fee bill id : {} ", materialTransferFee);
 
         balanceServiceExternal.moveSecurityDepositToOwnerAccount(propertyId," Moving deposit due property phase out" );
@@ -122,17 +123,17 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
     }
 
 
-    private String createMaterialTransferFee(String propertyId) throws GeneralException {
+    private String createMaterialTransferFee(String propertyId, String businessAction) throws GeneralException {
         OwnerBillsWrapper ownerBillsWrapper = new OwnerBillsWrapper();
         ownerBillsWrapper.setPropertyId(propertyId);
-        return balanceServiceExternal.createMaterialTransferFee(ownerBillsWrapper);
+        return balanceServiceExternal.createMaterialTransferFee(ownerBillsWrapper,businessAction );
     }
 
-    private String createTearminationFeeBill(String propertyId) throws GeneralException {
+    private String createTearminationFeeBill(String propertyId, String businessAction) throws GeneralException {
         log.info("Create Termination Fee for propertyId : {} ", propertyId);
         OwnerBillsWrapper ownerBillsWrapper = new OwnerBillsWrapper();
         ownerBillsWrapper.setPropertyId(propertyId);
-        return balanceServiceExternal.createTerminationFeeBill(ownerBillsWrapper);
+        return balanceServiceExternal.createTerminationFeeBill(ownerBillsWrapper,businessAction );
     }
 
     private void createOwnerBillFromTenantCharges(PropertyPhasingOutWrapper propertyPhasingOutWrapper, List<TenantWrapper> tenants) throws GeneralException {
@@ -141,7 +142,7 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         if (tenant.isPresent()) {
             ownerBillsWrapper.setChargeAccount(tenant.get().getAccountId());
             ownerBillsWrapper.setPropertyId(propertyPhasingOutWrapper.getPropertyId());
-            balanceServiceExternal.createOwnerBillForTenantDebts(ownerBillsWrapper);
+            balanceServiceExternal.createOwnerBillForTenantDebts(ownerBillsWrapper, PROPERTY_DEACTIVATION );
         }
     }
 
@@ -152,7 +153,7 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         if (!CollectionUtils.isEmpty(tenants)) {
             List<TenantWrapper> activeTenants = tenants.stream().filter(tenantWrapper -> !tenantWrapper.getTenantStatus().equals(TenantStatus.Inactive)).collect(Collectors.toList());
             for (TenantWrapper tenantWrapper : activeTenants) {
-                canceledRecurring.addAll(balanceServiceExternal.cancelAllRecurringByChargeAccount(tenantWrapper.getAccountId()," Canceling recurring due property phase out" ));
+                canceledRecurring.addAll(balanceServiceExternal.cancelAllRecurringByChargeAccount(tenantWrapper.getAccountId(), PROPERTY_DEACTIVATION));
             }
             log.info("Canceled recurring : {} ", canceledRecurring);
         }
@@ -161,14 +162,14 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
     private void cancelFutureCharges(PropertyPhasingOutWrapper propertyPhasingOutWrapper) throws GeneralException {
         log.info("start phase future Charges for : {}  ", propertyPhasingOutWrapper);
         propertyPhasingOutWrapper.setIsBill(false);
-        propertyPhasingOutWrapper.setBusinessAction(" Canceling bills due property deactivation");
+        propertyPhasingOutWrapper.setBusinessAction(" Property Deactivation ");
         balanceServiceExternal.cancelBillsByPropertyIdAndPhaseOutDate(propertyPhasingOutWrapper);
     }
 
     private void cancelFutureBills(PropertyPhasingOutWrapper propertyDetailsWithStatus) throws GeneralException {
         log.info("start phase future bills for : {}  ", propertyDetailsWithStatus);
         propertyDetailsWithStatus.setIsBill(true);
-        propertyDetailsWithStatus.setBusinessAction(" Canceling bills due property deactivation");
+        propertyDetailsWithStatus.setBusinessAction(" Property Deactivation ");
         balanceServiceExternal.cancelBillsByPropertyIdAndPhaseOutDate(propertyDetailsWithStatus);
 
     }
