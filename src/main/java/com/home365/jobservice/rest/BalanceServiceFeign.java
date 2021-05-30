@@ -15,15 +15,15 @@ import java.util.List;
 
 public interface BalanceServiceFeign {
 
-    @RequestLine("POST /bills/cancel-bills-by-property-and-dueDate")
+    @RequestLine("POST /bills/cancel-bills-by-property-and-dueDate?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     List<Integer> cancelBillsByPropertyAndDueDate(@Param("token") String token,
-                                                  PropertyPhasingOutWrapper propertyPhasingOutWrapper) throws GeneralException;
+                                                  PropertyPhasingOutWrapper propertyPhasingOutWrapper,String businessAction) throws GeneralException;
 
-    @RequestLine("POST /charges/cancel-all-recurring")
+    @RequestLine("POST /charges/cancel-all-recurring?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     List<String> cancelAllRecurringByAccount(@Param("token") String token,
-                                             CancelChargeWrapper cancelChargeWrapper) throws GeneralException;
+                                             CancelChargeWrapper cancelChargeWrapper,String businessAction) throws GeneralException;
 
     @RequestLine("POST /bills/create-owner-bill-for-tenant-debts")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
@@ -40,10 +40,10 @@ public interface BalanceServiceFeign {
     String createMaterialTransferFee(@Param("token") String token,
                                      OwnerBillsWrapper ownerBillsWrapper) throws GeneralException;
 
-    @RequestLine("GET /move-security-deposit-to-owner-account?propertyId={propertyId}")
+    @RequestLine("GET /move-security-deposit-to-owner-account?propertyId={propertyId}&businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     String moveSecurityDepositToOwnerAccount(@Param("token") String token,
-                                             @Param("propertyId") String propertyId) throws GeneralException;
+                                             @Param("propertyId") String propertyId,String businessAction) throws GeneralException;
 
     @RequestLine("GET /get-owner-projected-balance")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})

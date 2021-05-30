@@ -78,7 +78,7 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         String materialTransferFee = createMaterialTransferFee(propertyId);
         log.info("Material transfer fee bill id : {} ", materialTransferFee);
 
-        balanceServiceExternal.moveSecurityDepositToOwnerAccount(propertyId);
+        balanceServiceExternal.moveSecurityDepositToOwnerAccount(propertyId," Moving deposit due property phase out" );
         OwnerWrapper ownerFromProperty = tenantServiceExternal.getOwnerFromProperty(propertyId);
         AccountBalance ownerProjectedBalance = balanceServiceExternal.getOwnerProjectedBalance(ownerFromProperty.getAccountId());
         Double projectedBalance = ownerProjectedBalance.getBalance();
@@ -152,7 +152,7 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         if (!CollectionUtils.isEmpty(tenants)) {
             List<TenantWrapper> activeTenants = tenants.stream().filter(tenantWrapper -> !tenantWrapper.getTenantStatus().equals(TenantStatus.Inactive)).collect(Collectors.toList());
             for (TenantWrapper tenantWrapper : activeTenants) {
-                canceledRecurring.addAll(balanceServiceExternal.cancelAllRecurringByChargeAccount(tenantWrapper.getAccountId()));
+                canceledRecurring.addAll(balanceServiceExternal.cancelAllRecurringByChargeAccount(tenantWrapper.getAccountId()," Canceling recurring due property phase out" ));
             }
             log.info("Canceled recurring : {} ", canceledRecurring);
         }
@@ -161,12 +161,14 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
     private void cancelFutureCharges(PropertyPhasingOutWrapper propertyPhasingOutWrapper) throws GeneralException {
         log.info("start phase future Charges for : {}  ", propertyPhasingOutWrapper);
         propertyPhasingOutWrapper.setIsBill(false);
+        propertyPhasingOutWrapper.setBusinessAction(" Canceling bills due property deactivation");
         balanceServiceExternal.cancelBillsByPropertyIdAndPhaseOutDate(propertyPhasingOutWrapper);
     }
 
     private void cancelFutureBills(PropertyPhasingOutWrapper propertyDetailsWithStatus) throws GeneralException {
         log.info("start phase future bills for : {}  ", propertyDetailsWithStatus);
         propertyDetailsWithStatus.setIsBill(true);
+        propertyDetailsWithStatus.setBusinessAction(" Canceling bills due property deactivation");
         balanceServiceExternal.cancelBillsByPropertyIdAndPhaseOutDate(propertyDetailsWithStatus);
 
     }

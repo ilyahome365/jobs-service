@@ -32,15 +32,15 @@ public class BalanceServiceExternalImpl implements BalanceServiceExternal {
     @Override
     public List<Integer> cancelBillsByPropertyIdAndPhaseOutDate(PropertyPhasingOutWrapper propertyPhasingOutWrapper) throws GeneralException {
         KeycloakResponse token = keyCloakService.getKey();
-        return balanceServiceFeign.cancelBillsByPropertyAndDueDate(token.getAccess_token(), propertyPhasingOutWrapper);
+        return balanceServiceFeign.cancelBillsByPropertyAndDueDate(token.getAccess_token(), propertyPhasingOutWrapper,propertyPhasingOutWrapper.getBusinessAction());
     }
 
     @Override
-    public List<String> cancelAllRecurringByChargeAccount(String accountId) throws GeneralException {
+    public List<String> cancelAllRecurringByChargeAccount(String accountId, String businessAction) throws GeneralException {
         KeycloakResponse token = keyCloakService.getKey();
         CancelChargeWrapper cancelChargeWrapper = new CancelChargeWrapper();
         cancelChargeWrapper.setAccountId(accountId);
-        return balanceServiceFeign.cancelAllRecurringByAccount(token.getAccess_token(), cancelChargeWrapper);
+        return balanceServiceFeign.cancelAllRecurringByAccount(token.getAccess_token(), cancelChargeWrapper,businessAction);
     }
 
     @Override
@@ -62,10 +62,10 @@ public class BalanceServiceExternalImpl implements BalanceServiceExternal {
     }
 
     @Override
-    public void moveSecurityDepositToOwnerAccount(String propertyId) throws GeneralException {
+    public void moveSecurityDepositToOwnerAccount(String propertyId, String businessAction) throws GeneralException {
         log.info("Start move security deposit to owner account");
         KeycloakResponse token = keyCloakService.getKey();
-        balanceServiceFeign.moveSecurityDepositToOwnerAccount(token.getAccess_token(), propertyId);
+        balanceServiceFeign.moveSecurityDepositToOwnerAccount(token.getAccess_token(), propertyId,businessAction);
     }
 
     @Override

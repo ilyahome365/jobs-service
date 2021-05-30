@@ -13,11 +13,11 @@ import java.util.List;
 
 public interface BalanceServiceExternal {
     List<Integer> cancelBillsByPropertyIdAndPhaseOutDate(PropertyPhasingOutWrapper propertyPhasingOutWrapper) throws GeneralException;
-    List<String> cancelAllRecurringByChargeAccount(String accountId) throws GeneralException;
+    List<String> cancelAllRecurringByChargeAccount(String accountId, String bussinessAction) throws GeneralException;
     void createOwnerBillForTenantDebts(OwnerBillsWrapper ownerBillsWrapper) throws GeneralException;
     String createTerminationFeeBill(OwnerBillsWrapper ownerBillsWrapper) throws GeneralException;
     String createMaterialTransferFee(OwnerBillsWrapper  ownerBillsWrapper) throws GeneralException;
-    void moveSecurityDepositToOwnerAccount(String propertyId) throws GeneralException;
+    void moveSecurityDepositToOwnerAccount(String propertyId, String businessAction) throws GeneralException;
     OwnerProjectedBalanceWrapper getAllOwnersProjectedBalance() throws GeneralException;
     AccountBalance getOwnerProjectedBalance(String accountId) throws GeneralException;
     List<Transactions> findByChargeAccountIdAndBillType(String chargeAccountId, TransactionType transactionType) throws GeneralException;
