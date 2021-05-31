@@ -39,9 +39,9 @@ public interface TenantFeignService {
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     TenantsRequest getTenantByContactId(@Param("token") String token, @Param("contactId") String contactId) throws GeneralException;
 
-    @RequestLine("GET /tenant/activate-owners")
+    @RequestLine("GET /tenant/activate-owners?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    List<String> activateOwners(@Param("token") String token) throws GeneralException;
+    List<String> activateOwners(@Param("token") String token,String businessAction) throws GeneralException;
 
 
     @RequestLine("GET /tenant/first-contribution-reminder")

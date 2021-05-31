@@ -71,7 +71,7 @@ public class TenantServiceExternalImpl implements TenantServiceExternal {
     public List<String> activatedOwners() throws GeneralException {
         log.info("Run request for activation users");
         KeycloakResponse token = keyCloakService.getKey();
-        List<String> activatedOwners = tenantFeignService.activateOwners(token.getAccess_token());
+        List<String> activatedOwners = tenantFeignService.activateOwners(token.getAccess_token(), " due to  activation of owner");
         log.info("Activated owners : {}",activatedOwners);
         return activatedOwners;
     }
