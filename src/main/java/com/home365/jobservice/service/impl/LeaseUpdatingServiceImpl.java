@@ -119,7 +119,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
         if (!CollectionUtils.isEmpty(accounts))
             tenantStatusChangeRequest.setAccountId(accounts.get(0).getAccountId());
         try {
-            tenantServiceExternal.changeTenantStatus(tenantStatusChangeRequest);
+            tenantServiceExternal.changeTenantStatus(tenantStatusChangeRequest," phasing out " );
         } catch (GeneralException e) {
             e.printStackTrace();
             log.error(e.getMessage());
