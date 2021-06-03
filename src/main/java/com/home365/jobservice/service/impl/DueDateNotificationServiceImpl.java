@@ -44,10 +44,14 @@ public class DueDateNotificationServiceImpl extends JobExecutorImpl implements D
     @Override
     public JobExecutionResults sendNotificationForDueDateTenants(String locationId) {
         double currentDay = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+        Set<String> sentEmails = new HashSet<>();
         if (currentDay == 1 || currentDay == 6 || currentDay == 10 || currentDay == 15 || currentDay == 20 || currentDay == 25) {
             List<IDueDateEntry> tenantChargesList = transactionsRepo.getDueDateNotificationsByPmAccountId(locationId);
 
-            tenantChargesList.forEach(entry -> sendDueDateNotification(entry.getMaxDueDate(), entry.getFirstName() + " " + entry.getLastName(), entry.getEMailAddress1(), entry.getTenantJson()));
+            tenantChargesList.forEach(entry -> {
+                final String eMailAddress = entry.getEMailAddress1();
+                sendDueDateNotification(entry.getMaxDueDate(), entry.getFirstName() + " " + entry.getLastName(), eMailAddress, entry.getTenantJson(), sentEmails);
+            });
 
             return JobExecutionResults.builder()
                     .message(String.format("Sent %s notification mails for location %s", tenantChargesList.size(), locationId))
@@ -59,7 +63,7 @@ public class DueDateNotificationServiceImpl extends JobExecutorImpl implements D
         }
     }
 
-    private void sendDueDateNotification(Timestamp maxDueDate, String fullName, String eMailAddress, String tenantJson) {
+    private void sendDueDateNotification(Timestamp maxDueDate, String fullName, String eMailAddress, String tenantJson, Set<String> sentEmails) {
         if (StringUtils.isEmpty(eMailAddress)) {
             AtomicReference<String> eMailAddressAtomic = new AtomicReference();
             try {
@@ -73,7 +77,8 @@ public class DueDateNotificationServiceImpl extends JobExecutorImpl implements D
                 log.error("Cannot parse json {}", tenantJson);
             }
             eMailAddress = eMailAddressAtomic.get();
-        } if(!StringUtils.isEmpty(eMailAddress) && emailValidator.isValid(eMailAddress)) {
+        } if(!StringUtils.isEmpty(eMailAddress) && emailValidator.isValid(eMailAddress) && !sentEmails.contains(eMailAddress)) {
+            sentEmails.add(eMailAddress);
             MailDetails mailDetails = new MailDetails();
             mailDetails.setFrom(appProperties.getMailSupport());
             mailDetails.setSubject(Constants.PAYMENT_REMINDER);
