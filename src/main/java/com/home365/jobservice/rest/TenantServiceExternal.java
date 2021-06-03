@@ -9,7 +9,7 @@ import com.home365.jobservice.model.wrapper.TenantWrapper;
 import java.util.List;
 
 public interface TenantServiceExternal {
-    void changeTenantStatus(TenantStatusChangeRequest tenantStatusChangeRequest) throws GeneralException;
+    void changeTenantStatus(TenantStatusChangeRequest tenantStatusChangeRequest, String bussinessAction) throws GeneralException;
     List<TenantWrapper> getTenantsByPropertyId(String propertyId) throws GeneralException;
     void movePropertyToReadyForDeactivation(String propertyId) throws GeneralException;
     OwnerWrapper getOwnerFromProperty(String propertyId) throws GeneralException;

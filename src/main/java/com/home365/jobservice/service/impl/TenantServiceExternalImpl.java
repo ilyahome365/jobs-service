@@ -26,10 +26,10 @@ public class TenantServiceExternalImpl implements TenantServiceExternal {
     }
 
     @Override
-    public void changeTenantStatus(TenantStatusChangeRequest tenantStatusChangeRequest) throws GeneralException {
+    public void changeTenantStatus(TenantStatusChangeRequest tenantStatusChangeRequest, String businessAction) throws GeneralException {
         log.info("Change Tenant Status :  {} ", tenantStatusChangeRequest);
         KeycloakResponse token = keyCloakService.getKey();
-        tenantFeignService.changeTenantStatus(token.getAccess_token(), tenantStatusChangeRequest);
+        tenantFeignService.changeTenantStatus(token.getAccess_token(), tenantStatusChangeRequest,businessAction);
 
     }
 

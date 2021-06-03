@@ -15,9 +15,9 @@ import java.util.List;
 
 public interface TenantFeignService {
 
-    @RequestLine("POST /tenant/change-tenant-status")
+    @RequestLine("POST /tenant/change-tenant-status?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    void changeTenantStatus(@Param("token") String token, TenantStatusChangeRequest tenantStatusChangeRequest) throws GeneralException;
+    void changeTenantStatus(@Param("token") String token, TenantStatusChangeRequest tenantStatusChangeRequest,@Param("businessAction") String businessAction) throws GeneralException;
 
     @RequestLine("GET /tenant/get-tenant-by-property?propertyId={propertyId}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})

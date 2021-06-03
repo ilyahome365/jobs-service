@@ -1,5 +1,6 @@
 package com.home365.jobservice.entities;
 
+import com.home365.jobservice.service.AuditInfo;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -59,10 +60,12 @@ public class AccountExtensionBase {
     @Column(name = "New_PlaidClientId")
     private String plaidClientId;
 
+    @AuditInfo(ignore = true)
     @Column(name = "New_PlaidSecret")
     private String plaidSecretKey;
 
 
+    @AuditInfo(ignore = true)
     @Column(name = "tenant_status")
     String tenantStatus;
     @Column(name = "New_PayeeMethod")
