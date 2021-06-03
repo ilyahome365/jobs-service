@@ -1,5 +1,6 @@
 package com.home365.jobservice.rest;
 
+import com.home365.jobservice.entities.AccountExtensionBase;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.enums.TransactionType;
 import com.home365.jobservice.exception.GeneralException;
@@ -11,6 +12,7 @@ import feign.Headers;
 import feign.Param;
 import feign.RequestLine;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 public interface BalanceServiceFeign {
@@ -18,32 +20,32 @@ public interface BalanceServiceFeign {
     @RequestLine("POST /bills/cancel-bills-by-property-and-dueDate?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     List<Integer> cancelBillsByPropertyAndDueDate(@Param("token") String token,
-                                                  PropertyPhasingOutWrapper propertyPhasingOutWrapper,@Param("businessAction") String businessAction) throws GeneralException;
+                                                  PropertyPhasingOutWrapper propertyPhasingOutWrapper, @Param("businessAction") String businessAction) throws GeneralException;
 
     @RequestLine("POST /charges/cancel-all-recurring?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     List<String> cancelAllRecurringByAccount(@Param("token") String token,
-                                             CancelChargeWrapper cancelChargeWrapper,@Param("businessAction") String businessAction) throws GeneralException;
+                                             CancelChargeWrapper cancelChargeWrapper, @Param("businessAction") String businessAction) throws GeneralException;
 
     @RequestLine("POST /bills/create-owner-bill-for-tenant-debts?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     void createOwnerBillForTenantDebts(@Param("token") String token,
-                                       OwnerBillsWrapper ownerBillsWrapper,@Param("businessAction") String businessAction) throws GeneralException;
+                                       OwnerBillsWrapper ownerBillsWrapper, @Param("businessAction") String businessAction) throws GeneralException;
 
     @RequestLine("POST /bills/create-Termination-Fee?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     String createTerminationFeeByProperty(@Param("token") String token,
-                                          OwnerBillsWrapper ownerBillsWrapper,@Param("businessAction") String businessAction) throws GeneralException;
+                                          OwnerBillsWrapper ownerBillsWrapper, @Param("businessAction") String businessAction) throws GeneralException;
 
     @RequestLine("POST /bills/create-material-transfer-fee?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     String createMaterialTransferFee(@Param("token") String token,
-                                     OwnerBillsWrapper ownerBillsWrapper,@Param("businessAction") String businessAction) throws GeneralException;
+                                     OwnerBillsWrapper ownerBillsWrapper, @Param("businessAction") String businessAction) throws GeneralException;
 
     @RequestLine("GET /move-security-deposit-to-owner-account?propertyId={propertyId}&businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     String moveSecurityDepositToOwnerAccount(@Param("token") String token,
-                                             @Param("propertyId") String propertyId,@Param("businessAction") String businessAction) throws GeneralException;
+                                             @Param("propertyId") String propertyId, @Param("businessAction") String businessAction) throws GeneralException;
 
     @RequestLine("GET /get-owner-projected-balance")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
@@ -52,7 +54,7 @@ public interface BalanceServiceFeign {
 
     @RequestLine("GET /move-late-fee-to-home365?chargesIds={chargesIds}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    void moveLateFeeToPM(@Param("token") String token ,@Param("chargesIds") List<String>chargesIds) throws GeneralException;
+    void moveLateFeeToPM(@Param("token") String token, @Param("chargesIds") List<String> chargesIds) throws GeneralException;
 
     @RequestLine("GET /account/{accountId}/balance?isProjectedBalance={isProjectedBalance}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
@@ -60,13 +62,12 @@ public interface BalanceServiceFeign {
 
     @RequestLine("POST /charges/disposition-tenant-payment?userId={userId}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    void dispositionTenantPayment(@Param("token") String token,DispositionWrapper dispositionWrapper, @Param("userId") String userId) throws GeneralException;
+    void dispositionTenantPayment(@Param("token") String token, DispositionWrapper dispositionWrapper, @Param("userId") String userId) throws GeneralException;
 
 
     @RequestLine("POST /payment-notification")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     void notifyTransactionPaid(@Param("token") String token, PaymentNotification notificationOfPayment) throws GeneralException;
-
 
 
     @RequestLine("GET /create-welcome-credit")
@@ -79,10 +80,23 @@ public interface BalanceServiceFeign {
                                                                  @Param("chargeAccount") String chargeAccount,
                                                                  @Param("transactionType") TransactionType transactionStatus) throws GeneralException;
 
+    @RequestLine("GET /transactions/get-by-charge-business-type-location?businessType={businessType}&locations={locations}&statuses={statuses}&now={now}")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    List<Transactions> getByChargeBusinessTypeAndLocation(@Param("token") String token,
+                                                          @Param("businessType") Integer chargeAccount,
+                                                          @Param("locations") List<String> transactionStatus,
+                                                          @Param("statuses") List<String> statuses,
+                                                          @Param("now") Timestamp now) throws GeneralException;
+
 
     @RequestLine("POST /charges/charge-with-stripe")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
     void chargeWithStripe(@Param("token") String token, ChargeWithStripeRequest chargeWithStripeRequest) throws GeneralException;
+
+
+    @RequestLine("POST /accounts/get-all-by-ids")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    List<AccountExtensionBase> getAccountsByIds(@Param("token") String token,AccountRequest accountRequest) throws GeneralException;
 
 
 }
