@@ -96,7 +96,14 @@ public interface BalanceServiceFeign {
 
     @RequestLine("POST /accounts/get-all-by-ids")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    List<AccountExtensionBase> getAccountsByIds(@Param("token") String token,AccountRequest accountRequest) throws GeneralException;
+    List<AccountExtensionBase> getAccountsByIds(@Param("token") String token, AccountRequest accountRequest) throws GeneralException;
 
 
+    @RequestLine("POST /transactions/save-all")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    void saveAllTransactions(@Param("token") String token, List<Transactions> transactions);
+
+    @RequestLine("POST /bills/pay-check-bills")
+    @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
+    void payChecksBills(@Param("token") String token,List<String> collect);
 }

@@ -27,4 +27,7 @@ public interface BalanceServiceExternal {
     List<Transactions> getTransactionsByBusinessTypeAndLocation(Integer businessType, List<String> location, List<String> statuses, Timestamp timestamp) throws GeneralException;
     List<AccountExtensionBase> getAccountsByIds(List<String> ids) throws GeneralException;
 
+    void saveAllTransactions(List<Transactions> billsWhoReceivedOther) throws GeneralException;
+
+    void payCheckBills(List<String> collect) throws GeneralException;
 }

@@ -1,5 +1,5 @@
 package com.home365.jobservice.entities.enums;
 
 public enum TransactionType {
-    Charge, bill, Other, Rent,lateFee,managementFee
+    Charge, bill, Other, Rent,lateFee,managementFee,loan
 }

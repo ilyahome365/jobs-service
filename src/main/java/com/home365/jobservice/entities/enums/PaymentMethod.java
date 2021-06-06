@@ -1,6 +1,7 @@
 package com.home365.jobservice.entities.enums;
 
 public enum PaymentMethod {
+    noPaymentMethod,
     creditCard,
     transfer,
     cash,
@@ -8,6 +9,8 @@ public enum PaymentMethod {
     check,
     other,
     ach,
-    stripeCheckOut, noPaymentMethod,
+    stripeCheckOut,
+    refund,
     securityDeposit
+
 }

@@ -105,4 +105,15 @@ public class BalanceServiceExternalImpl implements BalanceServiceExternal {
         accountRequest.setIds(ids);
        return balanceServiceFeign.getAccountsByIds(keyCloakService.getKey().getAccess_token(), accountRequest);
     }
+
+    @Override
+    public void saveAllTransactions(List<Transactions> billsWhoReceivedOther) throws GeneralException {
+        balanceServiceFeign.saveAllTransactions(keyCloakService.getKey().getAccess_token(),billsWhoReceivedOther);
+
+    }
+
+    @Override
+    public void payCheckBills(List<String> collect) throws GeneralException {
+        balanceServiceFeign.payChecksBills(keyCloakService.getKey().getAccess_token(),collect);
+    }
 }

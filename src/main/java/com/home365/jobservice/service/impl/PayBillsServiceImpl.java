@@ -2,32 +2,33 @@ package com.home365.jobservice.service.impl;
 
 import com.home365.jobservice.config.AppProperties;
 import com.home365.jobservice.config.Constants;
-import com.home365.jobservice.entities.AccountExtension;
 import com.home365.jobservice.entities.AccountExtensionBase;
+import com.home365.jobservice.entities.Payments;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.enums.PaymentMethod;
+import com.home365.jobservice.entities.enums.PaymentStatus;
 import com.home365.jobservice.entities.enums.TransactionStatus;
 import com.home365.jobservice.entities.enums.TransactionType;
 import com.home365.jobservice.exception.GeneralException;
 import com.home365.jobservice.exception.PropertyNotFoundLocal;
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.ChargeWithStripeRequest;
+import com.home365.jobservice.model.TransactionsDetails;
 import com.home365.jobservice.model.enums.BusinessType;
 import com.home365.jobservice.model.enums.TransferTo;
 import com.home365.jobservice.repository.AccountExtensionRepo;
 import com.home365.jobservice.rest.BalanceServiceExternal;
 import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.service.PayBillsService;
+import com.home365.jobservice.service.PaymentsService;
 import com.home365.jobservice.utils.CodeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,28 +36,130 @@ import java.util.stream.Collectors;
 public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsService {
     private final BalanceServiceExternal balanceServiceExternal;
     private final AccountExtensionRepo accountExtensionRepo;
+    private final PaymentsService paymentsService;
 
     protected PayBillsServiceImpl(AppProperties appProperties, MailService mailService,
-                                  BalanceServiceExternal balanceServiceExternal, AccountExtensionRepo accountExtensionRepo) {
+                                  BalanceServiceExternal balanceServiceExternal, AccountExtensionRepo accountExtensionRepo, PaymentsService paymentsService) {
         super(appProperties, mailService);
         this.balanceServiceExternal = balanceServiceExternal;
 
 
         this.accountExtensionRepo = accountExtensionRepo;
+        this.paymentsService = paymentsService;
     }
 
-    public void payOwnerBills(String locationId) throws GeneralException {
+    public TransactionsDetails payOwnerBills(String locationId) throws GeneralException {
         log.info("Start Owner pay bills for location : {} ", locationId);
+        TransactionsDetails transactionsDetails = new TransactionsDetails();
         Timestamp now = new Timestamp(new Date().getTime());
-        List<String> statuses = List.of(TransactionType.managementFee.name(), TransactionType.bill.name());
-        List<Transactions> billsOrManagementFee = balanceServiceExternal
-                .getTransactionsByBusinessTypeAndLocation(BusinessType.RealEstateOwner.getValue(), List.of(locationId),statuses,now);
-        List<String> billsOrManagementFeeReceived = billsOrManagementFee.stream().map(Transactions::getReceiveAccountId).collect(Collectors.toList());
-        List<AccountExtensionBase> accountsByIds = balanceServiceExternal.getAccountsByIds(billsOrManagementFeeReceived).stream()
-                .filter(Objects::nonNull)
-                .filter(accountExtension -> accountExtension.getPayeeMethod().equals(PaymentMethod.transfer.ordinal())).collect(Collectors.toList());
+        List<String> statuses = List.of(TransactionStatus.readyForPayment.name());
+        List<Transactions> bills = balanceServiceExternal
+                .getTransactionsByBusinessTypeAndLocation(BusinessType.RealEstateOwner.getValue(), List.of(locationId), statuses, now);
+        List<String> billsReceived = bills.stream().map(Transactions::getReceiveAccountId).collect(Collectors.toList());
+        List<AccountExtensionBase> accountsByIds = balanceServiceExternal.getAccountsByIds(billsReceived).stream()
+                .filter(Objects::nonNull).collect(Collectors.toList());
+        payBillsOrManagementFee(bills, accountsByIds, transactionsDetails);
+        payLoans(bills, accountsByIds, transactionsDetails);
+        payBillsChecks(bills, accountsByIds, transactionsDetails);
+        return transactionsDetails;
+    }
 
+    private void payBillsChecks(List<Transactions> bills, List<AccountExtensionBase> accountsByIds, TransactionsDetails transactionsDetails) throws GeneralException {
+        TreeMap<String, AccountExtensionBase> accounts = accountsByIds.parallelStream()
+                .filter(accountExtensionBase -> accountExtensionBase.getPayeeMethod().equals(PaymentMethod.check.ordinal()) && accountExtensionBase.getBusinessType() != BusinessType.Tenant.getValue())
+                .collect(Collectors.toMap(AccountExtensionBase::getAccountId,
+                        Function.identity(), (v1, v2) -> v1, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER)));
+        List<Transactions> transactionsList = bills.parallelStream()
+                .filter(transactions -> (transactions.getBillType().equalsIgnoreCase(TransactionType.bill.name())
+                        && accounts.containsKey(transactions.getReceiveAccountId())))
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(transactionsList))
+            payTransactionsByChecks(transactionsList, transactionsDetails);
+    }
 
+    private void payTransactionsByChecks(List<Transactions> transactionsList, TransactionsDetails transactionsDetails) throws GeneralException {
+        List<String> checksIds = transactionsList.stream().map(Transactions::getTransactionId).collect(Collectors.toList());
+        balanceServiceExternal.payCheckBills(checksIds);
+        transactionsDetails.setTransactionNumberPaid(checksIds);
+    }
+
+    private void payLoans(List<Transactions> bills, List<AccountExtensionBase> accountsByIds, TransactionsDetails transactionsDetails) throws GeneralException {
+        log.info("Start pay loans ");
+        TreeMap<String, AccountExtensionBase> accounts = accountsByIds.parallelStream()
+                .filter(accountExtensionBase -> accountExtensionBase.getPayeeMethod().equals(PaymentMethod.transfer.ordinal()))
+                .collect(Collectors.toMap(AccountExtensionBase::getAccountId, Function.identity(), (v1, v2) -> v1, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER)));
+        TreeMap<String, AccountExtensionBase> finalAccountTree = accounts;
+        List<Transactions> transactionsList = bills.parallelStream()
+                .filter(transactions -> (transactions.getBillType().equalsIgnoreCase(TransactionType.loan.name())
+                        && finalAccountTree.containsKey(transactions.getReceiveAccountId())))
+                .collect(Collectors.toList());
+        payTransactionsByStripe(transactionsDetails, transactionsList);
+        accounts = accountsByIds.parallelStream().filter(accountExtensionBase -> accountExtensionBase.getPayeeMethod()
+                .equals(PaymentMethod.other.ordinal())).collect(Collectors.toMap(AccountExtensionBase::getAccountId, Function.identity(), (v1, v2) -> v1, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER)));
+        ;
+        TreeMap<String, AccountExtensionBase> finalAccountTree1 = accounts;
+        List<Transactions> billsWhoReceivedOther = bills.parallelStream()
+                .filter(transactions -> transactions.getBillType().equalsIgnoreCase(TransactionType.bill.name())
+                        && finalAccountTree1.containsKey(transactions.getReceiveAccountId())).collect(Collectors.toList());
+        updateTransactionsOther(billsWhoReceivedOther, transactionsDetails);
+    }
+
+    private void payBillsOrManagementFee(List<Transactions> bills, List<AccountExtensionBase> accountsByIds, TransactionsDetails transactionsDetails) throws GeneralException {
+        log.info("Start pay bills or management fee ");
+        List<AccountExtensionBase> accounts = accountsByIds.parallelStream()
+                .filter(accountExtensionBase -> accountExtensionBase.getPayeeMethod().equals(PaymentMethod.transfer.ordinal()))
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(accounts)) {
+            TreeMap<String, AccountExtensionBase> finalAccountTree = accounts.stream().collect(Collectors.toMap(AccountExtensionBase::getAccountId,
+                    Function.identity(), (v1, v2) -> v1, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER)));
+            List<Transactions> transactionsList = bills.parallelStream().filter(transactions -> (transactions.getBillType().equalsIgnoreCase(TransactionType.bill.name())
+                    || transactions.getBillType().equalsIgnoreCase(TransactionType.managementFee.name()))
+                    && finalAccountTree.containsKey(transactions.getReceiveAccountId()))
+                    .collect(Collectors.toList());
+            payTransactionsByStripe(transactionsDetails, transactionsList);
+        }
+        accounts = accountsByIds.parallelStream().filter(accountExtensionBase -> accountExtensionBase.getPayeeMethod()
+                .equals(PaymentMethod.other.ordinal()))
+                .collect(Collectors.toList());
+
+        if (!CollectionUtils.isEmpty(accounts)){
+            TreeMap<String, AccountExtensionBase> accountsTree = accounts.stream().collect(Collectors.toMap(AccountExtensionBase::getAccountId,
+                    Function.identity(), (v1, v2) -> v1, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER)));
+            List<Transactions> billsWhoReceivedOther = bills.stream().filter(transactions -> (transactions.getBillType().equalsIgnoreCase(TransactionType.bill.name())
+                    || transactions.getBillType().equalsIgnoreCase(TransactionType.managementFee.name()))
+                    && accountsTree.containsKey(transactions.getReceiveAccountId())).collect(Collectors.toList());
+            updateTransactionsOther(billsWhoReceivedOther, transactionsDetails);
+        }
+    }
+
+    private void payTransactionsByStripe(TransactionsDetails transactionsDetails, List<Transactions> transactionsList) throws GeneralException {
+        if (CollectionUtils.isEmpty(transactionsList)) {
+            ChargeWithStripeRequest chargeWithStripeRequest = new ChargeWithStripeRequest();
+            List<String> transactionsIds = transactionsList.stream().map(Transactions::getTransactionId).collect(Collectors.toList());
+            chargeWithStripeRequest.setCharges(transactionsIds);
+            chargeWithStripeRequest.setIsRefunded(false);
+            chargeWithStripeRequest.setSendMailFlag(false);
+            chargeWithStripeRequest.setDescription("Pay Bills or managements fee for owners");
+            balanceServiceExternal.chargeWithStripe(chargeWithStripeRequest);
+            transactionsDetails.setTransactionNumberPaid(transactionsIds);
+
+        }
+    }
+
+    private void updateTransactionsOther(List<Transactions> billsWhoReceivedOther, TransactionsDetails transactionsDetails) throws GeneralException {
+        if (!CollectionUtils.isEmpty(billsWhoReceivedOther)) {
+            billsWhoReceivedOther.forEach(transactions -> {
+                Payments received_account_other = paymentsService.createAndSavePayments(transactions.getAmount(), new Timestamp(new Date().getTime()),
+                        PaymentStatus.failed, null, null,
+                        "Received account other", transactions.getReceiveAccountId(), transactions.getPmAccountId(), PaymentMethod.other
+                );
+                transactions.setStatus(TransactionStatus.paymentFailed.name());
+                transactions.setPaymentId(received_account_other.getPaymentId());
+
+            });
+            balanceServiceExternal.saveAllTransactions(billsWhoReceivedOther);
+            transactionsDetails.setTransactionsNumberDidntPaid(billsWhoReceivedOther.stream().map(Transactions::getTransactionId).collect(Collectors.toList()));
+        }
     }
 
     @Override
@@ -87,7 +190,29 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
     protected String execute(String locationId) throws Exception {
 
         String insurancePayBills = insurancePayBills(locationId);
-        payOwnerBills(locationId);
-        return insurancePayBills;
+        TransactionsDetails transactionsDetails = payOwnerBills(locationId);
+        payTenantBills(locationId, transactionsDetails);
+        return insurancePayBills + transactionsDetails.toString();
+    }
+
+    private void payTenantBills(String locationId, TransactionsDetails transactionsDetails) throws GeneralException {
+        log.info("Start pay tenant bills");
+        Timestamp now = new Timestamp(new Date().getTime());
+        List<String> statuses = List.of(TransactionStatus.readyForPayment.name());
+        List<Transactions> bills = balanceServiceExternal
+                .getTransactionsByBusinessTypeAndLocation(BusinessType.RealEstateOwner.getValue(), List.of(locationId), statuses, now);
+        List<String> billsReceived = bills.stream().map(Transactions::getReceiveAccountId).collect(Collectors.toList());
+        TreeMap<String, AccountExtensionBase> accountsByIds = balanceServiceExternal.getAccountsByIds(billsReceived).stream()
+                .filter(Objects::nonNull).filter(accountExtensionBase -> accountExtensionBase.getBusinessType() == BusinessType.Tenant.getValue())
+                .collect(Collectors.toMap(AccountExtensionBase::getAccountId,
+                        Function.identity(), (v1, v2) -> v1, () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER)));
+
+        List<Transactions> transactionsList = bills.stream().filter(transactions -> transactions.getBillType()
+                .equalsIgnoreCase(TransactionType.bill.name()) && accountsByIds.containsKey(transactions.getReceiveAccountId()))
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(transactionsList)) {
+            payTransactionsByChecks(transactionsList, transactionsDetails);
+
+        }
     }
 }
