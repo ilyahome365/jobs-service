@@ -1,5 +1,6 @@
 package com.home365.jobservice.rest;
 
+import com.home365.jobservice.entities.AccountExtensionBase;
 import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.enums.TransactionType;
 import com.home365.jobservice.exception.GeneralException;
@@ -9,6 +10,7 @@ import com.home365.jobservice.model.PropertyPhasingOutWrapper;
 import com.home365.jobservice.model.wrapper.OwnerBillsWrapper;
 import com.home365.jobservice.model.wrapper.OwnerProjectedBalanceWrapper;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 public interface BalanceServiceExternal {
@@ -22,4 +24,10 @@ public interface BalanceServiceExternal {
     AccountBalance getOwnerProjectedBalance(String accountId) throws GeneralException;
     List<Transactions> findByChargeAccountIdAndBillType(String chargeAccountId, TransactionType transactionType) throws GeneralException;
     void chargeWithStripe(ChargeWithStripeRequest chargeWithStripeRequest) throws GeneralException;
+    List<Transactions> getTransactionsByBusinessTypeAndLocation(Integer businessType, List<String> location, List<String> statuses, Timestamp timestamp) throws GeneralException;
+    List<AccountExtensionBase> getAccountsByIds(List<String> ids) throws GeneralException;
+
+    void saveAllTransactions(List<Transactions> billsWhoReceivedOther) throws GeneralException;
+
+    void payCheckBills(List<String> collect) throws GeneralException;
 }

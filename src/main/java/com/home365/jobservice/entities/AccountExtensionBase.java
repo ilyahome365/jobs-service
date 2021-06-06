@@ -68,5 +68,6 @@ public class AccountExtensionBase {
     @AuditInfo(ignore = true)
     @Column(name = "tenant_status")
     String tenantStatus;
-
+    @Column(name = "New_PayeeMethod")
+    private Integer payeeMethod;
 }
