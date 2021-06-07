@@ -93,7 +93,7 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
         LateFee lateFees = rule.getLateFees();
         List<Transactions> feeTransactions = new ArrayList<>();
         candidateTransactionsWithNoLateFee.forEach(transactions -> {
-            long ownerAmount = getAmount(lateFeeConfiguration, transactions);
+//            long ownerAmount = getAmount(lateFeeConfiguration, transactions);
 //            if (ownerAmount > 0) {
 //                log.info("Owner amount : {} for transaction : {} and owner id : {}", ownerAmount, transactions.getTransactionId(), transactions.getReceiveAccountId());
 //                Transactions feeTransaction = createTransaction(lateFeeAdditionalInformationProjection, transactions, ownerAmount, transactions.getReceiveAccountId());
