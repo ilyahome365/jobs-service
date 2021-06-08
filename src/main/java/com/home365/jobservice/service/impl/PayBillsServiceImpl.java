@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -60,13 +61,16 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
                 .filter(Objects::nonNull).collect(Collectors.toList());
         payBillsOrManagementFee(bills, accountsByIds, transactionsDetails);
         payLoans(bills, accountsByIds, transactionsDetails);
+        Timestamp checkDate = Timestamp.valueOf(LocalDateTime.now().plusDays(7));
+        bills = balanceServiceExternal
+                .getTransactionsByBusinessTypeAndLocation(BusinessType.RealEstateOwner.getValue(), List.of(locationId), statuses, checkDate);
         payBillsChecks(bills, accountsByIds, transactionsDetails);
         return transactionsDetails;
     }
 
     private void payBillsChecks(List<Transactions> bills, List<AccountExtensionBase> accountsByIds, TransactionsDetails transactionsDetails) throws GeneralException {
         List<AccountExtensionBase> accounts = accountsByIds.parallelStream()
-                .filter(accountExtensionBase -> Objects.nonNull(accountExtensionBase.getPayeeMethod()) &&  accountExtensionBase.getPayeeMethod().equals(PaymentMethod.check.ordinal()) && accountExtensionBase.getBusinessType() != BusinessType.Tenant.getValue())
+                .filter(accountExtensionBase -> Objects.nonNull(accountExtensionBase.getPayeeMethod()) && accountExtensionBase.getPayeeMethod().equals(PaymentMethod.check.ordinal()) && accountExtensionBase.getBusinessType() != BusinessType.Tenant.getValue())
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(accounts)) {
             TreeMap<String, AccountExtensionBase> accountsTree = accounts.stream().collect(Collectors.toMap(AccountExtensionBase::getAccountId,
@@ -89,7 +93,7 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
     private void payLoans(List<Transactions> bills, List<AccountExtensionBase> accountsByIds, TransactionsDetails transactionsDetails) throws GeneralException {
         log.info("Start pay loans ");
         List<AccountExtensionBase> accounts = accountsByIds.parallelStream()
-                .filter(accountExtensionBase ->Objects.nonNull(accountExtensionBase.getPayeeMethod()) &&  accountExtensionBase.getPayeeMethod().equals(PaymentMethod.transfer.ordinal()))
+                .filter(accountExtensionBase -> Objects.nonNull(accountExtensionBase.getPayeeMethod()) && accountExtensionBase.getPayeeMethod().equals(PaymentMethod.transfer.ordinal()))
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(accounts)) {
             TreeMap<String, AccountExtensionBase> accountsTree = accounts.stream().collect(Collectors.toMap(AccountExtensionBase::getAccountId, Function.identity(),
@@ -126,7 +130,7 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
                     .collect(Collectors.toList());
             payTransactionsByStripe(transactionsDetails, transactionsList);
         }
-        accounts = accountsByIds.parallelStream().filter(accountExtensionBase ->Objects.nonNull(accountExtensionBase.getPayeeMethod()) &&  accountExtensionBase.getPayeeMethod()
+        accounts = accountsByIds.parallelStream().filter(accountExtensionBase -> Objects.nonNull(accountExtensionBase.getPayeeMethod()) && accountExtensionBase.getPayeeMethod()
                 .equals(PaymentMethod.other.ordinal()))
                 .collect(Collectors.toList());
 
