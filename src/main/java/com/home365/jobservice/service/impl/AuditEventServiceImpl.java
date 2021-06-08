@@ -4,6 +4,7 @@ package com.home365.jobservice.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.home365.jobservice.config.Constants;
+import com.home365.jobservice.entities.Transactions;
 import com.home365.jobservice.entities.enums.EntityType;
 import com.home365.jobservice.entities.projection.IAuditableEntity;
 import com.home365.jobservice.model.AuditEvent;
@@ -21,7 +22,10 @@ import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+
+import static com.home365.jobservice.utils.BusinessActionRequest.getBusinessAction;
 
 @Service
 @Slf4j
@@ -36,9 +40,12 @@ public class AuditEventServiceImpl implements AuditEventService {
     private final FindByIdAudit paymentService;
     public static final String DELETED = "Deleted";
     public static final String NO_DIFFERENCES = "No differences";
+    public static final String WAS_CREATED = " was created";
+    DateTimeFormatter dateTimeFormatter;
 
     public AuditEventServiceImpl(AuditEventRepository auditEventRepository, TransactionsService transactionService, RecurringService recurringService,
                                  PaymentsService paymentsService) {
+        dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         this.auditEventRepository = auditEventRepository;
         this.transactionService = transactionService;
         this.recurringService = recurringService;
@@ -65,23 +72,28 @@ public class AuditEventServiceImpl implements AuditEventService {
 
     private CommentHolder getDiffs(IAuditableEntity newEntity, IAuditableEntity oldEntity, boolean serviceFound) {
         CommentHolder commentHolder = new CommentHolder();
-        commentHolder.setAmount(getNewAmount(newEntity));
         List<String> comments = new LinkedList<>();
         commentHolder.setComments(comments);
         if (oldEntity != null) {
             compareEntities(newEntity, oldEntity, comments);
         } else {
             if (!serviceFound) {
-                comments.add(PROBLEM_WITH_EXTRACTING_TRANSACTION);
+                comments.add("Problem with extracting transaction");
             } else {
-                comments.add(CREATED);
+                String businessAction = getBusinessAction();
+                String businessNameForEntity = getBusinessNameForEntity(newEntity);
+                if (!ObjectUtils.isEmpty(businessAction)) {
+                    comments.add(businessNameForEntity + "  due to " + businessAction);
+                } else {
+                    comments.add(businessNameForEntity);
+                }
             }
         }
         return commentHolder;
     }
-
     private void compareEntities(IAuditableEntity newEntity, IAuditableEntity oldEntity, List<String> comments) {
-        DiffNode diffNode = ObjectDifferBuilder.buildDefault().compare(oldEntity, newEntity);
+        DiffNode diffNode = ObjectDifferBuilder.startBuilding().comparison()
+                .ofType(LocalDateTime.class).toUseEqualsMethod().and().comparison().ofType(LocalDate.class).toUseEqualsMethod().and().build().compare(oldEntity, newEntity);
         StringBuilder diffs = new StringBuilder();
         if (diffNode.hasChanges()) {
             diffNode.visit((node, visit) -> {
@@ -92,29 +104,65 @@ public class AuditEventServiceImpl implements AuditEventService {
                     AuditInfo auditInfo = getAuditInfo(node);
                     boolean ignoreField = false;
                     String fieldName = node.getPropertyName();
-                    if(auditInfo != null){
+                    String action = null;
+                    String removedAction = null;
+                    if (auditInfo != null) {
                         ignoreField = auditInfo.ignore();
                         fieldName = auditInfo.viewName().equalsIgnoreCase("") ? node.getPropertyName() : auditInfo.viewName();
                     }
-                    if(ObjectUtils.isEmpty(newValue) && ObjectUtils.isEmpty(oldEntity)){
+                    if (ObjectUtils.isEmpty(newValue) && ObjectUtils.isEmpty(oldEntity)) {
                         ignoreField = true;
                     }
-                    if(isDate(oldValue)){
-                        boolean isDateChanged =  isDateChanged(newValue,oldValue);
-                        if(!isDateChanged){
+                    if (isDate(oldValue)) {
+                        boolean isDateChanged = isDateChanged(newValue, oldValue);
+                        if (!isDateChanged) {
                             ignoreField = true;
                         }
                     }
-                    if (node.getPropertyName().equalsIgnoreCase(AMOUNT) || node.getPropertyName().equalsIgnoreCase("amountBeforeDiscount")) {
-                        oldValue = handleAmount(oldValue);
-                        newValue = handleAmount(newValue);
-                    }
                     diffs.append(" ");
+                    FindByIdAudit service = getService(newEntity.auditEntityType());
+                    if (service != null) {
+                        Optional<Object> optionalNewValue = service.handleSpecialProperty(node.getPropertyName(), newEntity, newValue);
+                        Optional<Object> optionalOldValue = service.handleSpecialProperty(node.getPropertyName(), oldEntity, oldValue);
+                        if (optionalNewValue.isPresent()) {
+                            newValue = optionalNewValue.get();
+                        }
+                        if (optionalOldValue.isPresent()) {
+                            oldValue = optionalOldValue.get();
+                        }
+                    }
+                    String businessAction = getBusinessAction();
+                    if (ObjectUtils.isEmpty(oldValue) &&  ObjectUtils.isEmpty((newValue))) {
+                        ignoreField = true;
+                    }
+                    if (!ignoreField && oldValue instanceof String && newValue instanceof String) {
+                        if (((String) oldValue).toLowerCase().equalsIgnoreCase(((String) newValue).toLowerCase())) {
+                            ignoreField = true;
+                        }
+                    }
                     if (ignoreField) {
                         diffs.append("@ ");
                     }
-                    diffs.append(fieldName).append(" changed from ");
-                    diffs.append(getValue(oldValue) ).append(" to ").append(getValue(newValue)).append(" ");
+                    if (!ObjectUtils.isEmpty(removedAction) && ObjectUtils.isEmpty(newValue)) {
+                        diffs.append(removedAction);
+                    } else {
+                        if (!ObjectUtils.isEmpty(action)) {
+                            diffs.append(action);
+                        } else {
+                            diffs.append(splitCameCase(fieldName))
+                                    .append(" was ")
+                                    .append(getValue(oldValue, true))
+                                    .append(" to ")
+                                    .append(getValue(newValue, false)).append(" ");
+                        }
+                    }
+                    if (!ObjectUtils.isEmpty(businessAction)) {
+                        diffs.append(" due to ").append(businessAction);
+                    }
+                    if (service != null) {
+                        Optional<Object> auditEnding = service.handledEndingOfAudit(newEntity);
+                        auditEnding.ifPresent(diffs::append);
+                    }
                     comments.add(diffs.toString());
                 }
             });
@@ -124,6 +172,17 @@ public class AuditEventServiceImpl implements AuditEventService {
         }
     }
 
+    private String splitCameCase(String type) {
+        if (!ObjectUtils.isEmpty(type)) {
+            String[] strings = org.apache.commons.lang3.StringUtils.splitByCharacterTypeCamelCase(type);
+            List<String> upperCase = new LinkedList<>();
+            for (String string : strings) {
+                upperCase.add(org.apache.commons.lang3.StringUtils.capitalize(string));
+            }
+            return String.join(" ", upperCase);
+        }
+        return type;
+    }
 
     private boolean isDate(Object dateNew){
         return dateNew instanceof LocalDate || dateNew instanceof Timestamp || dateNew instanceof LocalDateTime;
@@ -154,33 +213,52 @@ public class AuditEventServiceImpl implements AuditEventService {
     }
 
 
-    private Object getValue(Object value){
-        if(value == null){
-            return  "empty";
+    private Object getValue(Object value, boolean addFrom) {
+        String edited = " edited from ";
+        Object result = value;
+        if (value == null) {
+            if (addFrom) {
+                return " set ";
+            } else {
+                return " empty ";
+            }
+        }
+        if (value instanceof Boolean) {
+            Boolean val = ((Boolean) value);
+            if (val) {
+                result = "yes";
+            } else {
+                result = "no";
+            }
         }
         if(value instanceof LocalDateTime){
-            return  ((LocalDateTime) value).toLocalDate();
+            LocalDate result1 = ((LocalDateTime) value).toLocalDate();
+            result = dateTimeFormatter.format(result1);
         }
         if(value instanceof Timestamp){
-            return  ((Timestamp)value).toLocalDateTime().toLocalDate();
+            result =   dateTimeFormatter.format(((Timestamp)value).toLocalDateTime().toLocalDate());
         }
-        return value;
+        if(value instanceof LocalDate){
+            result =  dateTimeFormatter.format(((LocalDate)value));
+        }
+        if (isNumber(value)) {
+            result = handleAmount(value);
+        }
+
+        if (value instanceof String) {
+            if (org.apache.commons.lang3.StringUtils.isAlphaSpace((String) value)) {
+                result = splitCameCase((String) value);
+            }
+        }
+        if (!addFrom) {
+            return result;
+        } else {
+            return edited + result;
+        }
     }
 
-    private String getNewAmount(IAuditableEntity newEntity) {
-        try {
-            DecimalFormat format = new DecimalFormat("0.##");
-            Field amount = newEntity.getClass().getDeclaredField(AMOUNT);
-            amount.setAccessible(true);
-            Object am = amount.get(newEntity);
-            if (am instanceof Long) {
-                return  format.format ((Long) am / 100d);
-            }
-            return am.toString();
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            log.error(e.getMessage());
-            return AMOUNT_NOT_FOUND;
-        }
+    private boolean isNumber(Object value) {
+        return value instanceof Number;
     }
 
 
@@ -188,11 +266,11 @@ public class AuditEventServiceImpl implements AuditEventService {
         DecimalFormat format = new DecimalFormat("0.##");
         if (!ObjectUtils.isEmpty(amount)) {
             if (amount instanceof Long) {
-                return format.format((Long) amount / 100D) + "$";
+                return  "$" +  format.format((Long) amount / 100D);
             } else {
                 if (amount instanceof String) {
                     try {
-                        return format.format(Long.parseLong(String.valueOf(amount)) / 100D) +  "$";
+                        return   "$"  + format.format(Long.parseLong(String.valueOf(amount)) / 100D) ;
                     } catch (Exception exception) {
                         log.warn("Error casting amount : {}", exception.getMessage());
                         return amount;
@@ -202,7 +280,6 @@ public class AuditEventServiceImpl implements AuditEventService {
         }
         return amount;
     }
-
 
     private void persist(String userId, IAuditableEntity auditableEntity, CommentHolder commentHolder) {
         AuditEvent auditEvent = mapToAuditEvent(userId, auditableEntity, commentHolder.toString());
@@ -234,6 +311,19 @@ public class AuditEventServiceImpl implements AuditEventService {
     }
 
 
+    private String getBusinessNameForEntity(IAuditableEntity entity) {
+        if (EntityType.Transaction.equals(entity.auditEntityType())) {
+            Transactions entity1 = (Transactions) entity;
+            return splitCameCase(entity1.getBillType()) + WAS_CREATED;
+        }
+        if(EntityType.Recurring.equals(entity.auditEntityType())){
+            return " recurring charge"  + WAS_CREATED;
+        }
+        if (EntityType.PAYMENT.equals(entity.auditEntityType())) {
+           return " payment " + WAS_CREATED;
+        }
+        return CREATED;
+    }
     @Data
     public static class CommentHolder {
         String amount;

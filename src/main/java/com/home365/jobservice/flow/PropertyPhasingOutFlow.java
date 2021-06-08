@@ -30,7 +30,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PropertyPhasingOutFlow implements PropertyPhasingOut {
 
-    public static final String PROPERTY_DEACTIVATION = " Property Phasing Out ";
+    public static final String PROPERTY_PHASING_OUT = " property phasing out ";
+    public static final String PROPERTY_DEACTIVATION = " property deactivation ";
     private final BalanceServiceExternal balanceServiceExternal;
     private final PropertyService propertyService;
     private final TenantServiceExternal tenantServiceExternal;
@@ -72,11 +73,11 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         createOwnerBillFromTenantCharges(propertyPhasingOutWrapper, tenants);
         if (!property.get().getReasonForLeaving().equalsIgnoreCase(ReasonForLeavingProperty.SoldByHome365_PropertyNotStaysInHome365.name()) &&
                 !property.get().getReasonForLeaving().equalsIgnoreCase(ReasonForLeavingProperty.SoldByHome365_PropertyStaysInHome365.name())) {
-            String createdBill = createTearminationFeeBill(propertyId, PROPERTY_DEACTIVATION);
+            String createdBill = createTearminationFeeBill(propertyId, PROPERTY_PHASING_OUT);
             log.info("Created BIll Id : {} ", createdBill);
         }
 
-        String materialTransferFee = createMaterialTransferFee(propertyId, PROPERTY_DEACTIVATION);
+        String materialTransferFee = createMaterialTransferFee(propertyId, PROPERTY_PHASING_OUT);
         log.info("Material transfer fee bill id : {} ", materialTransferFee);
 
         balanceServiceExternal.moveSecurityDepositToOwnerAccount(propertyId," Moving deposit due property phase out" );
@@ -142,7 +143,7 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         if (tenant.isPresent()) {
             ownerBillsWrapper.setChargeAccount(tenant.get().getAccountId());
             ownerBillsWrapper.setPropertyId(propertyPhasingOutWrapper.getPropertyId());
-            balanceServiceExternal.createOwnerBillForTenantDebts(ownerBillsWrapper, PROPERTY_DEACTIVATION );
+            balanceServiceExternal.createOwnerBillForTenantDebts(ownerBillsWrapper, PROPERTY_PHASING_OUT);
         }
     }
 
@@ -153,7 +154,7 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
         if (!CollectionUtils.isEmpty(tenants)) {
             List<TenantWrapper> activeTenants = tenants.stream().filter(tenantWrapper -> !tenantWrapper.getTenantStatus().equals(TenantStatus.Inactive)).collect(Collectors.toList());
             for (TenantWrapper tenantWrapper : activeTenants) {
-                canceledRecurring.addAll(balanceServiceExternal.cancelAllRecurringByChargeAccount(tenantWrapper.getAccountId(), PROPERTY_DEACTIVATION));
+                canceledRecurring.addAll(balanceServiceExternal.cancelAllRecurringByChargeAccount(tenantWrapper.getAccountId(), PROPERTY_PHASING_OUT));
             }
             log.info("Canceled recurring : {} ", canceledRecurring);
         }
@@ -162,14 +163,14 @@ public class PropertyPhasingOutFlow implements PropertyPhasingOut {
     private void cancelFutureCharges(PropertyPhasingOutWrapper propertyPhasingOutWrapper) throws GeneralException {
         log.info("start phase future Charges for : {}  ", propertyPhasingOutWrapper);
         propertyPhasingOutWrapper.setIsBill(false);
-        propertyPhasingOutWrapper.setBusinessAction(" Property Deactivation ");
+        propertyPhasingOutWrapper.setBusinessAction(PROPERTY_DEACTIVATION);
         balanceServiceExternal.cancelBillsByPropertyIdAndPhaseOutDate(propertyPhasingOutWrapper);
     }
 
     private void cancelFutureBills(PropertyPhasingOutWrapper propertyDetailsWithStatus) throws GeneralException {
         log.info("start phase future bills for : {}  ", propertyDetailsWithStatus);
         propertyDetailsWithStatus.setIsBill(true);
-        propertyDetailsWithStatus.setBusinessAction(" Property Deactivation ");
+        propertyDetailsWithStatus.setBusinessAction(PROPERTY_DEACTIVATION);
         balanceServiceExternal.cancelBillsByPropertyIdAndPhaseOutDate(propertyDetailsWithStatus);
 
     }
