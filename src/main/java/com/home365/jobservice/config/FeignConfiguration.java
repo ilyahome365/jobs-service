@@ -14,6 +14,7 @@ import com.home365.jobservice.rest.KeycloakFeignService;
 import com.home365.jobservice.rest.TenantFeignService;
 import feign.Feign;
 import feign.Logger;
+import feign.Request;
 import feign.form.FormEncoder;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
@@ -44,6 +45,10 @@ public class FeignConfiguration {
     private final Gson gson;
     ObjectMapper objectMapper = new ObjectMapper();
 
+    private Integer read =1800000;
+    private Integer connect =1800000;
+
+
     public FeignConfiguration(){
          this.gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd")
@@ -73,6 +78,7 @@ public class FeignConfiguration {
     public BalanceServiceFeign getBalanceFeignService() {
         return Feign
                 .builder()
+                .options(new Request.Options(connect, read))
                 .client(new OkHttpClient())
                 .encoder(new GsonEncoder(gson))
                 .decoder(new GsonDecoder(gson))

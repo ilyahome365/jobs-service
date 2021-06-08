@@ -11,7 +11,7 @@ public class TransactionsDetails {
     private List<String> transactionsNumberDidntPaid;
 
     public void setTransactionNumberPaid(List<String> transactionNumberPaid) {
-        if (CollectionUtils.isEmpty(transactionNumberPaid))
+        if (CollectionUtils.isEmpty(this.transactionNumberPaid))
             this.transactionNumberPaid = transactionNumberPaid;
         else {
             this.transactionNumberPaid.addAll(transactionNumberPaid);
@@ -19,7 +19,7 @@ public class TransactionsDetails {
     }
 
     public void setTransactionsNumberDidntPaid(List<String> transactionsNumberDidntPaid) {
-        if (CollectionUtils.isEmpty(transactionsNumberDidntPaid))
+        if (CollectionUtils.isEmpty(this.transactionsNumberDidntPaid))
             this.transactionsNumberDidntPaid = transactionsNumberDidntPaid;
         else
             this.transactionsNumberDidntPaid.addAll(transactionsNumberDidntPaid);
