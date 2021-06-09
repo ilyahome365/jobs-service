@@ -8,6 +8,7 @@ import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.model.PendingStatusJobData;
 import com.home365.jobservice.model.TransactionsFailedToChange;
 import com.home365.jobservice.service.*;
+import com.home365.jobservice.utils.BusinessActionRequest;
 import com.home365.jobservice.utils.Converters;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,7 @@ public class ChangeBillStatusServiceImpl extends JobExecutorImpl {
 
     @Override
     protected String execute(String locationId) throws JsonProcessingException {
+        BusinessActionRequest.setBusinessActionOnRequest(BusinessActionRequest.CHANGE_BILL_STATUS_JOB);
         log.info("Enter to pendingStatusChange on date {}", LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         ChangeBillConfiguration changeBillConf = jobsConfigurationService.getChangeBillConfiguration(locationId);

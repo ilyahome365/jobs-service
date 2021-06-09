@@ -12,6 +12,7 @@ import com.home365.jobservice.repository.AccountExtensionRepo;
 import com.home365.jobservice.rest.TenantServiceExternal;
 import com.home365.jobservice.service.IPropertyTenantExtensionService;
 import com.home365.jobservice.service.MailService;
+import com.home365.jobservice.utils.BusinessActionRequest;
 import com.home365.jobservice.utils.CurrencyConverter;
 import com.home365.jobservice.utils.DateAndTimeUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +51,7 @@ public class LeaseUpdatingServiceImpl extends JobExecutorImpl {
 
     @Override
     public String execute(String locationId) throws Exception {
+        BusinessActionRequest.setBusinessActionOnRequest(BusinessActionRequest.LEASE_UPDATE);
         LocalDate currentCalendar = LocalDate.now();
         LocalDate nextMonth = LocalDate.now().plusMonths(1);
 

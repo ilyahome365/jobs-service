@@ -90,8 +90,8 @@ public class BalanceServiceExternalImpl implements BalanceServiceExternal {
     }
 
     @Override
-    public void chargeWithStripe(ChargeWithStripeRequest chargeWithStripeRequest) throws GeneralException {
-        balanceServiceFeign.chargeWithStripe(keyCloakService.getKey().getAccess_token(), chargeWithStripeRequest);
+    public void chargeWithStripe(ChargeWithStripeRequest chargeWithStripeRequest, String businessAction) throws GeneralException {
+        balanceServiceFeign.chargeWithStripe(keyCloakService.getKey().getAccess_token(), chargeWithStripeRequest,businessAction);
     }
 
     @Override

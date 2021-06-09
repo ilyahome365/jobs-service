@@ -38,18 +38,21 @@ public class AuditEventServiceImpl implements AuditEventService {
     private final FindByIdAudit transactionService;
     private final FindByIdAudit recurringService;
     private final FindByIdAudit paymentService;
+    private final FindByIdAudit propertyTenantExtensionService;
     public static final String DELETED = "Deleted";
     public static final String NO_DIFFERENCES = "No differences";
     public static final String WAS_CREATED = " was created";
     DateTimeFormatter dateTimeFormatter;
 
     public AuditEventServiceImpl(AuditEventRepository auditEventRepository, TransactionsService transactionService, RecurringService recurringService,
-                                 PaymentsService paymentsService) {
+                                 PaymentsService paymentsService,
+                                 PropertyTenantExtensionServiceImpl propertyTenantExtensionService) {
         dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         this.auditEventRepository = auditEventRepository;
         this.transactionService = transactionService;
         this.recurringService = recurringService;
         this.paymentService = paymentsService;
+        this.propertyTenantExtensionService = propertyTenantExtensionService;
     }
 
     @Override
@@ -306,6 +309,9 @@ public class AuditEventServiceImpl implements AuditEventService {
         }
         if(entityType.equals(EntityType.PAYMENT)){
             return this.paymentService;
+        }
+        if(entityType.equals(EntityType.Property)){
+            return this.propertyTenantExtensionService;
         }
         return null;
     }

@@ -65,14 +65,14 @@ public interface BalanceServiceFeign {
     void dispositionTenantPayment(@Param("token") String token, DispositionWrapper dispositionWrapper, @Param("userId") String userId) throws GeneralException;
 
 
-    @RequestLine("POST /payment-notification")
+    @RequestLine("POST /payment-notification?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    void notifyTransactionPaid(@Param("token") String token, PaymentNotification notificationOfPayment) throws GeneralException;
+    void notifyTransactionPaid(@Param("token") String token, PaymentNotification notificationOfPayment,@Param("businessAction") String businessAction) throws GeneralException;
 
 
-    @RequestLine("GET /create-welcome-credit")
+    @RequestLine("GET /create-welcome-credit?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    List<String> createWelcomeCredit(@Param("token") String token) throws GeneralException;
+    List<String> createWelcomeCredit(@Param("token") String token,@Param("businessAction") String businessAction) throws GeneralException;
 
     @RequestLine("GET /transactions/get-by-charge-account-and-billType?chargeAccount={chargeAccount}&transactionType={transactionType}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
@@ -89,9 +89,9 @@ public interface BalanceServiceFeign {
                                                           @Param("now") Timestamp now) throws GeneralException;
 
 
-    @RequestLine("POST /charges/charge-with-stripe")
+    @RequestLine("POST /charges/charge-with-stripe?businessAction={businessAction}")
     @Headers({"Authorization: Bearer {token}", "Content-Type: application/json"})
-    void chargeWithStripe(@Param("token") String token, ChargeWithStripeRequest chargeWithStripeRequest) throws GeneralException;
+    void chargeWithStripe(@Param("token") String token, ChargeWithStripeRequest chargeWithStripeRequest,@Param("businessAction") String businessAction) throws GeneralException;
 
 
     @RequestLine("POST /accounts/get-all-by-ids")

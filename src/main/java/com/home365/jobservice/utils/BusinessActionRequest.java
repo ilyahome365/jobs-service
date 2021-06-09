@@ -10,25 +10,11 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 
 public class BusinessActionRequest {
-    public  static final String  CREATION_OF_ONE_RATE = " creation of One-Rate plan ";
-    public  static final String  UPDATING_OF_ONE_RATE = " updating to One-Rate plan";
-    public  static final String  EDITING_PLAN = " editing plan";
-    public  static final String  CANCELING_BILL = " canceling bill ";
-    public  static final String  CANCELING_CHECK = " canceling check ";
-    public static final String APPROVING_BILL = " approving of bill ";
-    public static final String PAYMENT_OF_BILL = " payment of bill ";
-    public static final String RESENDING_CHECK = " resending check  ";
-    public static final String CANCELING_BILLS = " canceling bills ";
-    public static final String MATERIAL_TRANSFER = " Material transfer ";
-    public static final String CREATION_OF_TERMINATION_FEE = "  creation of termination fee ";
-    public static final String CREATION_OF_ONE_RATE_PLAN = " creation of oneRate plan";
-    public static final String STRIPE_PAYMENT = " stripe payment ";
-    public static final String  PAYMENT_OF_CHARGE  = "  Payment for charge  ";
-    public static final String  CHARGE_CREATION  = "  create charge  ";
-    public static final String  DISPOSITION_CHARGE  = "  disposition charge  ";
-    public static final String  DISPOSITION_PAYMENT  = "   disposition payment ";
-    public static final String  DEPOSIT_RELEASE  = "   deposit release ";
-    public static final String  FIRST_CONTRIBUTION  = "   first contribution of new owner ";
+
+    public static final String CHANGE_BILL_STATUS_JOB = " job of change bill status";
+    public static final String CREATION_LATE_FEE = " job of creation late fee";
+    public static final String LEASE_UPDATE = " job of lease update";
+    public static final String PAYING_BILLS = " job of paying bills ";
 
 
     public static String getBusinessAction() {
@@ -38,9 +24,9 @@ public class BusinessActionRequest {
             HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
             businessAction = request.getParameter("businessAction");
         }
-        if (ObjectUtils.isEmpty(businessAction)) {
+        if (ObjectUtils.isEmpty(businessAction) && requestAttributes != null) {
             Object businessAction1 = requestAttributes.getAttribute("businessAction", RequestAttributes.SCOPE_REQUEST);
-            if (businessAction1 != null && businessAction1 instanceof String) {
+            if (businessAction1 instanceof String) {
                 businessAction = (String) businessAction1;
             }
         }

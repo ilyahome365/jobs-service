@@ -14,6 +14,7 @@ import com.home365.jobservice.service.JobsConfigurationService;
 import com.home365.jobservice.service.LocationRulesService;
 import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.service.TransactionsService;
+import com.home365.jobservice.utils.BusinessActionRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +54,7 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
 
     @Override
     public String execute(String locationId) throws Exception {
+        BusinessActionRequest.setBusinessActionOnRequest(BusinessActionRequest.CREATION_LATE_FEE);
         LocationRules locationRules = this.locationRulesService.findLocationRulesById(locationId).get();
         Rules rules = null;
         try {

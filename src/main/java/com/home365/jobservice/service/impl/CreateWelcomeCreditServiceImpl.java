@@ -36,7 +36,7 @@ public class CreateWelcomeCreditServiceImpl extends JobExecutorImpl {
     @Override
     protected String execute(String locationId) throws Exception {
         log.info("Creating welcome credit");
-        List<String> welcomeCredit = balanceServiceFeign.createWelcomeCredit(keyCloakService.getKey().getAccess_token());
+        List<String> welcomeCredit = balanceServiceFeign.createWelcomeCredit(keyCloakService.getKey().getAccess_token(), " job of creating welcome credit");
         String planResult = "";
         if(!CollectionUtils.isEmpty(welcomeCredit)){
             planResult = objectMapper.writeValueAsString(welcomeCredit);

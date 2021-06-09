@@ -23,7 +23,7 @@ public interface BalanceServiceExternal {
     OwnerProjectedBalanceWrapper getAllOwnersProjectedBalance() throws GeneralException;
     AccountBalance getOwnerProjectedBalance(String accountId) throws GeneralException;
     List<Transactions> findByChargeAccountIdAndBillType(String chargeAccountId, TransactionType transactionType) throws GeneralException;
-    void chargeWithStripe(ChargeWithStripeRequest chargeWithStripeRequest) throws GeneralException;
+    void chargeWithStripe(ChargeWithStripeRequest chargeWithStripeRequest, String bussinesAction) throws GeneralException;
     List<Transactions> getTransactionsByBusinessTypeAndLocation(Integer businessType, List<String> location, List<String> statuses, Timestamp timestamp) throws GeneralException;
     List<AccountExtensionBase> getAccountsByIds(List<String> ids) throws GeneralException;
 

@@ -1,6 +1,8 @@
 package com.home365.jobservice.entities;
 
+import com.home365.jobservice.entities.enums.EntityType;
 import com.home365.jobservice.entities.enums.LeaseType;
+import com.home365.jobservice.entities.projection.IAuditableEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,7 +16,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-public class PropertyTenantExtension {
+public class PropertyTenantExtension implements IAuditableEntity {
 
     @Id
     @Column(name = "New_property_tenantId")
@@ -56,4 +58,24 @@ public class PropertyTenantExtension {
 
     @Column(name = "new_propertyaccountid")
     private String propertAccountId;
+
+    @Override
+    public EntityType auditEntityType() {
+        return EntityType.Property;
+    }
+
+    @Override
+    public String auditEntityIdentifier() {
+        return this.propertyId;
+    }
+
+    @Override
+    public String auditMessage() {
+        return null;
+    }
+
+    @Override
+    public String idOfEntity() {
+        return this.propertyId;
+    }
 }

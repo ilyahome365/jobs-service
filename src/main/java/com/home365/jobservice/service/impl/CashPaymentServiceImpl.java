@@ -100,7 +100,7 @@ public class CashPaymentServiceImpl implements CashPaymentService {
                         token = keyCloakService.getKey();
                         PaymentNotification paymentNotification = new PaymentNotification();
                         paymentNotification.setChargeIds(transactions);
-                        balanceServiceFeign.notifyTransactionPaid(token.getAccess_token(),paymentNotification);
+                        balanceServiceFeign.notifyTransactionPaid(token.getAccess_token(),paymentNotification," payment notification from service with id : paymen" + cashPaymentTracking.getId());
                     } catch (GeneralException e) {
                         e.printStackTrace();
                     }

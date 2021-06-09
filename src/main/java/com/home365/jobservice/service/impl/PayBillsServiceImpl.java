@@ -21,6 +21,7 @@ import com.home365.jobservice.rest.BalanceServiceExternal;
 import com.home365.jobservice.service.MailService;
 import com.home365.jobservice.service.PayBillsService;
 import com.home365.jobservice.service.PaymentsService;
+import com.home365.jobservice.utils.BusinessActionRequest;
 import com.home365.jobservice.utils.CodeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,6 +51,7 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
     }
 
     public TransactionsDetails payOwnerBills(String locationId) throws GeneralException {
+        BusinessActionRequest.setBusinessActionOnRequest(BusinessActionRequest.PAYING_BILLS);
         log.info("Start Owner pay bills for location : {} ", locationId);
         TransactionsDetails transactionsDetails = new TransactionsDetails();
         Timestamp now = new Timestamp(new Date().getTime());
@@ -159,7 +161,7 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
             chargeWithStripeRequest.setIsRefunded(false);
             chargeWithStripeRequest.setSendMailFlag(false);
             chargeWithStripeRequest.setDescription("Pay Bills or managements fee for owners");
-            balanceServiceExternal.chargeWithStripe(chargeWithStripeRequest);
+            balanceServiceExternal.chargeWithStripe(chargeWithStripeRequest," paying bill job" );
             transactionsDetails.setTransactionNumberPaid(transactionsIds);
 
         }
@@ -192,7 +194,7 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
         byChargeAccountIdAndBillType = byChargeAccountIdAndBillType.stream().filter(transactions -> Objects.isNull(transactions.getCreditTransactionType()) && transactions.getStatus().equalsIgnoreCase(TransactionStatus.readyForPayment.name())).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(byChargeAccountIdAndBillType)) {
             ChargeWithStripeRequest chargeWithStripeRequest = CodeUtils.createChargeWithStripe(byChargeAccountIdAndBillType, null, 0L, false, "Pay insurance ", false);
-            balanceServiceExternal.chargeWithStripe(chargeWithStripeRequest);
+            balanceServiceExternal.chargeWithStripe(chargeWithStripeRequest, " paying insurance bill job" );
         }
 
 
