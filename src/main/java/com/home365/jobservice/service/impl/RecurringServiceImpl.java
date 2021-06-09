@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
@@ -258,7 +259,10 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
 
     @Override
     public IAuditableEntity findByIdAudit(IAuditableEntity newEntity) {
-        entityManager.detach(newEntity);
-        return this.findById(newEntity.idOfEntity()).orElse(null);
+        if(!ObjectUtils.isEmpty(newEntity.idOfEntity())){
+            entityManager.detach(newEntity);
+            return this.findById(newEntity.idOfEntity()).orElse(null);
+        }
+        return null;
     }
 }

@@ -7,6 +7,7 @@ import com.home365.jobservice.entities.projection.IAuditableEntity;
 import com.home365.jobservice.repository.PaymentsRepo;
 import com.home365.jobservice.service.PaymentsService;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -27,8 +28,11 @@ public class PaymentsServiceImpl implements PaymentsService {
 
     @Override
     public IAuditableEntity findByIdAudit(IAuditableEntity newEntity) {
-        entityManager.detach(newEntity);
-        return this.paymentsRepo.findById(newEntity.idOfEntity()).orElse(null);
+        if(ObjectUtils.isEmpty(newEntity.auditEntityIdentifier())){
+            entityManager.detach(newEntity);
+            return this.paymentsRepo.findById(newEntity.idOfEntity()).orElse(null);
+        }
+       return null;
     }
 
     @Override
