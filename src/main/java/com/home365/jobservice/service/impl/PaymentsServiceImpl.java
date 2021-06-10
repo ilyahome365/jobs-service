@@ -7,11 +7,9 @@ import com.home365.jobservice.entities.projection.IAuditableEntity;
 import com.home365.jobservice.repository.PaymentsRepo;
 import com.home365.jobservice.service.FindByIdAudit;
 import com.home365.jobservice.service.PaymentsService;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -20,12 +18,14 @@ public class PaymentsServiceImpl implements PaymentsService {
 
     private final PaymentsRepo paymentsRepo;
 
+
     private final FindByIdAudit findByIdAudit;
 
-    public PaymentsServiceImpl(PaymentsRepo paymentsRepo) {
+    public PaymentsServiceImpl(PaymentsRepo paymentsRepo, FindByIdAudit findByIdAudit) {
         super();
-        this.findByIdAudit = new FindByAuditImpl(paymentsRepo);
         this.paymentsRepo = paymentsRepo;
+        this.findByIdAudit = findByIdAudit;
+        this.findByIdAudit.setRepository(paymentsRepo);
     }
 
     @Override
@@ -63,5 +63,10 @@ public class PaymentsServiceImpl implements PaymentsService {
                 .failedReason(failedReason)
                 .build();
         return paymentsRepo.save(payments);
+    }
+
+    @Override
+    public void setRepository(JpaRepository repository) {
+        this.findByIdAudit.setRepository(repository);
     }
 }

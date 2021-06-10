@@ -5,11 +5,9 @@ import com.home365.jobservice.entities.projection.IAuditableEntity;
 import com.home365.jobservice.repository.IPropertyTenantExtensionRepository;
 import com.home365.jobservice.service.FindByIdAudit;
 import com.home365.jobservice.service.IPropertyTenantExtensionService;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.util.List;
 
 @Service
@@ -18,13 +16,15 @@ public class PropertyTenantExtensionServiceImpl implements IPropertyTenantExtens
 
 
     private final IPropertyTenantExtensionRepository propertyTenantExtensionRepository;
-    private final FindByIdAudit findByIdAudit;
+
+    private final   FindByIdAudit findByIdAudit;
 
 
 
-    public PropertyTenantExtensionServiceImpl(IPropertyTenantExtensionRepository propertyTenantExtensionRepository) {
+    public PropertyTenantExtensionServiceImpl(IPropertyTenantExtensionRepository propertyTenantExtensionRepository, FindByIdAudit findByIdAudit) {
         this.propertyTenantExtensionRepository = propertyTenantExtensionRepository;
-        this.findByIdAudit = new FindByAuditImpl(propertyTenantExtensionRepository);
+        this.findByIdAudit = findByIdAudit;
+        this.findByIdAudit.setRepository(propertyTenantExtensionRepository);
     }
 
     @Override
@@ -50,5 +50,10 @@ public class PropertyTenantExtensionServiceImpl implements IPropertyTenantExtens
     @Override
     public List<IAuditableEntity> findByList(List<IAuditableEntity> entityList) {
         return this.findByIdAudit.findByList(entityList);
+    }
+
+    @Override
+    public void setRepository(JpaRepository repository) {
+        this.findByIdAudit.setRepository(repository);
     }
 }

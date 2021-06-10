@@ -10,10 +10,10 @@ import com.home365.jobservice.repository.TransactionsWithProjectedBalanceRepo;
 import com.home365.jobservice.service.FindByIdAudit;
 import com.home365.jobservice.service.TransactionsService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,13 +23,15 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     private final TransactionsRepository transactionsRepository;
     private final TransactionsWithProjectedBalanceRepo transactionsWithProjectedBalanceRepo;
-    private final FindByIdAudit findByIdAudit;
 
+    private final   FindByIdAudit findByIdAudit;
 
-    public TransactionsServiceImpl(TransactionsRepository transactionsRepository, TransactionsWithProjectedBalanceRepo transactionsWithProjectedBalanceRepo) {
-        this.findByIdAudit = new FindByAuditImpl(transactionsRepository);
+    public TransactionsServiceImpl(TransactionsRepository transactionsRepository, TransactionsWithProjectedBalanceRepo transactionsWithProjectedBalanceRepo,
+                                   FindByIdAudit findByIdAudit) {
         this.transactionsRepository = transactionsRepository;
         this.transactionsWithProjectedBalanceRepo = transactionsWithProjectedBalanceRepo;
+        this.findByIdAudit = findByIdAudit;
+        this.findByIdAudit.setRepository(transactionsRepository);
     }
 
     @Override
@@ -116,5 +118,10 @@ public class TransactionsServiceImpl implements TransactionsService {
     @Override
     public List<IAuditableEntity> findByList(List<IAuditableEntity> entityList) {
         return this.findByIdAudit.findByList(entityList );
+    }
+
+    @Override
+    public void setRepository(JpaRepository repository) {
+        this.findByIdAudit.setRepository(repository);
     }
 }

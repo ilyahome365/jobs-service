@@ -17,14 +17,12 @@ import com.home365.jobservice.repository.RecurringRepository;
 import com.home365.jobservice.repository.TypeCategoryRepository;
 import com.home365.jobservice.service.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -44,18 +42,19 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
     private final TransactionsService transactionsService;
     private final LocationRulesService locationRulesService;
     private final TypeCategoryRepository typeCategoryRepository;
-    private final FindByIdAudit findByIdAudit;
+    private final  FindByIdAudit findByIdAudit;
 
 
 
     public RecurringServiceImpl(AppProperties appProperties, MailService mailService, RecurringRepository recurringRepository, TransactionsService transactionsService,
-                                LocationRulesService locationRulesService, TypeCategoryRepository typeCategoryRepository) {
+                                LocationRulesService locationRulesService, TypeCategoryRepository typeCategoryRepository, FindByIdAudit findByIdAudit) {
         super(appProperties, mailService);
         this.recurringRepository = recurringRepository;
         this.transactionsService = transactionsService;
         this.locationRulesService = locationRulesService;
         this.typeCategoryRepository = typeCategoryRepository;
-        this.findByIdAudit = new FindByAuditImpl(recurringRepository);
+        this.findByIdAudit = findByIdAudit;
+        this.findByIdAudit.setRepository(recurringRepository);
     }
 
     @Override
@@ -261,5 +260,10 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
     @Override
     public List<IAuditableEntity> findByList(List<IAuditableEntity> entityList) {
         return this.findByIdAudit.findByList(entityList);
+    }
+
+    @Override
+    public void setRepository(JpaRepository repository) {
+        this.findByIdAudit.setRepository(repository);
     }
 }

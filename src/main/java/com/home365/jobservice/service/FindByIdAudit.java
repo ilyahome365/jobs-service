@@ -2,6 +2,7 @@ package com.home365.jobservice.service;
 
 
 import com.home365.jobservice.entities.projection.IAuditableEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -21,5 +22,7 @@ public interface FindByIdAudit {
     }
 
     List<IAuditableEntity> findByList(List<IAuditableEntity> entityList);
+
+    void setRepository(JpaRepository repository);
 
 }
