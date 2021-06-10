@@ -15,6 +15,7 @@ import de.danielbechler.diff.node.DiffNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import java.lang.reflect.Field;
@@ -24,6 +25,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.home365.jobservice.utils.BusinessActionRequest.getBusinessAction;
 
@@ -54,6 +57,41 @@ public class AuditEventServiceImpl implements AuditEventService {
         this.paymentService = paymentsService;
         this.propertyTenantExtensionService = propertyTenantExtensionService;
     }
+
+    @Override
+    public void audit(String userId, List<IAuditableEntity> newEntities){
+        if(!CollectionUtils.isEmpty(newEntities)){
+            List<IAuditableEntity> validEnt = newEntities.stream().filter(ne -> !ObjectUtils.isEmpty(ne.idOfEntity())).collect(Collectors.toList());
+            List<IAuditableEntity> notValid = newEntities.stream().filter(ne -> ObjectUtils.isEmpty(ne.idOfEntity())).collect(Collectors.toList());
+            if(!CollectionUtils.isEmpty(validEnt)){
+                FindByIdAudit findByIdAudit = getService(validEnt.get(0).auditEntityType());
+                if(findByIdAudit != null){
+                    List<IAuditableEntity> oldEntities = findByIdAudit.findByList(validEnt);
+                    if(!CollectionUtils.isEmpty(oldEntities)){
+                        Map<String, IAuditableEntity> newEnt = validEnt.stream().collect(Collectors.toMap(IAuditableEntity::idOfEntity, Function.identity()));
+                        Map<String, IAuditableEntity> oldEnt = oldEntities.stream().collect(Collectors.toMap(IAuditableEntity::idOfEntity, Function.identity()));
+                        newEnt.forEach((key,value) -> {
+                            if(oldEnt.containsKey(key)){
+                                IAuditableEntity oldEntity = oldEnt.get(key);
+                                CommentHolder commentHolder = getDiffs(value, oldEntity, true);
+                                persist(userId, value, commentHolder);
+                            }else{
+                                CommentHolder commentHolder = getDiffs(value, null, false);
+                                persist(userId, value, commentHolder);
+                            }
+                        });
+                    }else{
+                        validEnt.forEach(nEnt -> audit(userId,nEnt));
+                    }
+                }else{
+                    validEnt.forEach(nEnt -> audit(userId,nEnt));
+                }
+
+            }
+        }
+
+    }
+
 
     @Override
     public void audit(String userId, IAuditableEntity newEntity) {

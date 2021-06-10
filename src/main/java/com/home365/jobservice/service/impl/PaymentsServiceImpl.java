@@ -5,6 +5,7 @@ import com.home365.jobservice.entities.enums.PaymentMethod;
 import com.home365.jobservice.entities.enums.PaymentStatus;
 import com.home365.jobservice.entities.projection.IAuditableEntity;
 import com.home365.jobservice.repository.PaymentsRepo;
+import com.home365.jobservice.service.FindByIdAudit;
 import com.home365.jobservice.service.PaymentsService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -12,27 +13,29 @@ import org.springframework.util.ObjectUtils;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.sql.Timestamp;
+import java.util.List;
 
 @Service
 public class PaymentsServiceImpl implements PaymentsService {
 
     private final PaymentsRepo paymentsRepo;
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final FindByIdAudit findByIdAudit;
 
     public PaymentsServiceImpl(PaymentsRepo paymentsRepo) {
         super();
+        this.findByIdAudit = new FindByAuditImpl(paymentsRepo);
         this.paymentsRepo = paymentsRepo;
     }
 
     @Override
     public IAuditableEntity findByIdAudit(IAuditableEntity newEntity) {
-        if(ObjectUtils.isEmpty(newEntity.auditEntityIdentifier())){
-            entityManager.detach(newEntity);
-            return this.paymentsRepo.findById(newEntity.idOfEntity()).orElse(null);
-        }
-       return null;
+        return findByIdAudit.findByIdAudit(newEntity);
+    }
+
+    @Override
+    public List<IAuditableEntity> findByList(List<IAuditableEntity> entityList) {
+       return findByIdAudit.findByList(entityList);
     }
 
     @Override

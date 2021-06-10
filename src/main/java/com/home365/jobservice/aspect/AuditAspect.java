@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -17,6 +18,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Aspect
 @Component
@@ -55,10 +57,9 @@ public class AuditAspect {
         log.debug("Before auditing from method : {} ",joinPoint.getSignature().getName());
         if(args[0] instanceof List){
             List<Object> list = (List<Object>) args[0];
-            for (Object obj : list) {
-                if (obj instanceof IAuditableEntity) {
-                    auditEventService.audit(userId, (IAuditableEntity) obj);
-                }
+            if(!CollectionUtils.isEmpty(list)){
+                List<IAuditableEntity> auditableEntities = list.stream().filter(obj -> obj instanceof IAuditableEntity).map(obj -> (IAuditableEntity) obj).collect(Collectors.toList());
+                auditEventService.audit(userId,auditableEntities);
             }
         }
     }

@@ -4,6 +4,7 @@ package com.home365.jobservice.service;
 import com.home365.jobservice.entities.projection.IAuditableEntity;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface FindByIdAudit {
@@ -18,4 +19,7 @@ public interface FindByIdAudit {
     default Optional<Object> handledEndingOfAudit(IAuditableEntity iAuditableEntity){
         return Optional.empty();
     }
+
+    List<IAuditableEntity> findByList(List<IAuditableEntity> entityList);
+
 }

@@ -7,6 +7,7 @@ import com.home365.jobservice.entities.projection.ILateFeeAdditionalInformationP
 import com.home365.jobservice.entities.projection.IOwnerRentNotification;
 import com.home365.jobservice.repository.TransactionsRepository;
 import com.home365.jobservice.repository.TransactionsWithProjectedBalanceRepo;
+import com.home365.jobservice.service.FindByIdAudit;
 import com.home365.jobservice.service.TransactionsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,12 +23,11 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     private final TransactionsRepository transactionsRepository;
     private final TransactionsWithProjectedBalanceRepo transactionsWithProjectedBalanceRepo;
-
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final FindByIdAudit findByIdAudit;
 
 
     public TransactionsServiceImpl(TransactionsRepository transactionsRepository, TransactionsWithProjectedBalanceRepo transactionsWithProjectedBalanceRepo) {
+        this.findByIdAudit = new FindByAuditImpl(transactionsRepository);
         this.transactionsRepository = transactionsRepository;
         this.transactionsWithProjectedBalanceRepo = transactionsWithProjectedBalanceRepo;
     }
@@ -94,12 +94,6 @@ public class TransactionsServiceImpl implements TransactionsService {
     }
 
     @Override
-    public IAuditableEntity findByIdAudit(IAuditableEntity newEntity) {
-        entityManager.detach(newEntity);
-        return this.findById(newEntity.idOfEntity()).orElse(null);
-    }
-
-    @Override
     public Optional<Transactions> findById(String accountId) {
         return transactionsRepository.findById(accountId);
     }
@@ -114,5 +108,13 @@ public class TransactionsServiceImpl implements TransactionsService {
         return transactionsRepository.getOwnerRentNotification(pmAccount, firstDate, lastDate);
     }
 
+    @Override
+    public IAuditableEntity findByIdAudit(IAuditableEntity newEntity) {
+        return this.findByIdAudit.findByIdAudit(newEntity);
+    }
 
+    @Override
+    public List<IAuditableEntity> findByList(List<IAuditableEntity> entityList) {
+        return this.findByIdAudit.findByList(entityList );
+    }
 }

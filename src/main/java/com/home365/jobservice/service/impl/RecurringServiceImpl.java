@@ -15,10 +15,7 @@ import com.home365.jobservice.entities.projection.IPropertyLeaseInformationProje
 import com.home365.jobservice.executor.JobExecutorImpl;
 import com.home365.jobservice.repository.RecurringRepository;
 import com.home365.jobservice.repository.TypeCategoryRepository;
-import com.home365.jobservice.service.LocationRulesService;
-import com.home365.jobservice.service.MailService;
-import com.home365.jobservice.service.RecurringService;
-import com.home365.jobservice.service.TransactionsService;
+import com.home365.jobservice.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
@@ -47,10 +44,8 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
     private final TransactionsService transactionsService;
     private final LocationRulesService locationRulesService;
     private final TypeCategoryRepository typeCategoryRepository;
+    private final FindByIdAudit findByIdAudit;
 
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
 
     public RecurringServiceImpl(AppProperties appProperties, MailService mailService, RecurringRepository recurringRepository, TransactionsService transactionsService,
@@ -60,6 +55,7 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
         this.transactionsService = transactionsService;
         this.locationRulesService = locationRulesService;
         this.typeCategoryRepository = typeCategoryRepository;
+        this.findByIdAudit = new FindByAuditImpl(recurringRepository);
     }
 
     @Override
@@ -259,10 +255,11 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
 
     @Override
     public IAuditableEntity findByIdAudit(IAuditableEntity newEntity) {
-        if(!ObjectUtils.isEmpty(newEntity.idOfEntity())){
-            entityManager.detach(newEntity);
-            return this.findById(newEntity.idOfEntity()).orElse(null);
-        }
-        return null;
+        return this.findByIdAudit.findByIdAudit(newEntity);
+    }
+
+    @Override
+    public List<IAuditableEntity> findByList(List<IAuditableEntity> entityList) {
+        return this.findByIdAudit.findByList(entityList);
     }
 }

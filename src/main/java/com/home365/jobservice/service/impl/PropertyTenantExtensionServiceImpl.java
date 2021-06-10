@@ -15,13 +15,16 @@ import java.util.List;
 @Service
 public class PropertyTenantExtensionServiceImpl implements IPropertyTenantExtensionService, FindByIdAudit {
 
-    @PersistenceContext
-    private EntityManager entityManager;
+
 
     private final IPropertyTenantExtensionRepository propertyTenantExtensionRepository;
+    private final FindByIdAudit findByIdAudit;
+
+
 
     public PropertyTenantExtensionServiceImpl(IPropertyTenantExtensionRepository propertyTenantExtensionRepository) {
         this.propertyTenantExtensionRepository = propertyTenantExtensionRepository;
+        this.findByIdAudit = new FindByAuditImpl(propertyTenantExtensionRepository);
     }
 
     @Override
@@ -41,10 +44,11 @@ public class PropertyTenantExtensionServiceImpl implements IPropertyTenantExtens
 
     @Override
     public IAuditableEntity findByIdAudit(IAuditableEntity newEntity) {
-        if(!ObjectUtils.isEmpty(newEntity.auditEntityIdentifier())){
-            entityManager.detach(newEntity);
-            return this.propertyTenantExtensionRepository.findById(newEntity.idOfEntity()).orElse(null);
-        }
-        return null;
+        return this.findByIdAudit.findByIdAudit(newEntity);
+    }
+
+    @Override
+    public List<IAuditableEntity> findByList(List<IAuditableEntity> entityList) {
+        return this.findByIdAudit.findByList(entityList);
     }
 }
