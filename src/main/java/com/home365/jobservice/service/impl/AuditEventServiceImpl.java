@@ -381,6 +381,9 @@ public class AuditEventServiceImpl implements AuditEventService {
         if (EntityType.PAYMENT.equals(entity.auditEntityType())) {
            return " payment " + WAS_CREATED;
         }
+        if (EntityType.Property.equals(entity.auditEntityType())) {
+            return " property-tenant lease " + WAS_CREATED;
+        }
         return CREATED;
     }
     @Data

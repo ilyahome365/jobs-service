@@ -3,6 +3,7 @@ package com.home365.jobservice.entities;
 import com.home365.jobservice.entities.enums.EntityType;
 import com.home365.jobservice.entities.enums.LeaseType;
 import com.home365.jobservice.entities.projection.IAuditableEntity;
+import com.home365.jobservice.service.AuditInfo;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,12 +21,15 @@ public class PropertyTenantExtension implements IAuditableEntity {
 
     @Id
     @Column(name = "New_property_tenantId")
+    @AuditInfo(ignore = true)
     private String propertyTenantId;
 
     @Column(name = "new_propertyid")
+    @AuditInfo(ignore = true)
     private String propertyId;
 
     @Column(name = "new_contactid")
+    @AuditInfo(ignore = true)
     private String contactId;
 
     @Column(name = "New_RentAmount")
@@ -35,6 +39,7 @@ public class PropertyTenantExtension implements IAuditableEntity {
     private Boolean active;
 
     @Column(name = "New_PropertyUserType")
+    @AuditInfo(ignore = true)
     private Integer userType;
 
     @Column(name = "New_EndDate")
@@ -54,9 +59,11 @@ public class PropertyTenantExtension implements IAuditableEntity {
     private LocalDate moveOutDate;
 
     @Column(name = "New_InactiveDate")
+    @AuditInfo(ignore = true)
     private LocalDate inactiveDate;
 
     @Column(name = "new_propertyaccountid")
+    @AuditInfo(ignore = true)
     private String propertAccountId;
 
     @Override
@@ -76,6 +83,6 @@ public class PropertyTenantExtension implements IAuditableEntity {
 
     @Override
     public String idOfEntity() {
-        return this.propertyId;
+        return this.propertyTenantId;
     }
 }
