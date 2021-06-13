@@ -15,6 +15,7 @@ import de.danielbechler.diff.node.DiffNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -323,22 +324,24 @@ public class AuditEventServiceImpl implements AuditEventService {
         return amount;
     }
 
-    private void persist(String userId, IAuditableEntity auditableEntity, CommentHolder commentHolder) {
+    @Transactional
+    public void persist(String userId, IAuditableEntity auditableEntity, CommentHolder commentHolder) {
         AuditEvent auditEvent = mapToAuditEvent(userId, auditableEntity, commentHolder.toString());
         auditEventRepository.save(auditEvent);
     }
 
     private AuditEvent mapToAuditEvent(String userId, IAuditableEntity auditableEntity, String comment) {
-      return   AuditEvent.builder()
+        AuditEvent auditEvent = AuditEvent.builder()
                 .entityType(auditableEntity.auditEntityType())
                 .entityIdentifier(auditableEntity.auditEntityIdentifier())
                 .id(UUID.randomUUID().toString())
                 .userId(userId)
-                .comment(comment)
                 .createdOn(LocalDateTime.now(ZoneOffset.UTC))
                 .updatedOn(LocalDateTime.now(ZoneOffset.UTC))
+                .comment(comment)
                 .message(auditableEntity.auditMessage())
                 .build();
+        return auditEvent;
     }
 
     private FindByIdAudit getService(EntityType entityType){

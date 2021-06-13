@@ -10,7 +10,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "AUDIT_EVENT")
@@ -18,7 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AuditEvent {
+public class AuditEvent  implements Serializable,Cloneable {
     @Id
     String id;
 
@@ -35,13 +37,14 @@ public class AuditEvent {
     @Column
     String message;
 
-    @CreationTimestamp
-    private LocalDateTime createdOn;
+    @Column
+    private LocalDateTime createdOn = LocalDateTime.now(ZoneOffset.UTC);
 
-    @UpdateTimestamp
-    private LocalDateTime updatedOn;
+    @Column
+    private LocalDateTime updatedOn = LocalDateTime.now(ZoneOffset.UTC);
 
     @Column
     private String comment;
+
 
 }

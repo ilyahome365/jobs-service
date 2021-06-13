@@ -10,7 +10,6 @@ import java.util.Optional;
 
 public interface FindByIdAudit {
 
-    @Transactional
     IAuditableEntity findByIdAudit(IAuditableEntity newEntity);
 
     default Optional<Object> handleSpecialProperty(String propertyName, IAuditableEntity iAuditableEntity, Object value){

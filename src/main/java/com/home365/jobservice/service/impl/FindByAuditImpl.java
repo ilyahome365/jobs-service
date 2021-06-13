@@ -17,9 +17,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
-@Primary
-@Scope(value = "prototype")
 public class FindByAuditImpl implements FindByIdAudit {
 
     private JpaRepository<IAuditableEntity,String> repository;
@@ -28,13 +25,13 @@ public class FindByAuditImpl implements FindByIdAudit {
     private EntityManager entityManager;
 
 
-    @Transactional
     public  IAuditableEntity findByIdAudit(IAuditableEntity newEntity){
-        entityManager.detach(newEntity);
+        IAuditableEntity auditableEntity = null;
         if(!ObjectUtils.isEmpty(newEntity.idOfEntity())){
-            return  this.repository.findById(newEntity.idOfEntity()).orElse(null);
+            entityManager.detach(newEntity);
+            auditableEntity  =  this.repository.findById(newEntity.idOfEntity()).orElse(null);
         }
-        return  null;
+        return  auditableEntity;
     }
 
     @Override
@@ -44,14 +41,13 @@ public class FindByAuditImpl implements FindByIdAudit {
 
     @Transactional
     public  IAuditableEntity findByIdAudit(IAuditableEntity newEntity,JpaRepository repository){
-        entityManager.detach(newEntity);
         if(!ObjectUtils.isEmpty(newEntity.idOfEntity())){
+            entityManager.detach(newEntity);
             return (IAuditableEntity) repository.findById(newEntity.idOfEntity()).orElse(null);
         }
         return null;
     }
 
-    @Transactional(readOnly = true,propagation = Propagation.REQUIRES_NEW)
     public List<IAuditableEntity> findByList(List<IAuditableEntity> entityList){
         List<IAuditableEntity> result = null;
         if(!CollectionUtils.isEmpty(entityList)){
