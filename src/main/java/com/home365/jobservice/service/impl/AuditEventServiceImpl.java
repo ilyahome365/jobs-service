@@ -327,7 +327,16 @@ public class AuditEventServiceImpl implements AuditEventService {
     @Transactional
     public void persist(String userId, IAuditableEntity auditableEntity, CommentHolder commentHolder) {
         AuditEvent auditEvent = mapToAuditEvent(userId, auditableEntity, commentHolder.toString());
-        auditEventRepository.save(auditEvent);
+        try{
+            auditEventRepository.save(auditEvent);
+        }catch (Exception exception){
+            log.error(exception.getMessage());
+            try{
+                auditEventRepository.save(auditEvent);
+            }catch (Exception exception1){
+                log.error(exception1.getMessage());
+            }
+        }
     }
 
     private AuditEvent mapToAuditEvent(String userId, IAuditableEntity auditableEntity, String comment) {
