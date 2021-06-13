@@ -104,6 +104,10 @@ public class AppConfiguration implements SchedulingConfigurer {
                 Constants.LV_PM_ACCOUNT,
                 () -> dueDateNotificationService.executeJob(Constants.LV_PM_ACCOUNT)
         );
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.DUE_DATE_NOTIFICATION.getName(),
+                Constants.AT_PM_ACCOUNT,
+                () -> dueDateNotificationService.executeJob(Constants.AT_PM_ACCOUNT)
+        );
 // owner notification
         addJob(JobsConfigurationServiceImpl.JOBS_ID.OWNER_RENT_NOTIFICATION.getName(),
                 Constants.LV_PM_ACCOUNT,
