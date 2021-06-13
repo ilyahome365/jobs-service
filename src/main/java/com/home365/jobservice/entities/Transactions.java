@@ -88,9 +88,6 @@ public class Transactions implements Serializable , IAuditableEntity {
 
     @Override
     public String auditEntityIdentifier() {
-        if(this.getTransactionNumber() != null){
-            return this.getTransactionNumber().toString();
-        }
         return this.getTransactionId();
     }
 
@@ -104,7 +101,7 @@ public class Transactions implements Serializable , IAuditableEntity {
         return this.getMemo();
     }
 
-    public Integer getTransactionNumberAsInteger() {
+    public Integer transactionNumberAsInteger() {
         return Integer.parseInt(this.transactionNumber);
     }
 }

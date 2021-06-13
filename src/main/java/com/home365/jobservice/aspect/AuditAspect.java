@@ -59,7 +59,9 @@ public class AuditAspect {
             List<Object> list = (List<Object>) args[0];
             if(!CollectionUtils.isEmpty(list)){
                 List<IAuditableEntity> auditableEntities = list.stream().filter(obj -> obj instanceof IAuditableEntity).map(obj -> (IAuditableEntity) obj).collect(Collectors.toList());
-                auditEventService.audit(userId,auditableEntities);
+                if(!CollectionUtils.isEmpty(auditableEntities)){
+                    auditEventService.audit(userId,auditableEntities);
+                }
             }
         }
     }

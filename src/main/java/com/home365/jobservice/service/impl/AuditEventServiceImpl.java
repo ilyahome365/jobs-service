@@ -23,6 +23,7 @@ import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
@@ -328,12 +329,14 @@ public class AuditEventServiceImpl implements AuditEventService {
     }
 
     private AuditEvent mapToAuditEvent(String userId, IAuditableEntity auditableEntity, String comment) {
-        return AuditEvent.builder()
+      return   AuditEvent.builder()
                 .entityType(auditableEntity.auditEntityType())
                 .entityIdentifier(auditableEntity.auditEntityIdentifier())
                 .id(UUID.randomUUID().toString())
                 .userId(userId)
                 .comment(comment)
+                .createdOn(LocalDateTime.now(ZoneOffset.UTC))
+                .updatedOn(LocalDateTime.now(ZoneOffset.UTC))
                 .message(auditableEntity.auditMessage())
                 .build();
     }

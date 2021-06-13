@@ -399,7 +399,7 @@ public class CashPaymentServiceImpl implements CashPaymentService {
                     (int) (transactionChargeWrapper.getAmount() + amountFeeInCents),
                     transactionChargeWrapper.getReceiveAccountExtensionBase().getAccountId(),
                     accountExtensionBaseOptional.get().getName(),
-                    getDescription(description) + transactionChargeWrapper.getTransaction().parallelStream().mapToInt(Transactions::getTransactionNumberAsInteger).boxed().collect(Collectors.toList()).toString()
+                    getDescription(description) + transactionChargeWrapper.getTransaction().parallelStream().mapToInt(Transactions::transactionNumberAsInteger).boxed().collect(Collectors.toList()).toString()
             );
             log.info("Response from stripe for charge : {} ", stripePayment);
             transactionChargeWrapper.setStripePayment(stripePayment);
