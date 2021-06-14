@@ -33,9 +33,11 @@ public class PropertyTenantExtension implements IAuditableEntity {
     private String contactId;
 
     @Column(name = "New_RentAmount")
+    @AuditInfo(ignore = true)
     private Long rentAmount;
 
     @Column(name = "New_IsActive")
+    @AuditInfo(ignore = true)
     private Boolean active;
 
     @Column(name = "New_PropertyUserType")
@@ -43,6 +45,7 @@ public class PropertyTenantExtension implements IAuditableEntity {
     private Integer userType;
 
     @Column(name = "New_EndDate")
+    @AuditInfo(ignore = true)
     private LocalDateTime endDate;
 
     @Column(name = "New_StartDate")
@@ -53,6 +56,7 @@ public class PropertyTenantExtension implements IAuditableEntity {
     private LeaseType leaseType;
 
     @Column(name = "days_left")
+    @AuditInfo(ignore = true)
     private Integer daysLeft;
 
     @Column(name = "moveOutDate")
