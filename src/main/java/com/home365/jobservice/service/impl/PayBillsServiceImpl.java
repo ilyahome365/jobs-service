@@ -156,8 +156,10 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
     private void payTransactionsByStripe(TransactionsDetails transactionsDetails, List<Transactions> transactionsList)  {
 
         if (!CollectionUtils.isEmpty(transactionsList)) {
-            List<Transactions> wpChargeTransactions = transactionsList.stream().filter(e -> e.getChargeAccountId().equalsIgnoreCase("6791E98E-10CD-4B4D-8C6C-FCFD7F4010CD")).collect(Collectors.toList());
-            List<Transactions> notWPChargeTransactions = transactionsList.stream().filter(e -> !e.getChargeAccountId().equalsIgnoreCase("6791E98E-10CD-4B4D-8C6C-FCFD7F4010CD")).collect(Collectors.toList());
+            List<Transactions> wpChargeTransactions = transactionsList.stream().filter(e -> e.getChargeAccountId()
+                    .equalsIgnoreCase("6791E98E-10CD-4B4D-8C6C-FCFD7F4010CD")).collect(Collectors.toList());
+            List<Transactions> notWPChargeTransactions = transactionsList.stream().filter(e -> !e.getChargeAccountId()
+                    .equalsIgnoreCase("6791E98E-10CD-4B4D-8C6C-FCFD7F4010CD")).collect(Collectors.toList());
                 ChargeWithStripeRequest chargeWithStripeRequest = new ChargeWithStripeRequest();
                 List<String> transactionsIds = notWPChargeTransactions.stream().map(Transactions::getTransactionId).collect(Collectors.toList());
                 chargeWithStripeRequest.setCharges(transactionsIds);
