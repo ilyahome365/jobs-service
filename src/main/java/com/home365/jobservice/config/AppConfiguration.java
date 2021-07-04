@@ -136,7 +136,7 @@ public class AppConfiguration implements SchedulingConfigurer {
 //         reminder first contribution
         addJob(JobsConfigurationServiceImpl.JOBS_ID.REMINDER_CONTRIBUTION.getName(),
                 Constants.LV_PM_ACCOUNT,
-                () -> createWelcomeCreditService.executeJob(Constants.LV_PM_ACCOUNT));
+                () -> reminderFirstContribution.executeJob(Constants.LV_PM_ACCOUNT));
 
 // activate owner job
         addJob(JobsConfigurationServiceImpl.JOBS_ID.ACTIVATE_OWNERS.getName(), Constants.LV_PM_ACCOUNT,
