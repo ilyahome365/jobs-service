@@ -153,7 +153,7 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
         }
     }
 
-    private void payTransactionsByStripe(TransactionsDetails transactionsDetails, List<Transactions> transactionsList) throws GeneralException {
+    private void payTransactionsByStripe(TransactionsDetails transactionsDetails, List<Transactions> transactionsList)  {
         if (!CollectionUtils.isEmpty(transactionsList)) {
             ChargeWithStripeRequest chargeWithStripeRequest = new ChargeWithStripeRequest();
             List<String> transactionsIds = transactionsList.stream().map(Transactions::getTransactionId).collect(Collectors.toList());
@@ -161,9 +161,12 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
             chargeWithStripeRequest.setIsRefunded(false);
             chargeWithStripeRequest.setSendMailFlag(false);
             chargeWithStripeRequest.setDescription("Pay Bills or managements fee for owners");
-            balanceServiceExternal.chargeWithStripe(chargeWithStripeRequest," paying bill job" );
+            try {
+                balanceServiceExternal.chargeWithStripe(chargeWithStripeRequest," paying bill job" );
+            } catch (GeneralException e) {
+                e.printStackTrace();
+            }
             transactionsDetails.setTransactionNumberPaid(transactionsIds);
-
         }
     }
 
