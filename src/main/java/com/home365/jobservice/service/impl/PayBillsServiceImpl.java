@@ -165,14 +165,12 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
                 chargeWithStripeRequest.setIsRefunded(false);
                 chargeWithStripeRequest.setSendMailFlag(false);
                 chargeWithStripeRequest.setDescription("Pay Bills or managements fee for owners");
-                try {
-                    try {
-                balanceServiceExternal.chargeWithStripe(chargeWithStripeRequest," paying bill job" );} catch (GeneralException e) {
-                    log.error("ERROR from BALANCE SERVICE : {}" , e.getMessage());
-                }
-                } catch (GeneralException e) {
-                e.printStackTrace();
+            try {
+        balanceServiceExternal.chargeWithStripe(chargeWithStripeRequest," paying bill job" );
             }
+            catch (GeneralException e) {
+            log.error("ERROR from BALANCE SERVICE : {}" , e.getMessage());
+        }
             transactionsDetails.setTransactionNumberPaid(transactionsIds);
         }
     }
