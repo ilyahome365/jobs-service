@@ -135,7 +135,7 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
                     || transactions.getBillType().equalsIgnoreCase(TransactionType.managementFee.name()))
                     && finalAccountTree.containsKey(transactions.getReceiveAccountId()))
                     .collect(Collectors.toList());
-            payTransactionsByStripe(transactionsDetails, transactionsList);
+                payTransactionsByStripe(transactionsDetails, transactionsList);
         }
         accounts = accountsByIds.parallelStream().filter(accountExtensionBase -> Objects.nonNull(accountExtensionBase.getPayeeMethod())
                 && (accountExtensionBase.getPayeeMethod()
@@ -155,15 +155,22 @@ public class PayBillsServiceImpl extends JobExecutorImpl implements PayBillsServ
 
     private void payTransactionsByStripe(TransactionsDetails transactionsDetails, List<Transactions> transactionsList)  {
         if (!CollectionUtils.isEmpty(transactionsList)) {
-            ChargeWithStripeRequest chargeWithStripeRequest = new ChargeWithStripeRequest();
-            List<String> transactionsIds = transactionsList.stream().map(Transactions::getTransactionId).collect(Collectors.toList());
-            chargeWithStripeRequest.setCharges(transactionsIds);
-            chargeWithStripeRequest.setIsRefunded(false);
-            chargeWithStripeRequest.setSendMailFlag(false);
-            chargeWithStripeRequest.setDescription("Pay Bills or managements fee for owners");
-            try {
-                balanceServiceExternal.chargeWithStripe(chargeWithStripeRequest," paying bill job" );
-            } catch (GeneralException e) {
+            List<Transactions> wpChargeTransactions = transactionsList.stream().filter(e -> e.getChargeAccountId()
+                    .equalsIgnoreCase("6791E98E-10CD-4B4D-8C6C-FCFD7F4010CD")).collect(Collectors.toList());
+            List<Transactions> notWPChargeTransactions = transactionsList.stream().filter(e -> !e.getChargeAccountId()
+                    .equalsIgnoreCase("6791E98E-10CD-4B4D-8C6C-FCFD7F4010CD")).collect(Collectors.toList());
+                ChargeWithStripeRequest chargeWithStripeRequest = new ChargeWithStripeRequest();
+                List<String> transactionsIds = notWPChargeTransactions.stream().map(Transactions::getTransactionId).collect(Collectors.toList());
+                chargeWithStripeRequest.setCharges(transactionsIds);
+                chargeWithStripeRequest.setIsRefunded(false);
+                chargeWithStripeRequest.setSendMailFlag(false);
+                chargeWithStripeRequest.setDescription("Pay Bills or managements fee for owners");
+                try {
+                    try {
+                balanceServiceExternal.chargeWithStripe(chargeWithStripeRequest," paying bill job" );} catch (GeneralException e) {
+                    log.error("ERROR from BALANCE SERVICE : {}" , e.getMessage());
+                }
+                } catch (GeneralException e) {
                 e.printStackTrace();
             }
             transactionsDetails.setTransactionNumberPaid(transactionsIds);

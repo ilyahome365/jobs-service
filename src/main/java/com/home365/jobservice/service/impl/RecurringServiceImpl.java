@@ -152,7 +152,7 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
                     Transactions transactions = createTransaction(recurringCharge, nextDueDate);
                     List<Transactions> transactionsList = new ArrayList<>();
                     transactionsList.add(transactions);
-                    transactionsService.saveAllTransactions(transactionsList);
+//                    transactionsService.saveAllTransactions(transactionsList);
                 } else {
                     log.warn("No need to create a transaction for recurring {} since already has a transaction for month {}", recurringCharge.getId(), nextDueDate);
                 }
@@ -188,8 +188,8 @@ public class RecurringServiceImpl extends JobExecutorImpl implements RecurringSe
                 transaction.setReferenceTransactionId(rentTransactions.get(0).getTransactionId());
 
                 recurringCharge.setRemainInstallments(remainInstallments - 1);
-                save(recurringCharge);
-                transactionsService.save(transaction);
+//                save(recurringCharge);
+//                transactionsService.save(transaction);
             }
         }
     }
