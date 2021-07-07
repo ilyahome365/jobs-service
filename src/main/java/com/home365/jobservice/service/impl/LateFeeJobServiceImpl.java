@@ -53,9 +53,9 @@ public class LateFeeJobServiceImpl extends JobExecutorImpl {
     }
 
     @Override
-    public String execute(String locationId) throws Exception {
+    public String execute(String pmAccountId) throws Exception {
         BusinessActionRequest.setBusinessActionOnRequest(BusinessActionRequest.CREATION_LATE_FEE);
-        LocationRules locationRules = this.locationRulesService.findLocationRulesById(locationId).get();
+        LocationRules locationRules = this.locationRulesService.findByPmAccountId(pmAccountId).get();
         Rules rules = null;
         try {
             rules = objectMapper.readValue(locationRules.getRules(), Rules.class);

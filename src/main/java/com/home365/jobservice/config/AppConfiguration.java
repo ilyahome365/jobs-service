@@ -33,6 +33,7 @@ public class AppConfiguration implements SchedulingConfigurer {
     private final ActivateOwnerServiceImpl activateOwnerService;
     private final RecurringServiceImpl recurringService;
     private final ApplicantsServiceImpl applicantsService;
+    private final LateFeeJobServiceImpl lateFeeJobService;
 
     private final Map<String, Map<String, JobScheduledWrapper>> jobLocationToJob;
     private ScheduledTaskRegistrar scheduledTaskRegistrar;
@@ -46,7 +47,8 @@ public class AppConfiguration implements SchedulingConfigurer {
     public AppConfiguration(LeaseUpdatingServiceImpl leaseUpdatingService, DueDateNotificationServiceImpl dueDateNotificationService, ApplicationContext context,
                             ChangeBillStatusServiceImpl changeBillStatusService, JobsConfigurationService jobsConfigurationService,
                             PhaseOutPropertyServiceImpl phaseOutPropertyService, OwnerNotificationsServiceImpl ownerNotificationsService,
-                            ActivateOwnerServiceImpl activateOwnerService, RecurringServiceImpl recurringService, ApplicantsServiceImpl applicantsService, PayBillsServiceImpl payBillsServiceImpl, CreateWelcomeCreditServiceImpl createWelcomeCreditService, ReminderFirstContribution reminderFirstContribution) {
+                            ActivateOwnerServiceImpl activateOwnerService, RecurringServiceImpl recurringService, LateFeeJobServiceImpl lateFeeJobService, ApplicantsServiceImpl applicantsService, PayBillsServiceImpl payBillsServiceImpl, CreateWelcomeCreditServiceImpl createWelcomeCreditService, ReminderFirstContribution reminderFirstContribution) {
+
         this.leaseUpdatingService = leaseUpdatingService;
         this.changeBillStatusService = changeBillStatusService;
         this.jobsConfigurationService = jobsConfigurationService;
@@ -55,6 +57,7 @@ public class AppConfiguration implements SchedulingConfigurer {
         this.ownerNotificationsService = ownerNotificationsService;
         this.activateOwnerService = activateOwnerService;
         this.recurringService = recurringService;
+        this.lateFeeJobService = lateFeeJobService;
         this.applicantsService = applicantsService;
         this.payBillsServiceImpl = payBillsServiceImpl;
         this.createWelcomeCreditService = createWelcomeCreditService;
@@ -153,6 +156,17 @@ public class AppConfiguration implements SchedulingConfigurer {
         addJob(JobsConfigurationServiceImpl.JOBS_ID.CREATE_RECURRING_TRANSACTIONS.getName(),
                 Constants.AT_PM_ACCOUNT,
                 () -> recurringService.executeJob(Constants.AT_PM_ACCOUNT)
+        );
+
+
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
+                Constants.LV_PM_ACCOUNT,
+                () -> lateFeeJobService.executeJob(Constants.LV_PM_ACCOUNT)
+        );
+
+        addJob(JobsConfigurationServiceImpl.JOBS_ID.LATE_FEE.getName(),
+                Constants.AT_PM_ACCOUNT,
+                () -> lateFeeJobService.executeJob(Constants.AT_PM_ACCOUNT)
         );
 
 
