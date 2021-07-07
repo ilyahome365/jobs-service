@@ -14,9 +14,11 @@ import com.home365.jobservice.model.enums.TransferTo;
 import com.home365.jobservice.repository.AccountExtensionRepo;
 import com.home365.jobservice.repository.AccountRepository;
 import com.home365.jobservice.repository.CashPaymentTrackingRepository;
+import com.home365.jobservice.rest.ApplicantExternalService;
 import com.home365.jobservice.rest.BalanceServiceFeign;
 import com.home365.jobservice.rest.KeyCloakService;
 import com.home365.jobservice.rest.KeycloakResponse;
+import com.home365.jobservice.rest.model.ApplicantOccupiedProperty;
 import com.home365.jobservice.service.CashPaymentService;
 import com.home365.jobservice.service.PaymentStripeService;
 import com.home365.jobservice.service.PaymentsService;
@@ -35,6 +37,8 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class CashPaymentServiceImpl implements CashPaymentService {
+    @Autowired
+    private ApplicantExternalService applicantExternalService;
 
     @Autowired
     CashPaymentTrackingRepository cashPaymentTrackingRepository;
@@ -100,7 +104,13 @@ public class CashPaymentServiceImpl implements CashPaymentService {
                         token = keyCloakService.getKey();
                         PaymentNotification paymentNotification = new PaymentNotification();
                         paymentNotification.setChargeIds(transactions);
-                        balanceServiceFeign.notifyTransactionPaid(token.getAccess_token(),paymentNotification," payment notification from service with id : paymen" + cashPaymentTracking.getId());
+                        balanceServiceFeign.notifyTransactionPaid(token.getAccess_token(), paymentNotification, " payment notification from service with id : paymen" + cashPaymentTracking.getId());
+                        Optional<Transactions> transaction = transactionService.findById(transactions.get(0));
+                        if (transaction.isPresent()) {
+                            ApplicantOccupiedProperty applicantOccupiedProperty = new ApplicantOccupiedProperty();
+                            applicantOccupiedProperty.setPropertyId(transaction.get().getPropertyId());
+                            applicantExternalService.updateApplicantHomeOccupied(applicantOccupiedProperty);
+                        }
                     } catch (GeneralException e) {
                         e.printStackTrace();
                     }
@@ -113,11 +123,12 @@ public class CashPaymentServiceImpl implements CashPaymentService {
                         cashPaymentSdd.setCashId(cashPaymentTracking.getId());
                         cashPaymentSdd.setPaySefId(cashPaymentTracking.getPaysafeId());
                         dispositionWrapper.setCashPaymentSdd(cashPaymentSdd);
-                        balanceServiceFeign.dispositionTenantPayment(token.getAccess_token(), dispositionWrapper,cashPaymentTracking.getTenantId());
+                        balanceServiceFeign.dispositionTenantPayment(token.getAccess_token(), dispositionWrapper, cashPaymentTracking.getTenantId());
                     } catch (GeneralException e) {
                         log.error(e.getMessage());
                     }
                 }
+
 
             }
             cashPaymentTracking.setStatus(CashPaymentStatus.valueOf(eventType));

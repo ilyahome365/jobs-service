@@ -73,6 +73,7 @@ public class JobsConfigurationServiceImpl implements JobsConfigurationService {
         INSURANCE_PAY_BILLS(Constants.INSURANCE_PAY_BILLS, 9L),
         WELCOME_CREDIT(Constants.WELCOME_CREDIT,10L),
         REMINDER_CONTRIBUTION(Constants.REMINDER_FIRST_CONTRIBUTION,11L),
+        APPLICANT_NOTIFICATION(Constants.REMINDER_APPLICANT_FINISH_THE_FLOW,12L),
         CREATE_RECURRING_TRANSACTIONS("create-recurring-transactions", 17L);
 
         private final String name;
