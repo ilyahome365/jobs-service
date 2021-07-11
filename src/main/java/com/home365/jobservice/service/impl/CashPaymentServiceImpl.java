@@ -101,16 +101,17 @@ public class CashPaymentServiceImpl implements CashPaymentService {
 
                     handleCreditTransactions(cashPaymentTracking.getRelatedTransactions());
                     try {
-                        token = keyCloakService.getKey();
-                        PaymentNotification paymentNotification = new PaymentNotification();
-                        paymentNotification.setChargeIds(transactions);
-                        balanceServiceFeign.notifyTransactionPaid(token.getAccess_token(), paymentNotification, " payment notification from service with id : paymen" + cashPaymentTracking.getId());
                         Optional<Transactions> transaction = transactionService.findById(transactions.get(0));
                         if (transaction.isPresent()) {
                             ApplicantOccupiedProperty applicantOccupiedProperty = new ApplicantOccupiedProperty();
                             applicantOccupiedProperty.setPropertyId(transaction.get().getPropertyId());
                             applicantExternalService.updateApplicantHomeOccupied(applicantOccupiedProperty);
                         }
+                        token = keyCloakService.getKey();
+                        PaymentNotification paymentNotification = new PaymentNotification();
+                        paymentNotification.setChargeIds(transactions);
+                        balanceServiceFeign.notifyTransactionPaid(token.getAccess_token(), paymentNotification, " payment notification from service with id : paymen" + cashPaymentTracking.getId());
+
                     } catch (GeneralException e) {
                         e.printStackTrace();
                     }
