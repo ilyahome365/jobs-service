@@ -169,7 +169,7 @@ public class AppConfiguration implements SchedulingConfigurer {
                 () -> lateFeeJobService.executeJob(Constants.AT_PM_ACCOUNT)
         );
 
-
+//
         addJob(JobsConfigurationServiceImpl.JOBS_ID.APPLICANT_NOTIFICATION.getName(),
                 Constants.GE_PM_ACCOUNT,
                 () -> applicantsService.executeJob(Constants.GE_PM_ACCOUNT)
