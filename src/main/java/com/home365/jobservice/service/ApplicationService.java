@@ -26,4 +26,5 @@ public interface ApplicationService {
 
     JobExecutionResults startOwnerRentNotification(String locationId);
     JobExecutionResults startInsurancePayBills(String locationId);
+    JobExecutionResults startApplicantNotification();
 }

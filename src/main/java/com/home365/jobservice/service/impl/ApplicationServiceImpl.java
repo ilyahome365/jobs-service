@@ -22,6 +22,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final CreateWelcomeCreditServiceImpl createWelcomeCreditService;
     private final ReminderFirstContribution reminderFirstContribution;
     private final PayBillsServiceImpl payBillsService;
+    private final ApplicantsServiceImpl applicantsService;
 
     public ApplicationServiceImpl(ChangeBillStatusServiceImpl changeBillStatusService, RecurringServiceImpl recurringService,
                                   LateFeeJobServiceImpl lateFeeJobService,
@@ -32,7 +33,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                                   OwnerNotificationsServiceImpl ownerNotificationsService,
                                   ActivateOwnerServiceImpl activateOwnerService,
                                   CreateWelcomeCreditServiceImpl createWelcomeCreditService,
-                                  ReminderFirstContribution reminderFirstContribution, PayBillsServiceImpl payBillsService) {
+                                  ReminderFirstContribution reminderFirstContribution, PayBillsServiceImpl payBillsService, ApplicantsServiceImpl applicantsService) {
 
         this.changeBillStatusService = changeBillStatusService;
         this.lateFeeJobService = lateFeeJobService;
@@ -46,6 +47,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         this.createWelcomeCreditService = createWelcomeCreditService;
         this.reminderFirstContribution = reminderFirstContribution;
         this.payBillsService = payBillsService;
+        this.applicantsService = applicantsService;
     }
 
 
@@ -103,6 +105,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public JobExecutionResults startInsurancePayBills(String locationId) {
         return payBillsService.executeJob(locationId);
+    }
+
+    @Override
+    public JobExecutionResults startApplicantNotification() {
+        return applicantsService.executeJob("");
     }
 
     @Override
